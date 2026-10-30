@@ -1,0 +1,31 @@
+# Builds the Android app on Expo's servers. Run it from the Actions tab
+# ("Run workflow") and pick a profile:
+#   preview     an APK to install on a phone (test ads)
+#   production  an .aab for Google Play (real ads)
+# Needs one repository secret: EXPO_TOKEN (expo.dev → Account settings → Access tokens).
+name: EAS build
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Build profile
+        type: choice
+        options: [preview, production]
+        default: preview
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Install
+        run: npm --prefix app ci
+      # EAS builds the game itself on its servers (eas-build-post-install in app/package.json).
+      - name: Start the EAS build
+        working-directory: app
+        run: eas build --platform android --profile ${{ inputs.profile }} --non-interactive --no-wait

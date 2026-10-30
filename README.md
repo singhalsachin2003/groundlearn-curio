@@ -35,14 +35,30 @@ npx expo start --dev-client
 
 EAS runs `npm run build:game` itself before every build (`eas-build-post-install`).
 
+## Accounts and ids (set up 30 Oct 2026)
+
+| Service | What exists |
+|---|---|
+| Play Console (GroundLearn, singhalsachin2003@gmail.com) | App **Curio Island**, package `com.groundlearn.curio`, free, game |
+| AdMob (same Google account) | App `ca-app-pub-4560268294594538~5396479019`; interstitial `…/4083397349`; rewarded (reward: 1 Heart) `…/2770315674` |
+| RevenueCat | Project **Curio Island**; Play Store app; entitlement `ad_free` ← product `curio_ad_free` (non-consumable) |
+| Expo | Project `@singhalsachin2003s-team/curio-island` (`ea37f0fa-bfc2-4133-816f-5065afa09f01`) |
+
+The ad ids and RevenueCat's public SDK key are in `app/src/config.ts`. Development and preview builds always use Google's test ads.
+
+## Build the app
+
+1. Once: create an Expo access token (expo.dev → Account settings → Access tokens) and add it to this repo as the Actions secret `EXPO_TOKEN`.
+2. GitHub → Actions → **EAS build** → Run workflow → `preview` for an APK to install on a phone, or `production` for the Play .aab.
+3. The build appears on expo.dev under the curio-island project; download it from there.
+
 ## Before the first Play Store release
 
 | Step | Where | Notes |
 |---|---|---|
-| Create the AdMob app and two ad units (interstitial, rewarded) | AdMob | Mark the app as directed to children. |
-| Set `ADMOB_ANDROID_APP_ID`, `EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID`, `EXPO_PUBLIC_ADMOB_REWARDED_ID` | EAS environment variables | Without them the build uses Google's test ads. |
-| Create the in-app product `curio_ad_free` (one-time, ₹99) | Play Console | Non-consumable. |
-| Add it to RevenueCat with entitlement `ad_free`; set `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` | RevenueCat, EAS | Same RevenueCat account as OTC Learn and Cornerstone. |
+| Link the AdMob app to the Play listing once it is live | AdMob → App settings | Ads serve fully only after AdMob's app review. |
+| Create the in-app product `curio_ad_free` (one-time, ₹99) after the first .aab is uploaded | Play Console → Monetise → In-app products | Play needs a build with billing before products can be made. |
+| Upload the Play service-account JSON in RevenueCat (Curio Island → Apps → Play Store) | RevenueCat | The same JSON used for OTC Learn and Cornerstone works. |
 | Publish the privacy policy at `https://groundlearn.com/curio/privacy` | groundlearn.com | Linked from Parent Corner. |
 | Target audience and content: ages 5 and under, 6–8, 9–12; Families Policy; Data safety form | Play Console | No accounts, no personal data; AdMob collects device data for ads. |
 | Replace the placeholder icon and splash | `app/assets` | |
