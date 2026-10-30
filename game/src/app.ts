@@ -4,7 +4,7 @@ import { t, setLang, getLang, type Key } from './i18n';
 import { LABS, COMING, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
 import { S, RULES, active, addProfile, removeProfile, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
 import { send, onNative, inApp } from './native';
-import { mountWorld, unmountWorld, worldDialogOpen, worldEscape } from './worlds';
+import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
 import { createIsland, ZONE_OF, type Island, type ZoneId, type ZoneState } from './island';
 import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
@@ -253,6 +253,7 @@ function enterWorld(lab: Lab) {
   $('#wLab').textContent = `${lab.icon} ${nm(lab.name)}`;
   $('#wBackTxt').textContent = t('island');
   $('#world').hidden = false; $('#screen').hidden = true; showIsland(false);
+  setWorldLang(S.lang);
   frame = mountWorld($('#worldHost'), lab.world);
   refreshPills();
 }

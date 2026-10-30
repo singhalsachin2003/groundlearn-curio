@@ -7,12 +7,16 @@ import colourSrc from '../worlds/colour.html?raw';
 import inventorSrc from '../worlds/inventor.html?raw';
 import type { WorldId } from './labs';
 import { installFonts } from './fonts';
+import { makeTranslator } from './hi/translate';
 
 const SRC: Record<WorldId, string> = { colour: colourSrc, inventor: inventorSrc };
 
 // The prototypes expect a global THREE with OrbitControls attached, as the CDN build had.
 (window as unknown as Record<string, unknown>).curioTHREE = Object.assign({}, THREE_NS, { OrbitControls });
 (window as unknown as Record<string, unknown>).curioInstallFonts = installFonts;
+(window as unknown as Record<string, unknown>).curioMakeTR = makeTranslator;
+/** Language for the next world: Hindi turns on the Inventor Lab translator. */
+export function setWorldLang(l: string) { (window as unknown as Record<string, unknown>).curioLang = l; }
 
 /** Hide each world's own brand, game tabs, age, language and sound controls: the app shell owns those. */
 const HIDE: Record<WorldId, string> = {
@@ -22,7 +26,7 @@ const HIDE: Record<WorldId, string> = {
 
 const BOOT = `(function(){var P=window.parent;window.THREE=P.curioTHREE;window.curio=P.curioWorld;
 var ready=Promise.race([P.curioInstallFonts(document,FontFace),new Promise(function(r){setTimeout(r,2500)})]);
-document.addEventListener('DOMContentLoaded',function(){ready.then(function(){var s=document.getElementById('curio-main');var n=document.createElement('script');n.textContent=s.textContent;document.body.appendChild(n);if(P.curioWorldReady)P.curioWorldReady();});});})();`;
+document.addEventListener('DOMContentLoaded',function(){ready.then(function(){if(P.curioLang==='hi'&&document.getElementById('mMeta')){window.curioTR=P.curioMakeTR();window.curioTR.observe(document);}var s=document.getElementById('curio-main');var n=document.createElement('script');n.textContent=s.textContent;document.body.appendChild(n);if(P.curioWorldReady)P.curioWorldReady();});});})();`;
 
 export function worldDoc(id: WorldId): string {
   let src = SRC[id]

@@ -2886,6 +2886,7 @@ games.balance = (function () {
    ===================================================================== */
 function renderMission() {
   const m = games[P.tab].mission();
+  if (window.curioTR) { m.meta = curioTR.meta(m.meta); m.text = curioTR.text(m.text); if (m.hint) m.hint = curioTR.text(m.hint); } // Curio app: Hindi
   $('mMeta').textContent = m.meta; $('mText').innerHTML = m.text;
   const keep = !$('mHint').hidden && $('mHint').textContent === (m.hint || '');
   $('mHint').textContent = m.hint || ''; $('mHint').hidden = !keep; $('mHintBtn').hidden = !m.hint; $('mHintBtn').textContent = keep ? 'Hide hint' : 'Show hint';
