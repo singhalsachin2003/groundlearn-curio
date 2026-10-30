@@ -1,0 +1,11 @@
+{
+  "name": "groundlearn-curio",
+  "private": true,
+  "scripts": {
+    "setup": "npm --prefix game ci && npm --prefix app ci",
+    "build:game": "npm --prefix game run build",
+    "test:game": "python3 -I game/tests/smoke.py",
+    "typecheck": "npm --prefix game run typecheck && npm --prefix app run typecheck",
+    "start": "npm run build:game && npm --prefix app start"
+  }
+}
