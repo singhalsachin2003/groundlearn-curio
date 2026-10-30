@@ -21,6 +21,8 @@ export interface Profile {
   /** "lab:item" discoveries already rewarded. */
   disc: string[];
   created: number;
+  /** Today's Curio of the day (see daily.ts). */
+  daily?: { day: string; lab: string; done: boolean };
 }
 
 export interface Shell {
@@ -39,7 +41,7 @@ export const RULES = {
   refillMinAdFree: 10,
   heartCost: 30,
   adHeartsPerDay: 3,
-  coins: { correct: 10, level: 20, star: 5, discovery: 15 },
+  coins: { correct: 10, level: 20, star: 5, discovery: 15, daily: 10 },
   ads: { quietStartSec: 180, gapSec: 270 },
 };
 

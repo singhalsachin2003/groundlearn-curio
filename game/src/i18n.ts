@@ -78,6 +78,14 @@ const EN = {
   thanksAd: 'Thanks for watching!',
   back: 'Back',
   switchPlayer: 'Switch player',
+  curioDay: 'Curio of the day',
+  go: 'Go',
+  dailyDone: 'Done! Come back tomorrow for a new one.',
+  dailyAllDone: 'You have finished every lab here. Amazing!',
+  allWorkshops: 'All workshops',
+  studio: 'Colour Studio', kitchen: 'Kitchen Lab', yard: 'Gadget Yard', garden: 'Pattern Garden', pond: 'Creature Pond',
+  soonBadge: 'Coming soon',
+  bigKids: 'For big kids',
 };
 export type Key = keyof typeof EN;
 
@@ -157,6 +165,14 @@ const HI: Record<Key, string> = {
   thanksAd: 'देखने के लिए धन्यवाद!',
   back: 'वापस',
   switchPlayer: 'खिलाड़ी बदलो',
+  curioDay: 'आज की जिज्ञासा',
+  go: 'चलो',
+  dailyDone: 'हो गया! कल नई चुनौती के लिए आना।',
+  dailyAllDone: 'तुमने यहाँ की हर लैब पूरी कर ली। कमाल!',
+  allWorkshops: 'सारी कार्यशालाएँ',
+  studio: 'रंगों की कार्यशाला', kitchen: 'रसोई प्रयोगशाला', yard: 'जुगाड़ आँगन', garden: 'पैटर्न बगीचा', pond: 'जीवों का तालाब',
+  soonBadge: 'जल्द आ रहा है',
+  bigKids: 'बड़े बच्चों के लिए',
 };
 
 let lang: Lang = 'en';

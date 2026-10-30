@@ -5,6 +5,8 @@ import { LABS, COMING, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, 
 import { S, RULES, active, addProfile, removeProfile, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
 import { send, onNative, inApp } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape } from './worlds';
+import { createIsland, ZONE_OF, type Island, type ZoneId, type ZoneState } from './island';
+import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
 export const PRIVACY_URL = 'https://groundlearn.com/curio/privacy';
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🦉', '🐬', '🐘', '🦋'];
@@ -25,11 +27,14 @@ let current: { lab: Lab; world: WorldId; pid: string } | null = null;
 const sessionStart = Date.now();
 let lastAd = 0;
 let price = '₹99';
+let island: Island | null = null;
+const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* =================================================================== boot */
 export function start(el: HTMLElement) {
   root = el; setLang(S.lang);
   root.innerHTML = `
+    <div id="islandHost" class="island-host" hidden></div>
     <main id="screen" class="screen"></main>
     <div id="world" class="world" hidden>
       <div id="worldHost" class="world-host"></div>
@@ -78,6 +83,7 @@ export function start(el: HTMLElement) {
     },
   };
 
+  (window as unknown as Record<string, unknown>).__shell = { S, active }; // test hook
   setInterval(refreshPills, 1000);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !frame) onBack(); });
   if (active()) hub(); else players();
@@ -89,14 +95,14 @@ function rewardDiff(world: WorldId, oldRaw: string | null, newRaw: string | null
   const p = active(); if (!p || !newRaw) return;
   let a: Record<string, unknown> = {}, b: Record<string, unknown> = {};
   try { a = oldRaw ? JSON.parse(oldRaw) : {}; b = JSON.parse(newRaw); } catch { return; }
-  let gained = 0; const notes: string[] = [];
+  let gained = 0; const notes: string[] = []; const moved = new Set<string>();
   if (world === 'inventor') {
     for (const [field, lab] of Object.entries(LEVEL_FIELDS)) {
       const nv = (b[field] || {}) as Record<string, unknown>;
       for (const [lvl, val] of Object.entries(nv)) {
         const key = `${lab}:${lvl}`, stars = typeof val === 'number' ? val : 0, had = p.levels[key];
-        if (had === undefined) { gained += RULES.coins.level + stars * RULES.coins.star; p.levels[key] = stars; notes.push(t('levelDone')); }
-        else if (stars > had) { gained += (stars - had) * RULES.coins.star; p.levels[key] = stars; notes.push(`★ ${stars - had} ${stars - had === 1 ? t('star') : t('stars')}`); }
+        if (had === undefined) { gained += RULES.coins.level + stars * RULES.coins.star; p.levels[key] = stars; notes.push(t('levelDone')); moved.add(lab); }
+        else if (stars > had) { gained += (stars - had) * RULES.coins.star; p.levels[key] = stars; moved.add(lab); notes.push(`★ ${stars - had} ${stars - had === 1 ? t('star') : t('stars')}`); }
       }
     }
   }
@@ -104,15 +110,17 @@ function rewardDiff(world: WorldId, oldRaw: string | null, newRaw: string | null
     const was = new Set(Array.isArray(a[field]) ? (a[field] as string[]) : []);
     for (const item of (Array.isArray(b[field]) ? (b[field] as string[]) : [])) {
       const key = `${lab}:${item}`;
-      if (!was.has(item) && !p.disc.includes(key)) { p.disc.push(key); gained += RULES.coins.discovery; notes.push(t('newDiscovery')); }
+      if (!was.has(item) && !p.disc.includes(key)) { p.disc.push(key); gained += RULES.coins.discovery; notes.push(t('newDiscovery')); moved.add(lab); }
     }
   }
-  if (gained > 0) { addCoins(p, gained); toast(`+${gained} ${t('plusCoins')} · ${notes[0]}`); refreshPills(); }
+  if (gained > 0) { addCoins(p, gained); toast(`+${gained} ${t('plusCoins')} · ${notes[0]}`); }
+  if (dailyProgress(p, moved)) setTimeout(() => toast(`+${RULES.coins.daily} ${t('plusCoins')} · ${t('curioDay')} ✓`), 700);
+  refreshPills();
 }
 
 /* =================================================================== screens */
 function players() {
-  closeSheet();
+  closeSheet(); showIsland(false);
   const list = S.profiles.map(p => `<button class="player" data-pid="${p.id}"><span class="av">${p.avatar}</span><b>${esc(p.name || '—')}</b><small>${t(p.band)}</small></button>`).join('');
   $('#screen').innerHTML = `
     <section class="center">
@@ -127,6 +135,7 @@ function players() {
 }
 
 function newPlayer() {
+  showIsland(false);
   let avatar = AVATARS[S.profiles.length % AVATARS.length], band: Band | null = null;
   $('#screen').innerHTML = `
     <section class="center form">
@@ -159,32 +168,79 @@ function soonCard(c: { icon: string; en: string; hi: string; subject: string }) 
 function hub() {
   const p = active(); if (!p) return players();
   closeSheet();
-  const colour = LABS.find(l => l.id === 'colour')!, inv = LABS.filter(l => l.world === 'inventor');
-  let body = '';
-  if (p.band === 'inventor') body = `<h2>${t('workshops')}</h2><div class="labs">${inv.map(l => labCard(l, p)).join('')}${labCard(colour, p)}${COMING.inventor.map(soonCard).join('')}</div>`;
-  else body = `<h2>${t('workshops')}</h2><div class="labs">${labCard(colour, p)}${COMING[p.band].map(soonCard).join('')}</div>` +
-    (p.band === 'tinkerer' ? `<h2>${t('challengeLabs')}</h2><p class="note">${t('challengeNote')}</p><div class="labs">${inv.map(l => labCard(l, p)).join('')}</div>` : '');
+  const dl = dailyFor(p), dt = dl ? dailyText(dl, getLang()) : null;
+  const daily = !dt ? `<div class="daily card"><span class="dic">🏆</span><div class="dtx"><small>${t('curioDay')}</small><p>${t('dailyAllDone')}</p></div></div>`
+    : `<div class="daily card ${dl!.done ? 'done' : ''}"><span class="dic">${dt.icon}</span><div class="dtx"><small>${t('curioDay')} · ${esc(dt.who)}</small><p>${dl!.done ? t('dailyDone') : esc(dt.ask)}</p></div>
+       ${dl!.done ? '<span class="tick">✓</span>' : `<button class="btn primary" data-lab="${dt.lab.id}">${dt.lab.icon} ${t('go')}</button>`}</div>`;
   $('#screen').innerHTML = `
-    <header class="topbar">
-      <button class="pill who" id="hWho" aria-label="${t('switchPlayer')}"><span class="av">${p.avatar}</span><span class="nm">${esc(p.name || t(p.band))}</span></button>
-      <span class="grow"></span>
-      <button class="pill coins" id="hCoins"></button>
-      <button class="pill hearts" id="hHearts"></button>
-      <button class="pill" id="hJournal" aria-label="${t('journal')}">📖<span class="long"> ${t('journal')}</span></button>
-      <button class="pill" id="hParent" aria-label="${t('grownUps')}">👪<span class="long"> ${t('grownUps')}</span></button>
-    </header>
-    <section class="hub">
-      <div class="hello"><h1>${t('hello')}${p.name ? ', ' + esc(p.name) : ''}!</h1><span class="chip">${t(p.band)} · ${t(BANDS.find(b => b.id === p.band)!.ages)}</span></div>
-      ${body}
-    </section>`;
+    <div class="hub3d">
+      <header class="topbar">
+        <button class="pill who" id="hWho" aria-label="${t('switchPlayer')}"><span class="av">${p.avatar}</span><span class="nm">${esc(p.name || t(p.band))}</span></button>
+        <span class="grow"></span>
+        <button class="pill coins" id="hCoins"></button>
+        <button class="pill hearts" id="hHearts"></button>
+        <button class="pill" id="hJournal" aria-label="${t('journal')}">📖<span class="long"> ${t('journal')}</span></button>
+        <button class="pill" id="hParent" aria-label="${t('grownUps')}">👪<span class="long"> ${t('grownUps')}</span></button>
+      </header>
+      <div class="hubfoot" id="hubFoot">
+        ${daily}
+        <button class="btn" id="hAll">🗺️ ${t('allWorkshops')}</button>
+      </div>
+    </div>`;
+  $('#screen').classList.add('over-island');
   $('#hWho').onclick = () => players();
   $('#hCoins').onclick = () => coinsInfo();
   $('#hHearts').onclick = () => heartsInfo();
   $('#hJournal').onclick = () => journal();
   $('#hParent').onclick = () => gate(parentCorner);
-  document.querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => enterWorld(LABS.find(l => l.id === b.dataset.lab)!));
+  $('#hAll').onclick = () => allWorkshops();
+  document.querySelectorAll<HTMLElement>('#hubFoot [data-lab]').forEach(b => b.onclick = () => enterWorld(LABS.find(l => l.id === b.dataset.lab)!));
+  showIsland(true);
+  island!.setZones(zoneStates(p));
+  requestAnimationFrame(fitIsland);
   refreshPills();
 }
+
+const ZONE_SUBJECT: Record<ZoneId, Lab['subject']> = { studio: 'colour', kitchen: 'chem', yard: 'phy', garden: 'math', pond: 'bio' };
+function zoneLabs(p: Profile, z: ZoneId) { return labsFor(p.band).filter(l => ZONE_OF[l.subject] === z); }
+function zoneStates(p: Profile): ZoneState[] {
+  return (Object.keys(ZONE_SUBJECT) as ZoneId[]).map(z => {
+    const labs = zoneLabs(p, z);
+    const done = labs.reduce((s, l) => s + labProgress(l, readSlot(p.id, l.world)), 0), tot = labs.reduce((s, l) => s + l.progress.total, 0);
+    const challenge = p.band === 'tinkerer' && z !== 'studio';
+    return { id: z, label: t(z), progress: tot ? done / tot : 0, locked: !labs.length, badge: !labs.length ? t('soonBadge') : challenge ? t('bigKids') : undefined };
+  });
+}
+function zoneSheet(z: ZoneId) {
+  const p = active(); if (!p) return;
+  const labs = zoneLabs(p, z), soon = COMING[p.band].filter(c => ZONE_OF[c.subject] === z);
+  const note = p.band === 'tinkerer' && z !== 'studio' && labs.length ? `<p class="muted center-t">${t('challengeNote')}</p>` : '';
+  sheet('zone', `<h2>${t(z)}</h2>${note}<div class="labs in-sheet">${labs.map(l => labCard(l, p)).join('')}${soon.map(soonCard).join('')}</div>
+    <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
+  $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(LABS.find(l => l.id === b.dataset.lab)!); });
+}
+function allWorkshops() {
+  const p = active(); if (!p) return;
+  const colour = LABS.find(l => l.id === 'colour')!, inv = LABS.filter(l => l.world === 'inventor');
+  let body = '';
+  if (p.band === 'inventor') body = `<div class="labs in-sheet">${inv.map(l => labCard(l, p)).join('')}${labCard(colour, p)}${COMING.inventor.map(soonCard).join('')}</div>`;
+  else body = `<div class="labs in-sheet">${labCard(colour, p)}${COMING[p.band].map(soonCard).join('')}</div>` +
+    (p.band === 'tinkerer' ? `<h3>${t('challengeLabs')}</h3><p class="muted">${t('challengeNote')}</p><div class="labs in-sheet">${inv.map(l => labCard(l, p)).join('')}</div>` : '');
+  sheet('all', `<h2>${t('allWorkshops')}</h2>${body}<div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
+  $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(LABS.find(l => l.id === b.dataset.lab)!); });
+}
+function showIsland(on: boolean) {
+  const host = $('#islandHost');
+  if (on && !island) island = createIsland(host, z => zoneSheet(z), reduceMotion);
+  host.hidden = !on; island?.pause(!on);
+  if (!on) $('#screen').classList.remove('over-island');
+}
+function fitIsland() {
+  if (!island || $('#islandHost').hidden) return;
+  const w = innerWidth, h = innerHeight, top = $('.topbar').getBoundingClientRect().bottom + 8, foot = $('#hubFoot').getBoundingClientRect().top - 8;
+  island.fit(w, h, top, h - foot);
+}
+window.addEventListener('resize', () => requestAnimationFrame(fitIsland));
 
 /* =================================================================== worlds */
 function enterWorld(lab: Lab) {
@@ -196,7 +252,7 @@ function enterWorld(lab: Lab) {
   current = { lab, world: lab.world, pid: p.id };
   $('#wLab').textContent = `${lab.icon} ${nm(lab.name)}`;
   $('#wBackTxt').textContent = t('island');
-  $('#world').hidden = false; $('#screen').hidden = true;
+  $('#world').hidden = false; $('#screen').hidden = true; showIsland(false);
   frame = mountWorld($('#worldHost'), lab.world);
   refreshPills();
 }
@@ -223,7 +279,7 @@ function maybeInterstitial() {
 function onBack() {
   if (!$('#sheet').hidden) { closeSheet(); return; }
   if (frame) { if (worldDialogOpen(frame)) worldEscape(frame); else leaveWorld(); return; }
-  if (active() && $('#screen').querySelector('.hub')) { players(); return; }
+  if (active() && $('#screen').querySelector('.hub3d')) { players(); return; }
   if ($('#screen').querySelector('.form') && S.profiles.length) { players(); return; }
   send({ t: 'exit' });
 }

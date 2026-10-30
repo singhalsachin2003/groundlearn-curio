@@ -43,7 +43,7 @@ export const COMING: Record<Band, { icon: string; en: string; hi: string; subjec
   ],
   tinkerer: [
     { icon: '💧', en: 'Atom Snap', hi: 'परमाणु जोड़ो', subject: 'chem' },
-    { icon: '🍋', en: 'Kitchen Lab', hi: 'रसोई प्रयोगशाला', subject: 'chem' },
+    { icon: '🍋', en: 'Kitchen Reactions', hi: 'रसोई की अभिक्रियाएँ', subject: 'chem' },
     { icon: '✨', en: 'Mirror Maze', hi: 'दर्पण भूलभुलैया', subject: 'phy' },
     { icon: '🗺️', en: 'Coordinate Pictures', hi: 'निर्देशांक चित्र', subject: 'math' },
     { icon: '🌱', en: 'Pea Crosses', hi: 'मटर के मेल', subject: 'bio' },
