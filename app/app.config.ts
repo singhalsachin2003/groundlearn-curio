@@ -27,7 +27,16 @@ const config: ExpoConfig = {
   },
   plugins: [
     ['react-native-google-mobile-ads', { androidAppId: ADMOB_APP_ID, iosAppId: 'ca-app-pub-3940256099942544~1458002511' }],
-    'expo-build-properties',
+    // Expo SDK 58 turns on R8 code shrinking by default, and it strips the WorkManager
+    // database the Google ads SDK opens at startup: the app crashed before showing anything.
+    ['expo-build-properties', {
+      android: {
+        enableMinifyInReleaseBuilds: false,
+        enableShrinkResourcesInReleaseBuilds: false,
+        // Kept in case shrinking is turned back on: Room builds these classes by reflection.
+        extraProguardRules: '-keep class * extends androidx.room.RoomDatabase { <init>(); }\n-keep class androidx.work.impl.** { *; }',
+      },
+    }],
   ],
   extra: { eas: { projectId: 'ea37f0fa-bfc2-4133-816f-5065afa09f01' } },
 };

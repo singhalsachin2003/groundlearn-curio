@@ -6,13 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       build_id:
-        description: EAS build id (empty = newest finished preview)
+        description: EAS build id (empty = newest preview, waits for it)
         type: string
         default: ''
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 70
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,7 +29,14 @@ jobs:
           if [ -n "${{ inputs.build_id }}" ]; then
             eas build:view "${{ inputs.build_id }}" --json > build.json
           else
-            eas build:list --platform android --profile preview --status finished --limit 1 --json --non-interactive > list.json
+            # Newest preview build; if it is still building, wait for it (up to 40 min).
+            for i in $(seq 1 80); do
+              eas build:list --platform android --profile preview --limit 1 --json --non-interactive > list.json
+              st=$(node -e "console.log(require('./list.json')[0].status)")
+              echo "newest preview build: $st"
+              case "$st" in FINISHED) break;; ERRORED|CANCELED) exit 1;; esac
+              sleep 30
+            done
             node -e "console.log(JSON.stringify(require('./list.json')[0]))" > build.json
           fi
           node -e "const b=require('./build.json');console.log('build',b.id,b.appVersion,b.gitCommitHash);console.log(b.artifacts.buildUrl)"
