@@ -30,12 +30,18 @@ const ASK: Record<string, { en: string; hi: string }> = {
   genes: { en: 'Can you finish a new pea-plant experiment?', hi: 'क्या तुम मटर के पौधों का एक नया प्रयोग पूरा कर सकते हो?' },
   body: { en: 'Can you finish a new journey through the body?', hi: 'क्या तुम शरीर के अंदर एक नया सफ़र पूरा कर सकते हो?' },
   eco: { en: 'Can you finish a new forest experiment?', hi: 'क्या तुम जंगल का एक नया प्रयोग पूरा कर सकते हो?' },
+  atom: { en: 'Can you snap together a new molecule?', hi: 'क्या तुम कोई नया अणु जोड़ सकते हो?' },
+  kitchen: { en: 'Can you mix something new in the kitchen?', hi: 'क्या तुम रसोई में कुछ नया मिला सकते हो?' },
+  mirror: { en: 'Can you guide the beam through a new maze?', hi: 'क्या तुम किरण को एक नई भूलभुलैया से निकाल सकते हो?' },
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
 function hash(s: string) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 
-export function labsFor(band: Band): Lab[] { return band === 'explorer' ? LABS.filter(l => l.id === 'colour') : LABS; }
+export function labsFor(band: Band): Lab[] {
+  if (band === 'explorer') return LABS.filter(l => l.id === 'colour');
+  return LABS.filter(l => !l.only || l.only === band);
+}
 
 /** Today's ask for this player, chosen once per day from labs they have not finished. */
 export function dailyFor(p: Profile & { daily?: Daily }): Daily | null {

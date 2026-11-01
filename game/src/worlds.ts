@@ -5,11 +5,12 @@ import * as THREE_NS from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import colourSrc from '../worlds/colour.html?raw';
 import inventorSrc from '../worlds/inventor.html?raw';
+import tinkererSrc from '../worlds/tinkerer.html?raw';
 import type { WorldId } from './labs';
 import { installFonts } from './fonts';
 import { makeTranslator } from './hi/translate';
 
-const SRC: Record<WorldId, string> = { colour: colourSrc, inventor: inventorSrc };
+const SRC: Record<WorldId, string> = { colour: colourSrc, inventor: inventorSrc, tinkerer: tinkererSrc };
 
 // The prototypes expect a global THREE with OrbitControls attached, as the CDN build had.
 (window as unknown as Record<string, unknown>).curioTHREE = Object.assign({}, THREE_NS, { OrbitControls });
@@ -21,12 +22,13 @@ export function setWorldLang(l: string) { (window as unknown as Record<string, u
 /** Hide each world's own brand, game tabs, age, language and sound controls: the app shell owns those. */
 const HIDE: Record<WorldId, string> = {
   inventor: '.top-row>*{display:none!important}.top-row{min-height:46px}',
+  tinkerer: '.top-row>*{display:none!important}.top-row{min-height:46px}',
   colour: '.hud-top .row>*{display:none!important}.hud-top .row{min-height:46px}',
 };
 
 const BOOT = `(function(){var P=window.parent;window.THREE=P.curioTHREE;window.curio=P.curioWorld;
 var ready=Promise.race([P.curioInstallFonts(document,FontFace),new Promise(function(r){setTimeout(r,2500)})]);
-document.addEventListener('DOMContentLoaded',function(){ready.then(function(){if(P.curioLang==='hi'&&document.getElementById('mMeta')){window.curioTR=P.curioMakeTR();window.curioTR.observe(document);}var s=document.getElementById('curio-main');var n=document.createElement('script');n.textContent=s.textContent;document.body.appendChild(n);if(P.curioWorldReady)P.curioWorldReady();});});})();`;
+document.addEventListener('DOMContentLoaded',function(){ready.then(function(){if(P.curioLang==='hi'&&document.getElementById('mMeta')&&!document.getElementById('noTR')){window.curioTR=P.curioMakeTR();window.curioTR.observe(document);}var s=document.getElementById('curio-main');var n=document.createElement('script');n.textContent=s.textContent;document.body.appendChild(n);if(P.curioWorldReady)P.curioWorldReady();});});})();`;
 
 export function worldDoc(id: WorldId): string {
   let src = SRC[id]
@@ -43,7 +45,7 @@ export interface WorldWindow extends Window { __curioDispose?: () => void; __cur
 export function mountWorld(host: HTMLElement, id: WorldId): HTMLIFrameElement {
   const f = document.createElement('iframe');
   f.className = 'world-frame';
-  f.title = id === 'colour' ? 'Colour Studio' : 'Inventor Lab';
+  f.title = id === 'colour' ? 'Colour Studio' : id === 'tinkerer' ? 'Tinkerer Lab' : 'Inventor Lab';
   f.setAttribute('allow', 'autoplay');
   f.srcdoc = worldDoc(id);
   host.appendChild(f);

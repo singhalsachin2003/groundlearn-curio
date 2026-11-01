@@ -2,7 +2,7 @@
 // world's save. Level counts must match the arrays inside the world files.
 export type Band = 'explorer' | 'tinkerer' | 'inventor';
 export type Subject = 'colour' | 'chem' | 'phy' | 'math' | 'bio';
-export type WorldId = 'colour' | 'inventor';
+export type WorldId = 'colour' | 'inventor' | 'tinkerer';
 
 export interface Lab {
   id: string;
@@ -13,6 +13,8 @@ export interface Lab {
   blurb: { en: string; hi: string };
   /** Field in the world save that records progress, and how many items there are. */
   progress: { field: string; total: number; kind: 'levels' | 'found' };
+  /** Labs made for one age band only (the Tinkerer labs); the rest are open to older bands. */
+  only?: Band;
 }
 
 export const LABS: Lab[] = [
@@ -29,7 +31,12 @@ export const LABS: Lab[] = [
   { id: 'genes', world: 'inventor', subject: 'bio', icon: '🌱', name: { en: 'Genes', hi: 'जीन' }, blurb: { en: 'Grow pea plants', hi: 'मटर के पौधे उगाओ' }, progress: { field: 'geneDone', total: 7, kind: 'levels' } },
   { id: 'body', world: 'inventor', subject: 'bio', icon: '❤️', name: { en: 'Body', hi: 'शरीर' }, blurb: { en: 'Travel through you', hi: 'शरीर के अंदर सफ़र' }, progress: { field: 'bodyDone', total: 8, kind: 'levels' } },
   { id: 'eco', world: 'inventor', subject: 'bio', icon: '🐅', name: { en: 'Ecosystem', hi: 'पारितंत्र' }, blurb: { en: 'Grass, deer, tigers', hi: 'घास, हिरण, बाघ' }, progress: { field: 'ecoDone', total: 5, kind: 'levels' } },
+  // Round 2: the Tinkerer labs (ages 7-9).
+  { id: 'atom', world: 'tinkerer', only: 'tinkerer', subject: 'chem', icon: '💧', name: { en: 'Atom Snap', hi: 'परमाणु जोड़ो' }, blurb: { en: 'Snap atoms into molecules', hi: 'परमाणु जोड़कर अणु बनाओ' }, progress: { field: 'atomDone', total: 8, kind: 'levels' } },
+  { id: 'kitchen', world: 'tinkerer', only: 'tinkerer', subject: 'chem', icon: '🍋', name: { en: 'Kitchen Reactions', hi: 'रसोई की अभिक्रियाएँ' }, blurb: { en: 'Mix safe things, see what happens', hi: 'चीज़ें मिलाओ, देखो क्या होता है' }, progress: { field: 'kitchenFound', total: 12, kind: 'found' } },
+  { id: 'mirror', world: 'tinkerer', only: 'tinkerer', subject: 'phy', icon: '✨', name: { en: 'Mirror Maze', hi: 'दर्पण भूलभुलैया' }, blurb: { en: 'Bounce the beam to the star', hi: 'किरण को तारे तक पहुँचाओ' }, progress: { field: 'mirrorStars', total: 8, kind: 'levels' } },
 ];
+
 
 /** Planned games shown as "coming soon" so younger bands can see what is on the way. */
 export const COMING: Record<Band, { icon: string; en: string; hi: string; subject: Subject }[]> = {
@@ -42,9 +49,6 @@ export const COMING: Record<Band, { icon: string; en: string; hi: string; subjec
     { icon: '🐸', en: 'Pond Feeding', hi: 'तालाब का खाना', subject: 'bio' },
   ],
   tinkerer: [
-    { icon: '💧', en: 'Atom Snap', hi: 'परमाणु जोड़ो', subject: 'chem' },
-    { icon: '🍋', en: 'Kitchen Reactions', hi: 'रसोई की अभिक्रियाएँ', subject: 'chem' },
-    { icon: '✨', en: 'Mirror Maze', hi: 'दर्पण भूलभुलैया', subject: 'phy' },
     { icon: '🗺️', en: 'Coordinate Pictures', hi: 'निर्देशांक चित्र', subject: 'math' },
     { icon: '🌱', en: 'Pea Crosses', hi: 'मटर के मेल', subject: 'bio' },
     { icon: '🐟', en: 'Food Chains', hi: 'खाद्य शृंखला', subject: 'bio' },
@@ -57,17 +61,19 @@ export const COMING: Record<Band, { icon: string; en: string; hi: string; subjec
   ],
 };
 
-export const WORLD_SAVE_KEY: Record<WorldId, string> = { colour: 'curio-colour-v1', inventor: 'curio-inventor-v1' };
+export const WORLD_SAVE_KEY: Record<WorldId, string> = { colour: 'curio-colour-v1', inventor: 'curio-inventor-v1', tinkerer: 'curio-tinkerer-v1' };
 
 /** How a world save reports finished levels (field → lab id). Values are true or a star count. */
 export const LEVEL_FIELDS: Record<string, string> = {
   launchStars: 'launch', lightStars: 'light', graphStars: 'graph', bodyDone: 'body', balSolved: 'balance',
   geneDone: 'genes', circDone: 'circuit', ecoDone: 'eco', machDone: 'mach', netsDone: 'nets',
+  atomDone: 'atom', mirrorStars: 'mirror',
 };
 /** Collections in a world save where each new item is a discovery (field → lab id). */
 export const FOUND_FIELDS: Record<WorldId, Record<string, string>> = {
   inventor: { forgeFound: 'forge', rxFound: 'react', netsFound: 'nets' },
   colour: { found: 'colour' },
+  tinkerer: { kitchenFound: 'kitchen' },
 };
 
 export function labProgress(lab: Lab, save: Record<string, unknown> | null): number {

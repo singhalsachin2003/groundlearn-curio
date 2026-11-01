@@ -77,7 +77,7 @@ export function addProfile(name: string, avatar: string, band: Band): Profile {
 }
 export function removeProfile(id: string) {
   S.profiles = S.profiles.filter(p => p.id !== id);
-  (['colour', 'inventor'] as WorldId[]).forEach(w => writeRaw(slotKey(id, w), null));
+  (['colour', 'inventor', 'tinkerer'] as WorldId[]).forEach(w => writeRaw(slotKey(id, w), null));
   if (S.active === id) S.active = S.profiles[0]?.id ?? null;
   saveShell();
 }

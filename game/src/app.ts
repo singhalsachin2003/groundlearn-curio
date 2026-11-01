@@ -96,7 +96,7 @@ function rewardDiff(world: WorldId, oldRaw: string | null, newRaw: string | null
   let a: Record<string, unknown> = {}, b: Record<string, unknown> = {};
   try { a = oldRaw ? JSON.parse(oldRaw) : {}; b = JSON.parse(newRaw); } catch { return; }
   let gained = 0; const notes: string[] = []; const moved = new Set<string>();
-  if (world === 'inventor') {
+  if (world !== 'colour') {
     for (const [field, lab] of Object.entries(LEVEL_FIELDS)) {
       const nv = (b[field] || {}) as Record<string, unknown>;
       for (const [lvl, val] of Object.entries(nv)) {
@@ -207,15 +207,16 @@ function zoneStates(p: Profile): ZoneState[] {
   return (Object.keys(ZONE_SUBJECT) as ZoneId[]).map(z => {
     const labs = zoneLabs(p, z);
     const done = labs.reduce((s, l) => s + labProgress(l, readSlot(p.id, l.world)), 0), tot = labs.reduce((s, l) => s + l.progress.total, 0);
-    const challenge = p.band === 'tinkerer' && z !== 'studio';
+    const challenge = p.band === 'tinkerer' && z !== 'studio' && labs.length > 0 && labs.every(l => l.world === 'inventor');
     return { id: z, label: t(z), progress: tot ? done / tot : 0, locked: !labs.length, badge: !labs.length ? t('soonBadge') : challenge ? t('bigKids') : undefined };
   });
 }
 function zoneSheet(z: ZoneId) {
   const p = active(); if (!p) return;
   const labs = zoneLabs(p, z), soon = COMING[p.band].filter(c => ZONE_OF[c.subject] === z);
-  const note = p.band === 'tinkerer' && z !== 'studio' && labs.length ? `<p class="muted center-t">${t('challengeNote')}</p>` : '';
-  sheet('zone', `<h2>${t(z)}</h2>${note}<div class="labs in-sheet">${labs.map(l => labCard(l, p)).join('')}${soon.map(soonCard).join('')}</div>
+  const own = labs.filter(l => l.world !== 'inventor' || p.band !== 'tinkerer' || z === 'studio'), big = labs.filter(l => !own.includes(l));
+  const note = big.length ? `<p class="muted center-t">${t('challengeNote')}</p>` : '';
+  sheet('zone', `<h2>${t(z)}</h2><div class="labs in-sheet">${own.map(l => labCard(l, p)).join('')}${soon.map(soonCard).join('')}</div>${note}${big.length ? `<div class="labs in-sheet">${big.map(l => labCard(l, p)).join('')}</div>` : ''}
     <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(LABS.find(l => l.id === b.dataset.lab)!); });
 }
@@ -224,7 +225,7 @@ function allWorkshops() {
   const colour = LABS.find(l => l.id === 'colour')!, inv = LABS.filter(l => l.world === 'inventor');
   let body = '';
   if (p.band === 'inventor') body = `<div class="labs in-sheet">${inv.map(l => labCard(l, p)).join('')}${labCard(colour, p)}${COMING.inventor.map(soonCard).join('')}</div>`;
-  else body = `<div class="labs in-sheet">${labCard(colour, p)}${COMING[p.band].map(soonCard).join('')}</div>` +
+  else body = `<div class="labs in-sheet">${labCard(colour, p)}${LABS.filter(l => l.only === p.band).map(l => labCard(l, p)).join('')}${COMING[p.band].map(soonCard).join('')}</div>` +
     (p.band === 'tinkerer' ? `<h3>${t('challengeLabs')}</h3><p class="muted">${t('challengeNote')}</p><div class="labs in-sheet">${inv.map(l => labCard(l, p)).join('')}</div>` : '');
   sheet('all', `<h2>${t('allWorkshops')}</h2>${body}<div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(LABS.find(l => l.id === b.dataset.lab)!); });
@@ -245,7 +246,7 @@ window.addEventListener('resize', () => requestAnimationFrame(fitIsland));
 /* =================================================================== worlds */
 function enterWorld(lab: Lab) {
   const p = active(); if (!p) return;
-  const patch: Record<string, unknown> = lab.world === 'inventor'
+  const patch: Record<string, unknown> = lab.world !== 'colour'
     ? { tab: lab.id, sound: S.sound }
     : { mode: p.band, lang: S.lang, sound: S.sound };
   loadWorldSave(p.id, lab.world, patch);
@@ -339,7 +340,7 @@ function outOfHearts() {
 /* =================================================================== journal */
 function journal() {
   const p = active(); if (!p) return;
-  const labs = p.band === 'explorer' ? LABS.filter(l => l.id === 'colour') : LABS;
+  const labs = labsFor(p.band);
   const rows = labs.map(l => { const n = labProgress(l, readSlot(p.id, l.world)), tot = l.progress.total;
     return `<div class="jrow s-${l.subject}"><span class="ic">${l.icon}</span><span class="jt"><b>${esc(nm(l.name))}</b><span class="bar"><i style="width:${Math.round(100 * n / tot)}%"></i></span></span><span class="cnt">${n}/${tot}</span></div>`; }).join('');
   sheet('journal', `<h2>${t('journalTitle')}</h2><div class="jlist">${rows}</div><div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);

@@ -72,6 +72,31 @@ async def run_vp(b, name, w, h):
     await pg.click('#hAll'); prog = await pg.inner_text('.sheet [data-lab="nets"] .cnt'); check(prog.startswith('1/6'), 'Manan keeps his own progress')
     await pg.click('.sheet [data-lab="circuit"]'); await pg.wait_for_timeout(2500); await shot('9-circuit')
     await pg.click('#wBack')
+    # Tinkerer band: its own labs, driven through the world's test hooks; rewards come from diffing the saves.
+    await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tia'); await pg.click('[data-band="tinkerer"]'); await pg.click('#npGo')
+    await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800)
+    await pg.click('#hAll'); await pg.wait_for_selector('.sheet [data-lab="atom"]')
+    for lab in ('atom', 'kitchen', 'mirror'): check(await pg.locator(f'.sheet [data-lab="{lab}"]').count() == 1, f'tinkerer sees {lab}')
+    await shot('10-all-tinkerer')
+    W = "document.querySelector('.world-frame').contentWindow.__curio"
+    await pg.click('.sheet [data-lab="atom"]'); await pg.wait_for_timeout(2500); await shot('11-atom')
+    for e in ('H', 'H'): await pg.evaluate(f"{W}.atom._add('{e}')"); await pg.wait_for_timeout(250)
+    await pg.wait_for_timeout(1200); st = await pg.evaluate(f"{W}.atom._state()"); check(st['won'] and st['formula'] == 'H₂', 'atom snap level 1 solved'); await shot('12-atom-won')
+    await pg.evaluate("(() => { const d = document.querySelector('.world-frame').contentDocument; d.getElementById('mdPri').click(); })()")
+    await pg.evaluate("document.querySelector('.world-frame').contentDocument.getElementById('tab-kitchen').click()"); await pg.wait_for_timeout(800)
+    await pg.evaluate(f"{W}.kitchen._pick('soda')"); await pg.evaluate(f"{W}.kitchen._pick('vinegar')"); await pg.wait_for_timeout(600)
+    await pg.evaluate(f"{W}.kitchen._mix()"); await pg.wait_for_timeout(1500); await shot('13-kitchen-fizz')
+    check('fizzV' in (await pg.evaluate(f"{W}.kitchen._state()"))['found'], 'kitchen: baking soda + vinegar discovered')
+    await pg.evaluate("document.querySelector('.world-frame').contentDocument.getElementById('tab-mirror').click()"); await pg.wait_for_timeout(800)
+    await pg.evaluate(f"{W}.mirror._cell(3, 3)"); await pg.wait_for_timeout(1500); await shot('14-mirror-won')
+    check((await pg.evaluate(f"{W}.mirror._state()"))['won'], 'mirror maze level 1 solved')
+    # Every mirror level has a solution within its mirror budget (and the par is reachable).
+    ok = await pg.evaluate(f"(() => {{ const m = {W}.mirror; return m._levels.length; }})()"); check(ok == 8, 'mirror maze has 8 levels')
+    await pg.click('#wBack'); await pg.wait_for_selector('.hub3d')
+    await pg.click('#hAll')
+    for lab, want in (('atom', '1/8'), ('kitchen', '1/12'), ('mirror', '1/8')):
+        prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(want), f'{lab} progress {prog}')
+    await pg.click('.sheet [data-close]')
     real = [e for e in errs if 'net::' not in e]
     check(not real, 'no page errors' + ('' if not real else ': ' + ' | '.join(real[:5])))
     await pg.close()
