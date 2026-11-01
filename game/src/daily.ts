@@ -33,6 +33,9 @@ const ASK: Record<string, { en: string; hi: string }> = {
   atom: { en: 'Can you snap together a new molecule?', hi: 'क्या तुम कोई नया अणु जोड़ सकते हो?' },
   kitchen: { en: 'Can you mix something new in the kitchen?', hi: 'क्या तुम रसोई में कुछ नया मिला सकते हो?' },
   mirror: { en: 'Can you guide the beam through a new maze?', hi: 'क्या तुम किरण को एक नई भूलभुलैया से निकाल सकते हो?' },
+  coord: { en: 'Can you join the dots for a new picture?', hi: 'क्या तुम एक नया चित्र बिंदुओं से बना सकते हो?' },
+  pea: { en: 'Can you cross two plants for a new flower mix?', hi: 'क्या तुम दो पौधों का मेल कराकर नए फूल पा सकते हो?' },
+  chain: { en: 'Can you build a new food chain?', hi: 'क्या तुम एक नई खाद्य शृंखला बना सकते हो?' },
 };
 
 const today = () => new Date().toISOString().slice(0, 10);

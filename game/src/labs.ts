@@ -35,6 +35,9 @@ export const LABS: Lab[] = [
   { id: 'atom', world: 'tinkerer', only: 'tinkerer', subject: 'chem', icon: '💧', name: { en: 'Atom Snap', hi: 'परमाणु जोड़ो' }, blurb: { en: 'Snap atoms into molecules', hi: 'परमाणु जोड़कर अणु बनाओ' }, progress: { field: 'atomDone', total: 8, kind: 'levels' } },
   { id: 'kitchen', world: 'tinkerer', only: 'tinkerer', subject: 'chem', icon: '🍋', name: { en: 'Kitchen Reactions', hi: 'रसोई की अभिक्रियाएँ' }, blurb: { en: 'Mix safe things, see what happens', hi: 'चीज़ें मिलाओ, देखो क्या होता है' }, progress: { field: 'kitchenFound', total: 12, kind: 'found' } },
   { id: 'mirror', world: 'tinkerer', only: 'tinkerer', subject: 'phy', icon: '✨', name: { en: 'Mirror Maze', hi: 'दर्पण भूलभुलैया' }, blurb: { en: 'Bounce the beam to the star', hi: 'किरण को तारे तक पहुँचाओ' }, progress: { field: 'mirrorStars', total: 8, kind: 'levels' } },
+  { id: 'coord', world: 'tinkerer', only: 'tinkerer', subject: 'math', icon: '🗺️', name: { en: 'Coordinate Pictures', hi: 'निर्देशांक चित्र' }, blurb: { en: 'Join the dots in order', hi: 'बिंदुओं को क्रम से जोड़ो' }, progress: { field: 'coordDone', total: 6, kind: 'levels' } },
+  { id: 'pea', world: 'tinkerer', only: 'tinkerer', subject: 'bio', icon: '🌱', name: { en: 'Pea Crosses', hi: 'मटर के मेल' }, blurb: { en: 'Cross plants, predict the flowers', hi: 'पौधों का मेल, फूलों का अनुमान' }, progress: { field: 'peaDone', total: 6, kind: 'levels' } },
+  { id: 'chain', world: 'tinkerer', only: 'tinkerer', subject: 'bio', icon: '🐟', name: { en: 'Food Chains', hi: 'खाद्य शृंखला' }, blurb: { en: 'Who eats whom?', hi: 'कौन किसे खाता है?' }, progress: { field: 'chainDone', total: 6, kind: 'levels' } },
 ];
 
 
@@ -48,11 +51,7 @@ export const COMING: Record<Band, { icon: string; en: string; hi: string; subjec
     { icon: '🐣', en: 'Baby Animals', hi: 'जानवरों के बच्चे', subject: 'bio' },
     { icon: '🐸', en: 'Pond Feeding', hi: 'तालाब का खाना', subject: 'bio' },
   ],
-  tinkerer: [
-    { icon: '🗺️', en: 'Coordinate Pictures', hi: 'निर्देशांक चित्र', subject: 'math' },
-    { icon: '🌱', en: 'Pea Crosses', hi: 'मटर के मेल', subject: 'bio' },
-    { icon: '🐟', en: 'Food Chains', hi: 'खाद्य शृंखला', subject: 'bio' },
-  ],
+  tinkerer: [],
   inventor: [
     { icon: '❄️', en: 'States of Matter', hi: 'पदार्थ की अवस्थाएँ', subject: 'chem' },
     { icon: '🍕', en: 'Fractions and Ratio', hi: 'भिन्न और अनुपात', subject: 'math' },
@@ -67,7 +66,7 @@ export const WORLD_SAVE_KEY: Record<WorldId, string> = { colour: 'curio-colour-v
 export const LEVEL_FIELDS: Record<string, string> = {
   launchStars: 'launch', lightStars: 'light', graphStars: 'graph', bodyDone: 'body', balSolved: 'balance',
   geneDone: 'genes', circDone: 'circuit', ecoDone: 'eco', machDone: 'mach', netsDone: 'nets',
-  atomDone: 'atom', mirrorStars: 'mirror',
+  atomDone: 'atom', mirrorStars: 'mirror', coordDone: 'coord', peaDone: 'pea', chainDone: 'chain',
 };
 /** Collections in a world save where each new item is a discovery (field → lab id). */
 export const FOUND_FIELDS: Record<WorldId, Record<string, string>> = {

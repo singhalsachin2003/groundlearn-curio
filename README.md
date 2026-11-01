@@ -8,7 +8,9 @@ GroundLearn's 3D science and maths game for kids aged 4–13. The plan doc has t
 game/   The game itself: TypeScript + three.js (r128), built by Vite into ONE html file.
   src/        The app shell: players, island hub, coins and hearts, Journal, parent gate, Parent Corner.
   worlds/     The playable prototypes, unchanged except for small hooks:
-              colour.html (Colour Studio) and inventor.html (the 12 Inventor labs).
+              colour.html (Colour Studio), inventor.html (the 12 Inventor labs, ages 10+) and
+              tinkerer.html (the 6 Tinkerer labs, ages 7-9: Atom Snap, Kitchen Reactions, Mirror Maze,
+              Coordinate Pictures, Pea Crosses, Food Chains).
   tests/      Smoke test in headless Chromium (Playwright).
 app/    The Android app (Expo). A full-screen WebView runs the game; the native side keeps
         saves, shows AdMob ads, sells the Ad-free upgrade (RevenueCat) and handles Back.
@@ -59,6 +61,5 @@ The ad ids and RevenueCat's public SDK key are in `app/src/config.ts`. Developme
 | Link the AdMob app to the Play listing once it is live | AdMob → App settings | Ads serve fully only after AdMob's app review. |
 | Create the in-app product `curio_ad_free` (one-time, ₹99) after the first .aab is uploaded | Play Console → Monetise → In-app products | Play needs a build with billing before products can be made. |
 | Upload the Play service-account JSON in RevenueCat (Curio Island → Apps → Play Store) | RevenueCat | The same JSON used for OTC Learn and Cornerstone works. |
-| Publish the privacy policy at `https://groundlearn.com/curio/privacy` | groundlearn.com | Linked from Parent Corner. |
+| Keep the privacy policy live at `https://groundlearn.com/curio/privacy` | groundlearn.com | Linked from Parent Corner and the Play listing. |
 | Target audience and content: ages 5 and under, 6–8, 9–12; Families Policy; Data safety form | Play Console | No accounts, no personal data; AdMob collects device data for ads. |
-| Replace the placeholder icon and splash | `app/assets` | |

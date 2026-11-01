@@ -185,6 +185,9 @@ sub{font-size:.7em}
 #fb{margin-top:10px}
 .mirror-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
 .pill-note{font-size:13px;font-weight:600;color:var(--muted)}
+.guess-row .lbl{min-width:70px}
+.guess-row .lbl.p1{color:#c46a00}.guess-row .lbl.p2{color:#1f6fd1}
+.guess-row .btn.gp{min-width:52px;justify-content:center}
 
 </style>
 
@@ -198,6 +201,9 @@ sub{font-size:.7em}
       <button role="tab" id="tab-atom" data-tab="atom" aria-selected="true"><i class="sj chem"></i>Atom Snap</button>
       <button role="tab" id="tab-kitchen" data-tab="kitchen" aria-selected="false"><i class="sj chem"></i>Kitchen</button>
       <button role="tab" id="tab-mirror" data-tab="mirror" aria-selected="false"><i class="sj phy"></i>Mirrors</button>
+      <button role="tab" id="tab-coord" data-tab="coord" aria-selected="false"><i class="sj math"></i>Pictures</button>
+      <button role="tab" id="tab-pea" data-tab="pea" aria-selected="false"><i class="sj bio"></i>Peas</button>
+      <button role="tab" id="tab-chain" data-tab="chain" aria-selected="false"><i class="sj bio"></i>Chains</button>
     </div>
     <button class="card sound" id="soundBtn" aria-pressed="true">Sound on</button>
   </div>
@@ -232,6 +238,23 @@ sub{font-size:.7em}
     <div class="readout" id="mrRead" aria-live="polite"></div>
     <div class="tool-row"><span class="chip" id="mrChip"></span><button class="btn" id="mrClear">Take all back</button></div>
   </div>
+
+  <div class="dock card" id="dock-coord" hidden>
+    <div class="readout" id="cRead" aria-live="polite"></div>
+    <div class="tool-row"><span class="chip" id="cChip"></span><button class="btn" id="cUndo">Undo</button><button class="btn primary" id="cPlace" disabled>Place dot</button></div>
+  </div>
+
+  <div class="dock card" id="dock-pea" hidden>
+    <div class="readout" id="pRead" aria-live="polite"></div>
+    <div class="guess-row" id="pP1" role="group" aria-label="First parent"><span class="lbl p1">Parent 1</span></div>
+    <div class="guess-row" id="pP2" role="group" aria-label="Second parent"><span class="lbl p2">Parent 2</span></div>
+    <div class="tool-row"><span class="chip" id="pChip"></span><button class="btn primary" id="pGo" disabled>Cross!</button></div>
+  </div>
+
+  <div class="dock card" id="dock-chain" hidden>
+    <div class="readout" id="fRead" aria-live="polite"></div>
+    <div class="tool-row"><span class="chip" id="fChip"></span><button class="btn" id="fReset">Start again</button></div>
+  </div>
 </div>
 
 <div class="toast card" id="toast" role="status"></div>
@@ -253,7 +276,7 @@ const rad = d => d * Math.PI / 180;
 
 /* ---------- Saved progress (this browser only; the Curio app copies it per player) ---------- */
 const SAVE_KEY = 'curio-tinkerer-v1';
-const TABS = ['atom', 'kitchen', 'mirror'];
+const TABS = ['atom', 'kitchen', 'mirror', 'coord', 'pea', 'chain'];
 const sv = store.get(SAVE_KEY, {}) || {};
 const asSet = v => new Set(Array.isArray(v) ? v : []);
 const asObj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
@@ -263,10 +286,13 @@ const P = {
   sound: sv.sound !== false,
   atomDone: asObj(sv.atomDone), atomLevel: asInt(sv.atomLevel),
   kitchenFound: asSet(sv.kitchenFound),
-  mirrorStars: asObj(sv.mirrorStars), mirrorLevel: asInt(sv.mirrorLevel)
+  mirrorStars: asObj(sv.mirrorStars), mirrorLevel: asInt(sv.mirrorLevel),
+  coordDone: asObj(sv.coordDone), coordLevel: asInt(sv.coordLevel),
+  peaDone: asObj(sv.peaDone), peaLevel: asInt(sv.peaLevel),
+  chainDone: asObj(sv.chainDone), chainLevel: asInt(sv.chainLevel)
 };
 function persist() {
-  store.set(SAVE_KEY, { tab: P.tab, sound: P.sound, atomDone: P.atomDone, atomLevel: P.atomLevel, kitchenFound: [...P.kitchenFound], mirrorStars: P.mirrorStars, mirrorLevel: P.mirrorLevel });
+  store.set(SAVE_KEY, { tab: P.tab, sound: P.sound, atomDone: P.atomDone, atomLevel: P.atomLevel, kitchenFound: [...P.kitchenFound], mirrorStars: P.mirrorStars, mirrorLevel: P.mirrorLevel, coordDone: P.coordDone, coordLevel: P.coordLevel, peaDone: P.peaDone, peaLevel: P.peaLevel, chainDone: P.chainDone, chainLevel: P.chainLevel });
 }
 
 /* ---------- Sound ---------- */
@@ -880,6 +906,327 @@ games.mirror = (function () {
   return { scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.mirrorLevel, 0, MIR.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _cell: cell, _state: () => ({ li, placed: [...placed], hit: tr ? tr.hit.size : 0, won }), _levels: MIR };
 })();
 
+
+/* =====================================================================
+   GAME · COORDINATE PICTURES  (plot dots in order: across first, then up)
+   ===================================================================== */
+const PICS = [
+  { name: 'a house', strokes: [[[2, 1], [2, 5], [5, 8], [8, 5], [8, 1], [2, 1]]], col: 0xff9b5e, text: 'Plot each dot in order and a picture appears. A pair like <b>(3, 5)</b> means <b>3 across</b>, then <b>5 up</b>.', hint: 'Start at the bottom-left corner, where both numbers are 0. Go across first, then up.',
+    q: { text: 'In (2, 5), which number tells you how far ACROSS to go?', options: ['2', '5', 'Both of them'], correct: 0, why: 'The first number is always across, along the bottom.' }, fact: 'A story says the coordinate idea came to the mathematician René Descartes while he watched a fly crawl on his ceiling.' },
+  { name: 'a boat', strokes: [[[1, 4], [9, 4], [7, 1], [3, 1], [1, 4]], [[5, 4], [5, 9], [8, 4], [5, 4]]], col: 0x4aa8ff, text: 'Lift your pen! The boat is drawn in <b>two parts</b>: the hull first, then the sail.', hint: 'Each part ends back where it started. The sail begins at a new dot.',
+    q: { text: 'To plot (7, 1) you go across 7 and then…', options: ['Up 1', 'Up 7', 'Down 1'], correct: 0, why: 'Across 7, then up 1.' }, fact: 'Sailors and pilots find their way using a pair of numbers: latitude and longitude. It is coordinates on a round Earth.' },
+  { name: 'a fish', strokes: [[[1, 5], [3, 7], [6, 7], [7, 5], [6, 3], [3, 3], [1, 5]], [[7, 5], [9, 7], [9, 3], [7, 5]]], col: 0xffb347, text: 'Swim along the dots to catch a fish. The tail is a separate part.', hint: 'Watch the second number: it tells you how high up each dot is.',
+    q: { text: 'Which dot is higher up: (3, 7) or (3, 3)?', options: ['(3, 7)', '(3, 3)', 'They are level'], correct: 0, why: 'The second number is the height. 7 is higher than 3.' }, fact: 'A map grid works the same way. "C4" on a street map is a coordinate: a column letter and a row number.' },
+  { name: 'a rocket', strokes: [[[4, 2], [4, 7], [5, 9], [6, 7], [6, 2], [4, 2]], [[4, 4], [2, 2], [4, 2]], [[6, 4], [8, 2], [6, 2]]], col: 0xff5b5b, text: 'Three parts this time: the body and two fins. Take care with each new start.', hint: 'Fins join the body, so some dots are used twice.',
+    q: { text: 'Dots (4, 2) and (6, 2) have the same height. The line joining them is…', options: ['Flat', 'Straight up and down', 'Slanted'], correct: 0, why: 'The same height means no going up or down: a flat line.' }, fact: 'Rocket scientists use coordinates in three directions, adding height to across and up.' },
+  { name: 'a star', strokes: [[[5, 9], [6, 6], [9, 6], [7, 4], [8, 1], [5, 3], [2, 1], [3, 4], [1, 6], [4, 6], [5, 9]]], col: 0xffd25a, text: 'Ten dots make a star. Take your time and check each pair.', hint: 'The points alternate: a tip, then a dot that sits in a notch.',
+    q: { text: 'Dots (5, 9) and (5, 3) have the same first number. The line joining them is…', options: ['Flat', 'Straight up and down', 'Slanted'], correct: 1, why: 'Same x means the same place across, so the line goes straight up.' }, fact: 'Stars in the sky are placed with coordinates too, called right ascension and declination.' },
+  { name: 'a crown', strokes: [[[1, 2], [1, 7], [3, 5], [5, 8], [7, 5], [9, 7], [9, 2], [1, 2]]], col: 0xc084fc, text: 'Last one: a crown for the best dot-joiner on the island.', hint: 'Eight dots, and the last one is the same as the first.',
+    q: { text: 'Which pair of dots has the same first number?', options: ['(1, 2) and (1, 7)', '(1, 2) and (9, 2)', '(5, 8) and (7, 5)'], correct: 0, why: 'Both start with 1, so they are straight above each other.' }, fact: 'You can describe any picture on a grid with a list of coordinate pairs. Computer screens do exactly that.' }
+];
+const flatPts = pic => { const a = []; pic.strokes.forEach((st, si) => st.forEach((p, i) => a.push({ x: p[0], y: p[1], first: i === 0, si }))); return a; };
+const CG = 10;   // grid lines 0..9
+
+games.coord = (function () {
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x203a63);
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  lights(scene, 0.5);
+  const view = { w: 1, h: 1, top: 0, bottom: 0 };
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(11, 11), new THREE.MeshBasicMaterial({
+    map: canvasTex(1100, 1100, (g, w) => {
+      g.fillStyle = '#fbf3df'; g.fillRect(0, 0, w, w); const u = 100, px = v => (v + 1) * u, py = v => (10 - v) * u;
+      g.strokeStyle = '#d9cbb0'; g.lineWidth = 2;
+      for (let i = 0; i < CG; i++) { g.beginPath(); g.moveTo(px(i), py(0)); g.lineTo(px(i), py(9)); g.stroke(); g.beginPath(); g.moveTo(px(0), py(i)); g.lineTo(px(9), py(i)); g.stroke(); }
+      g.strokeStyle = '#26283a'; g.lineWidth = 6; g.beginPath(); g.moveTo(px(0), py(0)); g.lineTo(px(9.5), py(0)); g.moveTo(px(0), py(0)); g.lineTo(px(0), py(9.5)); g.stroke();
+      g.fillStyle = '#26283a'; g.font = `700 36px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      for (let i = 0; i < CG; i++) { g.fillText(String(i), px(i), py(0) + 38); g.fillText(String(i), px(0) - 38, py(i)); }
+      g.font = `800 44px ${FONT}`; g.fillStyle = '#d4492f'; g.fillText('across →', px(8), py(0) + 86); g.save(); g.translate(px(0) - 86, py(7.4)); g.rotate(-Math.PI / 2); g.fillText('up →', 0, 0); g.restore();
+    })
+  }));
+  board.position.set(4.5, 4.5, 0); scene.add(board);
+  const cylGeo = new THREE.CylinderGeometry(1, 1, 1, 8); cylGeo.userData.shared = true;
+  const sph = new THREE.SphereGeometry(1, 16, 12); sph.userData.shared = true;
+  const art = new THREE.Group(), ink = new THREE.Group(); scene.add(art, ink);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 8, 24), new THREE.MeshBasicMaterial({ color: 0xff3b6b })); ring.position.z = 0.1; ring.visible = false; scene.add(ring);
+  const ghost = new THREE.Mesh(sph, new THREE.MeshBasicMaterial({ color: 0xff3b6b, transparent: true, opacity: 0.5 })); ghost.scale.setScalar(0.16); ghost.position.z = 0.1; ghost.visible = false; scene.add(ghost);
+  const up = new THREE.Vector3(0, 1, 0);
+  let li = 0, pic = PICS[0], pts = [], n = 0, sel = null, won = false, placedMeshes = [], shake = 0;
+
+  function line(a, b, col) {
+    const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy), m = new THREE.Mesh(cylGeo, new THREE.MeshBasicMaterial({ color: col }));
+    m.position.set((a.x + b.x) / 2, (a.y + b.y) / 2, 0.06); m.scale.set(0.07, len, 0.07); m.quaternion.setFromUnitVectors(up, new THREE.Vector3(dx / len, dy / len, 0)); return m;
+  }
+  function build() {
+    clearGroup(ink); clearGroup(art); placedMeshes = [];
+    for (let i = 0; i < n; i++) addDot(i);
+    renderUI();
+  }
+  function addDot(i) {
+    const p = pts[i], g = new THREE.Group();
+    const d = new THREE.Mesh(sph, new THREE.MeshBasicMaterial({ color: 0x26283a })); d.scale.setScalar(0.17); d.position.set(p.x, p.y, 0.08); g.add(d);
+    if (i > 0 && !p.first) g.add(line(pts[i - 1], p, 0x26283a));
+    ink.add(g); placedMeshes[i] = g;
+  }
+  function renderUI() {
+    const t = pts[Math.min(n, pts.length - 1)];
+    $('cChip').textContent = `Dot ${Math.min(n + 1, pts.length)} of ${pts.length}`;
+    $('cUndo').disabled = n === 0 || won;
+    $('cPlace').disabled = !sel || won;
+    if (won) $('cRead').innerHTML = `You drew <b>${pic.name}</b>!`;
+    else $('cRead').innerHTML = `Next dot: <b style="font-size:18px">(${t.x}, ${t.y})</b> = <b>${t.x} across</b>, <b>${t.y} up</b>.` + (t.first && n > 0 ? ' <b>Lift your pen:</b> this dot starts a new part.' : '') + `<br>${sel ? `You picked <b>(${sel.x}, ${sel.y})</b>. Press Place dot.` : 'Tap the grid to pick a spot.'}`;
+  }
+  function select(x, y) {
+    if (won || modalOpen) return; sel = { x, y }; ring.position.set(x, y, 0.1); ring.visible = true; ghost.position.set(x, y, 0.1); ghost.visible = true; sfx.click(); renderUI();
+  }
+  function place() {
+    if (!sel || won || modalOpen) return; const t = pts[n];
+    if (sel.x === t.x && sel.y === t.y) {
+      addDot(n); n++; sel = null; ring.visible = false; ghost.visible = false; sfx.snap(); burst(scene, new THREE.Vector3(t.x, t.y, 0.3), [0xffd25a, 0xffffff], 5, 1.2, 0.6, 0.5, -20);
+      if (n >= pts.length) win(); else renderUI();
+    } else {
+      if (CURIO && !CURIO.canAnswer()) return;
+      if (CURIO) CURIO.answer(false, 'coord');
+      const swap = sel.x === t.y && sel.y === t.x;
+      toast(swap ? 'You swapped them! The first number is across, the second is up.' : `You picked ${sel.x} across and ${sel.y} up. Look at the numbers again.`);
+      sfx.no(); shake = performance.now();
+    }
+  }
+  function win() {
+    won = true; P.coordDone[li] = true; persist(); sfx.tada(); renderMission(); renderUI();
+    pic.strokes.forEach(st => {
+      if (st[0][0] === st[st.length - 1][0] && st[0][1] === st[st.length - 1][1]) {
+        const sh = new THREE.Shape(); st.forEach((p, i) => i ? sh.lineTo(p[0], p[1]) : sh.moveTo(p[0], p[1]));
+        const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshBasicMaterial({ color: pic.col, transparent: true, opacity: 0.0, side: THREE.DoubleSide })); m.position.z = 0.02; art.add(m);
+        tween(reduce ? 1 : 700, k => { m.material.opacity = 0.85 * k; });
+      }
+    });
+    burst(scene, new THREE.Vector3(4.5, 5, 0.5), [pic.col, 0xffffff, 0xffd25a], 24, 2.6, 1.2, 0.7, -20);
+    const last = li >= PICS.length - 1;
+    setTimeout(() => P.tab === 'coord' && winCard({
+      lab: 'coord', eyebrow: `Picture ${li + 1} complete`, title: `You drew ${pic.name}!`, sub: `${pts.length} dots plotted.`, q: pic.q, fact: pic.fact,
+      primary: last ? { label: 'Done' } : { label: 'Next picture', fn: () => setLevel(li + 1) }, secondary: last ? null : { label: 'Stay here', fn: () => {} }
+    }), reduce ? 0 : 900);
+  }
+  function setLevel(i) {
+    li = clamp(i, 0, PICS.length - 1); pic = PICS[li]; pts = flatPts(pic); P.coordLevel = li; persist(); n = 0; sel = null; won = false; ring.visible = false; ghost.visible = false; build(); renderMission();
+  }
+  function tap(ray) {
+    const p = new THREE.Vector3(); if (!ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), p)) return;
+    if (p.x < -0.6 || p.y < -0.6 || p.x > 9.6 || p.y > 9.6) return; select(clamp(Math.round(p.x), 0, 9), clamp(Math.round(p.y), 0, 9));
+  }
+  function update(dt, now) {
+    const s = 1 + (reduce ? 0 : Math.sin(now / 250) * 0.08); ring.scale.setScalar(s);
+    board.position.x = 4.5 + (shake && now - shake < 350 ? Math.sin((now - shake) / 25) * 0.08 * (1 - (now - shake) / 350) : 0);
+  }
+  function fit(w, h, top, bottom) {
+    Object.assign(view, { w, h, top, bottom });
+    fitCam(camera, view, new THREE.Vector3(4.5, 4.5, 0), new THREE.Vector3(0, 0, 1), [new THREE.Vector3(-1, -1.3, 0), new THREE.Vector3(10, 10, 0)]);
+  }
+  function mission() { return { meta: `Picture ${li + 1} of ${PICS.length}`, text: pic.text, hint: pic.hint, stars: P.coordDone[li] ? doneHTML('Drawn ✓') : '', nav: true, prevOk: li > 0, nextOk: li < PICS.length - 1 && !!P.coordDone[li] }; }
+  $('cPlace').onclick = place;
+  $('cUndo').onclick = () => { if (n === 0 || won) return; n--; const g = placedMeshes[n]; ink.remove(g); disposeTree(g); placedMeshes.length = n; sel = null; ring.visible = false; ghost.visible = false; sfx.click(); renderUI(); };
+  return { scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.coordLevel, 0, PICS.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _select: select, _place: place, _target: () => pts[n], _state: () => ({ li, n, total: pts.length, won }) };
+})();
+
+/* =====================================================================
+   GAME · PEA CROSSES  (P = purple, p = white; one big P is enough for purple)
+   ===================================================================== */
+const isPurple = g => g.includes('P');
+const GENOS = ['PP', 'Pp', 'pp'];
+const PEA = [
+  { text: 'Pea flowers are <b>purple</b> or <b>white</b>. Pick two parents and cross them so <b>every</b> baby has purple flowers.', hint: 'A purple flower needs at least one big P. Try a parent with PP.', test: r => r.white === 0,
+    q: { text: 'A plant has the genes Pp. Its flowers are purple. Which gene wins?', options: ['P, the purple gene', 'p, the white gene', 'Neither'], correct: 0, why: 'P is dominant: it shows even when a p is there too.' }, fact: 'Gregor Mendel grew thousands of pea plants in his monastery garden to find out how traits are passed on.' },
+  { text: 'Now cross two parents so <b>every</b> baby has <b>white</b> flowers.', hint: 'White flowers need two small p. Which parents have only small p?', test: r => r.purple === 0,
+    q: { text: 'What does a pea plant need to have white flowers?', options: ['pp', 'Pp', 'PP'], correct: 0, why: 'White only shows when there is no big P at all.' }, fact: 'Each baby gets one gene from each parent, like picking one card from each parent\'s hand.' },
+  { text: 'Make a cross where <b>some</b> babies are purple and <b>some</b> are white.', hint: 'Both colours can only show up if the babies get different mixes. Try a Pp parent.', test: r => r.purple > 0 && r.white > 0,
+    q: { text: 'A gene that hides when a partner gene is there, like p, is called…', options: ['Recessive', 'Dominant', 'Lazy'], correct: 0, why: 'Recessive genes hide behind dominant ones. They show only in pairs.' }, fact: 'A white flower can have purple-flowered parents. The white gene was hiding all along.' },
+  { text: 'Cross a <b>purple</b> parent with a <b>white</b> parent and get <b>only purple</b> babies.', hint: 'The white parent must be pp. The purple parent needs two big P so every baby gets one.', test: (r, a, b) => isPurple(a) !== isPurple(b) && r.white === 0,
+    q: { text: 'PP crossed with pp. Every baby gets one P and one p. What are the babies?', options: ['Pp', 'PP', 'pp'], correct: 0, why: 'One P from one parent and one p from the other: Pp, and they look purple.' }, fact: 'Mendel noticed this first: crossing purple and white gave only purple. Where did white go? It was hiding in the babies.' },
+  { text: 'Cross <b>two purple parents</b> and get exactly <b>1 white</b> baby in 4.', hint: 'Both parents must secretly carry a small p. Neither shows it.', test: (r, a, b) => isPurple(a) && isPurple(b) && r.white === 1,
+    q: { text: 'Two purple parents had a white baby. What must both parents be?', options: ['Pp', 'PP', 'pp'], correct: 0, why: 'The white baby is pp, so each parent gave a p. A purple parent with a hidden p is Pp.' }, fact: 'This 3 purple to 1 white pattern appeared again and again in Mendel\'s garden.' },
+  { text: 'Cross a purple and a white parent to get <b>2 purple</b> and <b>2 white</b> babies.', hint: 'Half the babies must get no big P. Use a Pp parent.', test: (r, a, b) => isPurple(a) !== isPurple(b) && r.white === 2,
+    q: { text: 'Who studied pea plants to learn how traits pass from parents to babies?', options: ['Gregor Mendel', 'Isaac Newton', 'Marie Curie'], correct: 0, why: 'Gregor Mendel, about 160 years ago. He is called the father of genetics.' }, fact: 'Today we know the genes are made of DNA, which Mendel never saw.' }
+];
+const babyOf = (a, b) => { const o = [[a[0], b[0]], [a[1], b[0]], [a[0], b[1]], [a[1], b[1]]]; return o.map(p => (p[0] + p[1]).split('').sort((x, y) => (x === 'P' ? -1 : 1) - (y === 'P' ? -1 : 1)).join('')); };
+
+games.pea = (function () {
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x1c4a3a);
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  lights(scene, 0.8);
+  const view = { w: 1, h: 1, top: 0, bottom: 0 };
+  const cyl = new THREE.CylinderGeometry(1, 1, 1, 12), sph = new THREE.SphereGeometry(1, 14, 10), disc = new THREE.CircleGeometry(1, 24), box = new THREE.BoxGeometry(1, 1, 1);
+  [cyl, sph, disc, box].forEach(g => { g.userData.shared = true; });
+  const dyn = new THREE.Group(); scene.add(dyn);
+  const C1 = 0xffa24a, C2 = 0x4aa8ff, PURPLE = 0xb46cff, WHITE = 0xffffff;
+  let li = 0, L = PEA[0], p1 = null, p2 = null, crossed = null, won = false, busy = false;
+
+  function flower(g, scale) {
+    const grp = new THREE.Group(), col = isPurple(g) ? PURPLE : WHITE;
+    const pot = new THREE.Mesh(cyl, std(0xc9703a)); pot.scale.set(0.42, 0.34, 0.42); pot.position.y = 0.17; grp.add(pot);
+    const stem = new THREE.Mesh(cyl, std(0x3fae55)); stem.scale.set(0.05, 0.6, 0.05); stem.position.y = 0.62; grp.add(stem);
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2, pe = new THREE.Mesh(sph, std(col, { roughness: 0.6 })); pe.scale.set(0.2, 0.2, 0.08); pe.position.set(Math.cos(a) * 0.22, 1.0 + Math.sin(a) * 0.22, 0.04); grp.add(pe); }
+    const c = new THREE.Mesh(sph, std(0xffd23f)); c.scale.setScalar(0.13); c.position.set(0, 1.0, 0.09); grp.add(c);
+    grp.scale.setScalar(scale || 1); return grp;
+  }
+  function alleleChip(a, col) {
+    const g = new THREE.Group(), ring = new THREE.Mesh(disc, new THREE.MeshBasicMaterial({ color: col })), inner = new THREE.Mesh(disc, new THREE.MeshBasicMaterial({ color: a === 'P' ? 0x6a2fb8 : 0xf6f1e4 }));
+    ring.scale.setScalar(0.5); inner.scale.setScalar(0.4); inner.position.z = 0.01; g.add(ring, inner);
+    const t = textSprite(a, 0.5, a === 'P' ? '#ffffff' : '#26283a', a === 'P' ? 'rgba(0,0,0,.4)' : 'rgba(255,255,255,0)'); t.position.z = 0.05; g.add(t); return g;
+  }
+  function label(txt, x, y, col, h) { const s = textSprite(txt, h || 0.4, col || '#ffffff'); s.position.set(x, y, 0.1); dyn.add(s); return s; }
+  const cellPos = (c, r) => [(c ? 1 : -1) * 1.05 + 0.5, -(r ? 1 : -1) * 1.05 - 1.5];
+  function draw() {
+    clearGroup(dyn);
+    // Parents.
+    [[p1, -2.4, C1, 'Parent 1'], [p2, 2.4, C2, 'Parent 2']].forEach(([g, x, col, nm]) => {
+      const plate = new THREE.Mesh(disc, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.28 })); plate.scale.setScalar(1.2); plate.position.set(x, 3.0, -0.1); dyn.add(plate);
+      if (g) { const f = flower(g, 1.0); f.position.set(x, 2.3, 0); dyn.add(f); label(g, x, 4.45, col === C1 ? '#ffc98a' : '#9fd0ff', 0.5); }
+      else label('?', x, 3.0, '#ffffff', 0.9);
+      label(nm, x, 1.85, col === C1 ? '#ffc98a' : '#9fd0ff', 0.32);
+    });
+    // Punnett square: parent 1 alleles along the top, parent 2 alleles down the side.
+    const sq = new THREE.Mesh(box, std(0x2a6b52)); sq.scale.set(4.4, 4.4, 0.1); sq.position.set(0.5, -1.5, -0.1); dyn.add(sq);
+    for (let c = 0; c < 2; c++) for (let r = 0; r < 2; r++) { const [x, y] = cellPos(c, r), cell = new THREE.Mesh(box, std(0x347a5f)); cell.scale.set(2.0, 2.0, 0.08); cell.position.set(x, y, 0); dyn.add(cell); }
+    if (p1) [0, 1].forEach(c => { const ch = alleleChip(p1[c], C1); ch.position.set(cellPos(c, 0)[0], 1.2, 0.1); dyn.add(ch); });
+    if (p2) [0, 1].forEach(r => { const ch = alleleChip(p2[r], C2); ch.position.set(-2.3, cellPos(0, r)[1], 0.1); dyn.add(ch); });
+    if (crossed) crossed.babies.forEach((g, i) => {
+      const c = i % 2, r = Math.floor(i / 2), [x, y] = cellPos(c, r), f = flower(g, 0.95); f.position.set(x, y - 0.75, 0.05); dyn.add(f);
+      label(g, x, y + 0.74, isPurple(g) ? '#e2c4ff' : '#ffffff', 0.5);
+      if (!reduce) { f.scale.setScalar(0.01); const t0 = i * 260; setTimeout(() => tween(380, k => f.scale.setScalar(Math.max(0.01, 0.95 * easeOut(k)))), t0); }
+    });
+  }
+  const easeOut = k => 1 - Math.pow(1 - k, 3);
+  function renderUI() {
+    ['pP1', 'pP2'].forEach((id, pi) => {
+      const el = $(id), cur = pi ? p2 : p1; el.querySelectorAll('.gp').forEach(b => b.remove());
+      GENOS.forEach(g => { const b = document.createElement('button'); b.className = 'btn gp' + (cur === g ? ' on' : ''); b.textContent = g; b.title = `${isPurple(g) ? 'Purple' : 'White'} flowers`; b.onclick = () => { if (busy || modalOpen || won) return; if (pi) p2 = g; else p1 = g; crossed = null; sfx.click(); draw(); renderUI(); }; el.appendChild(b); });
+    });
+    $('pGo').disabled = !(p1 && p2) || busy || won;
+    $('pChip').textContent = `Level ${li + 1}`;
+    $('pRead').innerHTML = crossed ? `Babies: <b>${crossed.purple} purple</b> and <b>${crossed.white} white</b>.` : (p1 && p2 ? `<b>${p1}</b> × <b>${p2}</b>. Press <b>Cross!</b> to see the babies.` : 'Pick a gene pair for each parent. <b>P</b> = purple gene, <b>p</b> = white gene.');
+  }
+  function go() {
+    if (!p1 || !p2 || busy || won || modalOpen) return;
+    const babies = babyOf(p1, p2), purple = babies.filter(isPurple).length, r = { babies, purple, white: 4 - purple }; crossed = r; busy = true; sfx.plop(); draw();
+    const ok = L.test(r, p1, p2);
+    setTimeout(() => {
+      busy = false; renderUI();
+      if (ok) win(); else { toast(r.white === 0 ? 'All four babies are purple. Is that what the puzzle wants?' : r.purple === 0 ? 'All four babies are white. Is that what the puzzle wants?' : `${r.purple} purple and ${r.white} white. Not quite. Try other parents.`); sfx.ping(); }
+    }, reduce ? 0 : 1300);
+  }
+  function win() {
+    won = true; P.peaDone[li] = true; persist(); sfx.tada(); renderMission(); renderUI();
+    burst(scene, new THREE.Vector3(0.5, -1.5, 0.6), [0xb46cff, 0xffffff, 0xffd25a], 22, 2.6, 1.2, 0.7);
+    const last = li >= PEA.length - 1;
+    setTimeout(() => P.tab === 'pea' && winCard({
+      lab: 'pea', eyebrow: `Cross ${li + 1} solved`, title: `${p1} × ${p2}`, sub: `${crossed.purple} purple and ${crossed.white} white babies.`, q: L.q, fact: L.fact,
+      primary: last ? { label: 'Done' } : { label: 'Next cross', fn: () => setLevel(li + 1) }, secondary: last ? null : { label: 'Stay here', fn: () => {} }
+    }), reduce ? 0 : 700);
+  }
+  function setLevel(i) { li = clamp(i, 0, PEA.length - 1); L = PEA[li]; P.peaLevel = li; persist(); p1 = p2 = null; crossed = null; won = false; busy = false; draw(); renderUI(); renderMission(); }
+  function update() {}
+  function fit(w, h, top, bottom) {
+    Object.assign(view, { w, h, top, bottom });
+    fitCam(camera, view, new THREE.Vector3(0, 0.5, 0), new THREE.Vector3(0, 0, 1), [new THREE.Vector3(-3.9, -3.9, 0), new THREE.Vector3(3.9, 4.9, 0)]);
+  }
+  function mission() { return { meta: `Cross ${li + 1} of ${PEA.length}`, text: L.text, hint: L.hint, stars: P.peaDone[li] ? doneHTML('Solved ✓') : '', nav: true, prevOk: li > 0, nextOk: li < PEA.length - 1 && !!P.peaDone[li] }; }
+  $('pGo').onclick = go;
+  return { scene, camera, update, fit, tap() {}, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.peaLevel, 0, PEA.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _set: (a, b) => { p1 = a; p2 = b; crossed = null; draw(); renderUI(); }, _go: go, _state: () => ({ li, p1, p2, won, crossed }) };
+})();
+
+/* =====================================================================
+   GAME · FOOD CHAINS  (tap the creatures in order: who eats whom)
+   ===================================================================== */
+const CHAINS = [
+  { place: 'a meadow', items: [['🌱', 'Grass'], ['🐇', 'Rabbit'], ['🦊', 'Fox']], roles: ['Producer', 'Plant-eater', 'Meat-eater'], text: 'Build a food chain for a <b>meadow</b>. Arrows point from the food to the one that eats it. It starts with the Sun.', hint: 'The chain begins with the living thing that makes its own food from sunlight.',
+    q: { text: 'Which of these makes its own food using sunlight?', options: ['Grass', 'Rabbit', 'Fox'], correct: 0, why: 'Plants are producers: they make food from sunlight, water and air.' }, fact: 'Every food chain starts with the Sun\'s energy, caught by plants.' },
+  { place: 'the savanna', items: [['🌾', 'Grass'], ['🦓', 'Zebra'], ['🦁', 'Lion']], roles: ['Producer', 'Plant-eater', 'Meat-eater'], text: 'Now the <b>African savanna</b>. Who eats the grass? And who eats that animal?', hint: 'Look for the plant-eater first. Then find the one that hunts it.',
+    q: { text: 'A zebra eats only plants. What do we call an animal like that?', options: ['Herbivore', 'Carnivore', 'Producer'], correct: 0, why: 'Herbivores eat plants. Carnivores eat other animals.' }, fact: 'A lion can sleep up to 20 hours a day, so it saves its energy for the hunt.' },
+  { place: 'a pond', items: [['🌿', 'Pondweed'], ['🐌', 'Snail'], ['🐟', 'Small fish'], ['🐦', 'Heron']], roles: ['Producer', 'Plant-eater', 'Meat-eater', 'Top predator'], text: 'A <b>pond</b> chain with four links. Tap them in order, from the plant to the top.', hint: 'Fish eat snails, and herons wade in the water to catch fish.',
+    q: { text: 'In a food chain, which way does the arrow point?', options: ['From the food to the eater', 'From the eater to the food', 'Straight down'], correct: 0, why: 'The arrow shows where the energy goes: to the one that eats.' }, fact: 'A heron can stand still in the water for many minutes, waiting for a fish to swim by.' },
+  { place: 'the ocean', items: [['🌿', 'Seaweed'], ['🦀', 'Crab'], ['🐙', 'Octopus'], ['🦈', 'Shark']], roles: ['Producer', 'Plant-eater', 'Meat-eater', 'Top predator'], text: 'The <b>ocean</b>. Four links again. Who eats the seaweed, and who eats them?', hint: 'The shark is at the very top. Which creature does the octopus eat?',
+    q: { text: 'Which creature is the top predator in this ocean chain?', options: ['Shark', 'Crab', 'Seaweed'], correct: 0, why: 'A top predator is at the end of the chain. Nothing in the chain eats it.' }, fact: 'Octopuses have three hearts and blue blood.' },
+  { place: 'a wetland', items: [['🌱', 'Grass'], ['🦗', 'Grasshopper'], ['🐸', 'Frog'], ['🐍', 'Snake'], ['🦅', 'Eagle']], roles: ['Producer', 'Plant-eater', 'Meat-eater', 'Big meat-eater', 'Top predator'], text: 'Five links in a <b>wetland</b>! Go one link at a time.', hint: 'Ask "who eats this?" after every tap.',
+    q: { text: 'If all the frogs disappeared, what would probably happen to the grasshoppers?', options: ['There would be more of them', 'They would disappear too', 'Nothing would change'], correct: 0, why: 'Fewer frogs means fewer grasshoppers get eaten, so their number goes up.' }, fact: 'Food chains link into food webs, because most animals eat more than one thing.' },
+  { place: 'the Arctic', items: [['🌿', 'Algae'], ['🦐', 'Krill'], ['🐟', 'Cod'], ['🦭', 'Seal'], ['🐻', 'Polar bear']], roles: ['Producer', 'Plant-eater', 'Meat-eater', 'Big meat-eater', 'Top predator'], text: 'The icy <b>Arctic</b>: the longest chain yet.', hint: 'Tiny krill eat the algae. Polar bears hunt at the very top.',
+    q: { text: 'Where does the energy in every food chain begin?', options: ['The Sun', 'The soil', 'The wind'], correct: 0, why: 'Plants catch the Sun\'s energy. Everything else gets it by eating.' }, fact: 'Polar bears have black skin under their white-looking fur, which helps soak up warmth.' }
+];
+
+games.chain = (function () {
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x203f5c);
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  lights(scene, 0.4);
+  const view = { w: 1, h: 1, top: 0, bottom: 0 };
+  const plane = new THREE.PlaneGeometry(1, 1); plane.userData.shared = true;
+  const grp = new THREE.Group(); scene.add(grp);
+  let li = 0, L = CHAINS[0], tokens = [], slots = [], n = 0, won = false, busy = false;
+  const SX = -2.2, TX = 2.3, GAP = 1.45, TS = 1.25;
+
+  function tokenTex(em, name, ghost) {
+    return canvasTex(256, 256, (g, w) => {
+      g.fillStyle = ghost ? 'rgba(255,255,255,.10)' : '#fbf8f1'; const r = 36; g.beginPath(); g.moveTo(r, 8); g.arcTo(w - 8, 8, w - 8, w - 8, r); g.arcTo(w - 8, w - 8, 8, w - 8, r); g.arcTo(8, w - 8, 8, 8, r); g.arcTo(8, 8, w - 8, 8, r); g.closePath(); g.fill();
+      g.lineWidth = 8; g.strokeStyle = ghost ? 'rgba(255,255,255,.5)' : '#26283a'; if (ghost) g.setLineDash([18, 14]); g.stroke(); g.setLineDash([]);
+      if (!ghost) { g.fillStyle = '#26283a'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `120px ${FONT}`; g.fillText(em, w / 2, 112); g.font = `800 34px ${FONT}`; g.fillText(name, w / 2, 214); }
+    });
+  }
+  const slotY = i => ((L.items.length + 1 - 1) / 2 - i) * GAP;      // i = 0 is the Sun
+  function build() {
+    clearGroup(grp); tokens = []; slots = []; n = 0; won = false; busy = false;
+    const total = L.items.length + 1;
+    for (let i = 0; i < total; i++) {
+      const y = slotY(i), m = new THREE.Mesh(plane, new THREE.MeshBasicMaterial({ map: i === 0 ? tokenTex('☀️', 'Sun') : tokenTex('', '', true), transparent: true })); m.scale.set(TS, TS, 1); m.position.set(SX, y, 0); grp.add(m); slots.push({ m, y });
+      if (i > 0) { const a = textSprite('↓', 0.5, '#9fd0ff'); a.position.set(SX, y + GAP / 2, 0.02); grp.add(a); }
+    }
+    const order = L.items.map((it, i) => i); for (let i = order.length - 1; i > 0; i--) { const j = (Math.sin((li + 3) * (i + 7) * 12.9898) * 43758.5453 % 1 + 1) % 1; const k = Math.floor(j * (i + 1)); [order[i], order[k]] = [order[k], order[i]]; }
+    if (order.every((v, i) => v === i)) order.reverse();
+    order.forEach((idx, pos) => {
+      const it = L.items[idx], y = ((order.length - 1) / 2 - pos) * GAP, m = new THREE.Mesh(plane, new THREE.MeshBasicMaterial({ map: tokenTex(it[0], it[1]), transparent: true }));
+      m.scale.set(TS, TS, 1); m.position.set(TX, y, 0.03); m.userData = { idx, home: new THREE.Vector3(TX, y, 0.03), placed: false }; grp.add(m); tokens.push(m);
+    });
+    renderUI();
+  }
+  function roleLabel(i) { const s = textSprite(L.roles[i], 0.34, '#bfe3ff'); s.position.set(0.0, slotY(i + 1), 0.05); s.userData.role = true; grp.add(s); }
+  function renderUI() {
+    const prev = n > 0 ? L.items[n - 1][1] : null;
+    $('fChip').textContent = `Link ${Math.min(n + 1, L.items.length)} of ${L.items.length}`;
+    $('fRead').innerHTML = won ? `<b>${L.items.map(i => i[1]).join(' → ')}</b>` : (n === 0 ? 'Start of the chain: tap the one that <b>makes its own food</b> from sunlight.' : `Who eats the <b>${prev.toLowerCase()}</b>? Tap it.`);
+    $('fReset').disabled = n === 0 && !won;
+  }
+  function tap(ray) {
+    if (won || busy || modalOpen) return; const hit = ray.intersectObjects(tokens.filter(t => !t.userData.placed), false)[0]; if (!hit) return; pick(hit.object);
+  }
+  function pick(t) {
+    if (t.userData.idx === n) {
+      t.userData.placed = true; const y = slots[n + 1].y, from = t.position.clone(); busy = true; sfx.snap();
+      tween(reduce ? 1 : 380, k => { const e = 1 - Math.pow(1 - k, 3); t.position.set(from.x + (SX - from.x) * e, from.y + (y - from.y) * e, 0.05); }, () => { busy = false; });
+      roleLabel(n); n++; renderUI(); if (n >= L.items.length) setTimeout(win, reduce ? 0 : 450);
+    } else {
+      if (CURIO && !CURIO.canAnswer()) return;
+      if (CURIO) CURIO.answer(false, 'chain');
+      const w = L.items[t.userData.idx][1], wrongHint = n === 0 ? `${w} does not make its own food. Start with the plant.` : `The ${w.toLowerCase()} does not eat the ${L.items[n - 1][1].toLowerCase()} here.`;
+      toast(wrongHint); sfx.no(); const x0 = t.position.x; if (!reduce) tween(300, k => { t.position.x = x0 + Math.sin(k * 30) * 0.1 * (1 - k); }, () => { t.position.x = x0; });
+    }
+  }
+  function win() {
+    won = true; P.chainDone[li] = true; persist(); sfx.tada(); renderMission(); renderUI();
+    tokens.forEach(t => burst(scene, t.position.clone(), [0xffd25a, 0xffffff], 4, 2.2, 1, 0.6, -20));
+    const last = li >= CHAINS.length - 1;
+    setTimeout(() => P.tab === 'chain' && winCard({
+      lab: 'chain', eyebrow: `Chain ${li + 1} built`, title: `A food chain for ${L.place}`, sub: '☀️ → ' + L.items.map(i => i[0] + ' ' + i[1]).join(' → '), q: L.q, fact: L.fact,
+      primary: last ? { label: 'Done' } : { label: 'Next chain', fn: () => setLevel(li + 1) }, secondary: last ? null : { label: 'Stay here', fn: () => {} }
+    }), reduce ? 0 : 600);
+  }
+  function setLevel(i) { li = clamp(i, 0, CHAINS.length - 1); L = CHAINS[li]; P.chainLevel = li; persist(); build(); renderMission(); fit(view.w, view.h, view.top, view.bottom); }
+  function update() {}
+  function fit(w, h, top, bottom) {
+    Object.assign(view, { w, h, top, bottom });
+    const hh = (L.items.length + 1) * GAP / 2 + 0.2;
+    fitCam(camera, view, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1), [new THREE.Vector3(-3.1, -hh, 0), new THREE.Vector3(3.1, hh, 0)]);
+  }
+  function mission() { return { meta: `Chain ${li + 1} of ${CHAINS.length}`, text: L.text, hint: L.hint, stars: P.chainDone[li] ? doneHTML('Built ✓') : '', nav: true, prevOk: li > 0, nextOk: li < CHAINS.length - 1 && !!P.chainDone[li] }; }
+  $('fReset').onclick = () => { sfx.click(); build(); };
+  return { scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.chainLevel, 0, CHAINS.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _next: () => { const t = tokens.find(t => t.userData.idx === n && !t.userData.placed); if (t) pick(t); }, _wrong: () => { const t = tokens.find(t => t.userData.idx !== n && !t.userData.placed); if (t) pick(t); }, _state: () => ({ li, n, total: L.items.length, won }) };
+})();
 /* =====================================================================
    SHELL: tabs, mission card, picking, loop
    ===================================================================== */

@@ -92,8 +92,27 @@ async def run_vp(b, name, w, h):
     check((await pg.evaluate(f"{W}.mirror._state()"))['won'], 'mirror maze level 1 solved')
     # Every mirror level has a solution within its mirror budget (and the par is reachable).
     ok = await pg.evaluate(f"(() => {{ const m = {W}.mirror; return m._levels.length; }})()"); check(ok == 8, 'mirror maze has 8 levels')
+    await pg.evaluate("document.querySelector('.world-frame').contentDocument.getElementById('mdPri').click()")
+    # Batch 2: coordinate pictures, pea crosses, food chains.
+    await pg.evaluate("document.querySelector('.world-frame').contentDocument.getElementById('tab-coord').click()"); await pg.wait_for_timeout(800)
+    for _ in range(6):
+        t = await pg.evaluate(f"{W}.coord._target()"); await pg.evaluate(f"{W}.coord._select({t['x']}, {t['y']})"); await pg.evaluate(f"{W}.coord._place()"); await pg.wait_for_timeout(120)
+    await pg.wait_for_timeout(1500); await shot('15-coord-won'); check((await pg.evaluate(f"{W}.coord._state()"))['won'], 'coordinate pictures: house drawn')
+    await pg.evaluate("document.querySelector('.world-frame').contentDocument.getElementById('mdPri').click()")
+    await pg.evaluate("document.querySelector('.world-frame').contentDocument.getElementById('tab-pea').click()"); await pg.wait_for_timeout(800)
+    await pg.evaluate(f"{W}.pea._set('Pp', 'Pp')"); await pg.evaluate(f"{W}.pea._go()"); await pg.wait_for_timeout(1800); await shot('16-pea-cross')
+    check(not (await pg.evaluate(f"{W}.pea._state()"))['won'], 'pea crosses: Pp x Pp does not solve level 1')
+    await pg.evaluate(f"{W}.pea._set('PP', 'pp')"); await pg.evaluate(f"{W}.pea._go()"); await pg.wait_for_timeout(2400)
+    check((await pg.evaluate(f"{W}.pea._state()"))['won'], 'pea crosses: PP x pp solves level 1')
+    await pg.evaluate("document.querySelector('.world-frame').contentDocument.getElementById('mdPri').click()")
+    await pg.evaluate("document.querySelector('.world-frame').contentDocument.getElementById('tab-chain').click()"); await pg.wait_for_timeout(800)
+    for _ in range(3): await pg.evaluate(f"{W}.chain._next()"); await pg.wait_for_timeout(700)
+    await pg.wait_for_timeout(1200); await shot('17-chain-won'); check((await pg.evaluate(f"{W}.chain._state()"))['won'], 'food chains: meadow chain built')
     await pg.click('#wBack'); await pg.wait_for_selector('.hub3d')
     await pg.click('#hAll')
+    for lab, want in (('coord', '1/6'), ('pea', '1/6'), ('chain', '1/6')):
+        prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(want), f'{lab} progress {prog}')
+    await pg.click('.sheet [data-close]'); await pg.click('#hAll')
     for lab, want in (('atom', '1/8'), ('kitchen', '1/12'), ('mirror', '1/8')):
         prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(want), f'{lab} progress {prog}')
     await pg.click('.sheet [data-close]')
