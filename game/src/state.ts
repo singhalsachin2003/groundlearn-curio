@@ -32,6 +32,7 @@ export interface Shell {
   sound: boolean;
   adsForHearts: boolean;
   adFree: boolean;
+  seenRules?: boolean;
 }
 
 /** Tunable numbers from the plan. Change here, nowhere else. */
@@ -74,6 +75,13 @@ export function active(): Profile | null { return S.profiles.find(p => p.id === 
 export function addProfile(name: string, avatar: string, band: Band): Profile {
   const p: Profile = { id: Math.random().toString(36).slice(2, 10), name: name.trim().slice(0, 20), avatar, band, coins: 0, hearts: RULES.maxHearts, heartTs: Date.now(), adDay: '', adCount: 0, levels: {}, disc: [], created: Date.now() };
   S.profiles.push(p); S.active = p.id; saveShell(); return p;
+}
+/** Wipe a player's progress (levels, stars, discoveries, coins) and refill hearts. Name, avatar and age band stay. */
+export function resetProgress(p: Profile) {
+  (['colour', 'inventor', 'tinkerer'] as WorldId[]).forEach(w => writeRaw(slotKey(p.id, w), null));
+  p.coins = 0; p.levels = {}; p.disc = []; p.hearts = RULES.maxHearts; p.heartTs = Date.now(); p.adDay = ''; p.adCount = 0;
+  delete (p as { daily?: unknown }).daily;
+  saveShell();
 }
 export function removeProfile(id: string) {
   S.profiles = S.profiles.filter(p => p.id !== id);

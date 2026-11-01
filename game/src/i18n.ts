@@ -86,6 +86,18 @@ const EN = {
   studio: 'Colour Studio', kitchen: 'Kitchen Lab', yard: 'Gadget Yard', garden: 'Pattern Garden', pond: 'Creature Pond',
   soonBadge: 'Coming soon',
   bigKids: 'For big kids',
+  rulesBtn: 'How to play',
+  rulesTitle: 'How Curio Island works',
+  rulesCoins: 'Finish a level for {level} coins, win a star for {star}, make a new discovery for {disc}, and answer a bonus question right for {ok}. The Curio of the day pays {daily} more. Coins are never taken away and cannot be bought with money.',
+  rulesHearts: 'You have {max} hearts. A wrong answer costs one heart, but you never lose coins. Hearts come back by themselves, one every {min} minutes. With no hearts you can still explore and experiment. You only need a heart to answer a question.',
+  rulesBuy: 'Out of hearts? Spend {cost} coins to get one back, or watch a short ad with a grown-up\'s OK ({ads} a day).',
+  rulesGrown: 'For grown-ups: ads appear only at natural breaks, never in the first 3 minutes. Settings and links are behind a grown-up check.',
+  gotIt: 'Got it',
+  resetBtn: 'Start fresh',
+  resetTitle: 'Start fresh?',
+  resetBody: 'This clears every level, star, discovery and coin for {name}, and refills hearts. It cannot be undone.',
+  resetDo: 'Yes, clear it',
+  resetDone: 'Fresh start! Good luck.',
 };
 export type Key = keyof typeof EN;
 
@@ -173,6 +185,18 @@ const HI: Record<Key, string> = {
   studio: 'रंगों की कार्यशाला', kitchen: 'रसोई प्रयोगशाला', yard: 'जुगाड़ आँगन', garden: 'पैटर्न बगीचा', pond: 'जीवों का तालाब',
   soonBadge: 'जल्द आ रहा है',
   bigKids: 'बड़े बच्चों के लिए',
+  rulesBtn: 'कैसे खेलें',
+  rulesTitle: 'क्यूरियो आइलैंड कैसे चलता है',
+  rulesCoins: 'लेवल पूरा करने पर {level} सिक्के, सितारे पर {star}, नई खोज पर {disc} और बोनस सवाल का सही जवाब देने पर {ok} सिक्के मिलते हैं। आज की क्यूरियो चुनौती पर {daily} और मिलते हैं। सिक्के कभी वापस नहीं लिए जाते और पैसों से नहीं खरीदे जा सकते।',
+  rulesHearts: 'तुम्हारे पास {max} दिल हैं। गलत जवाब पर एक दिल जाता है, पर सिक्के कभी नहीं जाते। दिल अपने आप लौट आते हैं, हर {min} मिनट में एक। दिल न हों तब भी तुम खोज और प्रयोग कर सकते हो। दिल सिर्फ़ सवाल का जवाब देने के लिए चाहिए।',
+  rulesBuy: 'दिल ख़त्म? {cost} सिक्के देकर एक दिल वापस लो, या बड़ों की इजाज़त से छोटा विज्ञापन देखो (दिन में {ads})।',
+  rulesGrown: 'बड़ों के लिए: विज्ञापन सिर्फ़ ब्रेक में आते हैं, पहले 3 मिनट में कभी नहीं। सेटिंग और लिंक बड़ों की जाँच के पीछे हैं।',
+  gotIt: 'समझ गया',
+  resetBtn: 'नए सिरे से शुरू करो',
+  resetTitle: 'नए सिरे से शुरू करें?',
+  resetBody: 'इससे {name} के सारे लेवल, सितारे, खोज और सिक्के मिट जाएँगे और दिल फिर भर जाएँगे। यह वापस नहीं हो सकता।',
+  resetDo: 'हाँ, मिटा दो',
+  resetDone: 'नई शुरुआत! शुभकामनाएँ।',
 };
 
 let lang: Lang = 'en';

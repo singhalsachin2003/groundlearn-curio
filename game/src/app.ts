@@ -2,7 +2,7 @@
 // the parent gate and Parent Corner, and entering or leaving a world.
 import { t, setLang, getLang, type Key } from './i18n';
 import { LABS, COMING, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
-import { S, RULES, active, addProfile, removeProfile, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
+import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
 import { send, onNative, inApp } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
 import { createIsland, ZONE_OF, type Island, type ZoneId, type ZoneState } from './island';
@@ -87,6 +87,7 @@ export function start(el: HTMLElement) {
   setInterval(refreshPills, 1000);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !frame) onBack(); });
   if (active()) hub(); else players();
+  if (!S.seenRules) setTimeout(() => rules(true), 400);
   send({ t: 'ready' });
 }
 
@@ -127,10 +128,12 @@ function players() {
       <div class="logo"><small>GroundLearn</small><b>Curio Island</b></div>
       <h1>${t('whoPlaying')}</h1>
       <div class="players">${list}<button class="player add" id="pAdd"><span class="av">＋</span><b>${t('addPlayer')}</b></button></div>
+      <button class="link" id="pRules">ℹ️ ${t('rulesBtn')}</button>
       <button class="link" id="pLang">${getLang() === 'en' ? 'हिंदी' : 'English'}</button>
     </section>`;
   document.querySelectorAll<HTMLElement>('[data-pid]').forEach(b => b.onclick = () => { S.active = b.dataset.pid!; saveShell(); hub(); });
   $('#pAdd').onclick = () => newPlayer();
+  $('#pRules').onclick = () => rules();
   $('#pLang').onclick = () => { S.lang = getLang() === 'en' ? 'hi' : 'en'; setLang(S.lang); saveShell(); players(); };
 }
 
@@ -343,7 +346,27 @@ function journal() {
   const labs = labsFor(p.band);
   const rows = labs.map(l => { const n = labProgress(l, readSlot(p.id, l.world)), tot = l.progress.total;
     return `<div class="jrow s-${l.subject}"><span class="ic">${l.icon}</span><span class="jt"><b>${esc(nm(l.name))}</b><span class="bar"><i style="width:${Math.round(100 * n / tot)}%"></i></span></span><span class="cnt">${n}/${tot}</span></div>`; }).join('');
-  sheet('journal', `<h2>${t('journalTitle')}</h2><div class="jlist">${rows}</div><div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
+  sheet('journal', `<h2>${t('journalTitle')}</h2><div class="jlist">${rows}</div><div class="row-btns"><button class="btn" id="jRules">ℹ️ ${t('rulesBtn')}</button><button class="btn" id="jReset">↺ ${t('resetBtn')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
+  $('#jRules').onclick = () => rules();
+  $('#jReset').onclick = () => gate(() => resetAsk(p));
+}
+
+function resetAsk(p: Profile) {
+  sheet('reset', `<div class="big-ic">↺</div><h2>${t('resetTitle')}</h2><p>${t('resetBody').replace('{name}', esc(p.name || t(p.band)))}</p>
+    <div class="row-btns"><button class="btn" data-close>${t('cancel')}</button><button class="btn danger" id="rsGo">${t('resetDo')}</button></div>`);
+  $('#rsGo').onclick = () => { resetProgress(p); closeSheet(); hub(); toast(t('resetDone')); };
+}
+
+/** The "how it works" page: shown once on first launch, and from the player screen and Journal. */
+function rules(first = false) {
+  const f = (k: Key) => t(k).replace('{level}', String(RULES.coins.level)).replace('{star}', String(RULES.coins.star)).replace('{disc}', String(RULES.coins.discovery))
+    .replace('{ok}', String(RULES.coins.correct)).replace('{daily}', String(RULES.coins.daily)).replace('{max}', String(RULES.maxHearts)).replace('{min}', String(RULES.refillMin))
+    .replace('{cost}', String(RULES.heartCost)).replace('{ads}', String(RULES.adHeartsPerDay));
+  sheet('rules', `<h2>${t('rulesTitle')}</h2>
+    <div class="rulelist"><p><i class="coin" aria-hidden="true"></i> ${f('rulesCoins')}</p><p>❤️ ${f('rulesHearts')}</p><p>💔 ${f('rulesBuy')}</p><p class="muted">👪 ${f('rulesGrown')}</p></div>
+    <div class="row-btns"><button class="btn primary" id="ruOk">${t('gotIt')}</button></div>`);
+  $('#ruOk').onclick = () => { if (first || !S.seenRules) { S.seenRules = true; saveShell(); } closeSheet(); };
+  if (first) { S.seenRules = true; saveShell(); }
 }
 
 /* =================================================================== parents */

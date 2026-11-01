@@ -168,3 +168,5 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .in-sheet .lab.soon small{color:var(--muted)}
 .sheet h3{font-size:16px;margin-top:6px}
 .center-t{text-align:center}
+
+.rulelist{display:grid;gap:10px;text-align:left}.rulelist p{margin:0;font-size:15px;line-height:1.45}.rulelist .coin{display:inline-block;vertical-align:-3px;margin-right:2px}

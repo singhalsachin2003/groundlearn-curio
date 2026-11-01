@@ -113,7 +113,12 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
     // keep the haze behind the island whatever the camera distance
     (scene.fog as THREE.Fog).near = hi + 8; (scene.fog as THREE.Fog).far = hi + 40;
     // bigger signs when the island is drawn small (phones in portrait)
-    signScale = portrait ? 1.6 : 1; zones.forEach(z => z.sign && z.sign.scale.copy(z.sign.userData.base).multiplyScalar(signScale));
+    signScale = portrait ? 1.6 : 1; refDist = hi; scaleSigns();
+  }
+  // Signs keep the same size on screen whether the workshop is at the front or the back of the island.
+  let refDist = 10; const sp = new THREE.Vector3();
+  function scaleSigns() {
+    zones.forEach(z => { if (!z.sign) return; z.sign.getWorldPosition(sp); z.sign.scale.copy(z.sign.userData.base).multiplyScalar(signScale * camera.position.distanceTo(sp) / refDist); });
   }
   const base = new THREE.Vector3();
   let signScale = 1;
@@ -152,6 +157,7 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
       sea.position.y = -0.15 + Math.sin(time * 0.8) * 0.03;
       zones.forEach(z => { const sp = z.group.getObjectByName('spin'); if (sp) sp.rotation.z += dt; });
     }
+    scaleSigns();
     zones.forEach(z => { if (z.bump > 0) { z.bump = Math.max(0, z.bump - dt * 3); const s = 1 + Math.sin(z.bump * Math.PI) * 0.08; z.group.scale.set(s, s, s); } });
     renderer.render(scene, camera);
   }
