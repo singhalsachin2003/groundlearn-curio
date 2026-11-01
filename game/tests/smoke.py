@@ -11,6 +11,11 @@ def check(cond, msg):
     if not cond: raise AssertionError(msg)
     print('ok ·', msg)
 
+async def dismiss(pg):
+    await pg.wait_for_timeout(1000)
+    shown = await pg.evaluate("(() => { const w = document.getElementById('sheet'); if (!w.hidden && w.dataset.kind === 'example') { w.querySelector('[data-close]').click(); return true; } return false; })()")
+    return shown
+
 async def run_vp(b, name, w, h):
     pg = await b.new_page(viewport={'width': w, 'height': h})
     errs = []
@@ -26,7 +31,7 @@ async def run_vp(b, name, w, h):
     await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800); await shot('2-hub')
     await pg.evaluate("(() => { const p = window.__shell.active(); p.daily = { day: new Date().toISOString().slice(0, 10), lab: 'nets', done: false }; })()")
     # Enter Cube Nets and fold the cross: first level done + first net found.
-    await pg.click('#hAll'); await pg.wait_for_selector('.sheet [data-lab="nets"]'); await shot('2b-all'); await pg.click('.sheet [data-lab="nets"]'); await pg.wait_for_timeout(2500); await shot('3-nets')
+    await pg.click('#hAll'); await pg.wait_for_selector('.sheet [data-lab="nets"]'); await shot('2b-all'); await pg.click('.sheet [data-lab="nets"]'); await pg.wait_for_timeout(2500); check(await dismiss(pg), 'worked example shows on first visit'); await shot('3-nets')
     fr = pg.frame_locator('.world-frame')
     await pg.evaluate("document.querySelector('.world-frame').contentWindow.__curio.nets.fold()")
     await pg.wait_for_timeout(2600); await shot('4-nets-folded')
@@ -59,19 +64,19 @@ async def run_vp(b, name, w, h):
     parts = a_txt.split('-'); a = T[parts[0]] + (W[parts[1]] if len(parts) > 1 else 0)
     await pg.fill('#gIn', str(a * W[b_txt])); await pg.click('#gOk')
     await pg.wait_for_selector('#pcAdH'); await shot('6-parent')
-    await pg.click('#pcBuy'); await pg.wait_for_timeout(900)
+    await pg.click('#pcBuy'); await pg.wait_for_selector('#emSkip'); await shot('6b-email'); await pg.fill('#emIn', 'nope'); await pg.click('#emGo'); check(await pg.locator('#emErr').is_visible(), 'bad email is refused'); await pg.click('#emSkip'); await pg.wait_for_timeout(900)
     txt = await pg.inner_text('.sheet'); check('Ad-free is on' in txt, 'Ad-free purchase (browser stand-in)')
     await pg.click('[data-close]')
     # Second player in the Explorer band sees Colour Studio only.
     await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tara'); await pg.click('[data-band="explorer"]'); await pg.click('#npGo')
     await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800); await shot('7-hub-explorer')
     await pg.click('#hAll'); n_labs = await pg.locator('.sheet [data-lab]').count(); check(n_labs == 1, f'explorer sees {n_labs} playable lab'); await shot('7b-all-explorer')
-    await pg.click('.sheet [data-lab="colour"]'); await pg.wait_for_timeout(3000); await shot('8-colour')
+    await pg.click('.sheet [data-lab="colour"]'); await pg.wait_for_timeout(3000); check(await dismiss(pg), 'worked example shows on first visit'); await shot('8-colour')
     await pg.click('#wBack'); await pg.wait_for_selector('.hub3d')
     # Players keep separate saves.
     await pg.click('#hWho'); await pg.click('.player >> text=Manan'); await pg.wait_for_selector('.hub3d')
     await pg.click('#hAll'); prog = await pg.inner_text('.sheet [data-lab="nets"] .cnt'); check(prog.startswith('1/6'), 'Manan keeps his own progress')
-    await pg.click('.sheet [data-lab="circuit"]'); await pg.wait_for_timeout(2500); await shot('9-circuit')
+    await pg.click('.sheet [data-lab="circuit"]'); await pg.wait_for_timeout(2500); check(await dismiss(pg), 'worked example shows on first visit'); await shot('9-circuit')
     await pg.click('#wBack')
     # Tinkerer band: its own labs, driven through the world's test hooks; rewards come from diffing the saves.
     await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tia'); await pg.click('[data-band="tinkerer"]'); await pg.click('#npGo')
@@ -80,7 +85,7 @@ async def run_vp(b, name, w, h):
     for lab in ('atom', 'kitchen', 'mirror'): check(await pg.locator(f'.sheet [data-lab="{lab}"]').count() == 1, f'tinkerer sees {lab}')
     await shot('10-all-tinkerer')
     WJ = "document.querySelector('.world-frame').contentWindow.__curio"
-    await pg.click('.sheet [data-lab="atom"]'); await pg.wait_for_timeout(2500); await shot('11-atom')
+    await pg.click('.sheet [data-lab="atom"]'); await pg.wait_for_timeout(2500); check(await dismiss(pg), 'worked example shows on first visit'); await shot('11-atom')
     for e in ('H', 'H'): await pg.evaluate(f"{WJ}.atom._add('{e}')"); await pg.wait_for_timeout(250)
     await pg.wait_for_timeout(1200); st = await pg.evaluate(f"{WJ}.atom._state()"); check(st['won'] and st['formula'] == 'H₂', 'atom snap level 1 solved'); await shot('12-atom-won')
     await pg.evaluate("(() => { const d = document.querySelector('.world-frame').contentDocument; d.getElementById('mdPri').click(); })()")

@@ -140,11 +140,17 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
   el.style.touchAction = 'none';
   el.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
   el.addEventListener('pointerup', e => {
-    if (!down) return; const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y); down = null; if (moved > 12) return;
+    if (!down) return; const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y); down = null; if (moved > 16) return;
     const r = el.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
-    const hit = ray.intersectObjects(zones.map(z => z.hit))[0];
-    if (hit) { const z = zones.find(o => o.hit === hit.object)!; z.bump = 1; onTap(z.id); }
+    // Forgiving taps: a direct hit on a house or its sign, otherwise the closest workshop within a thumb's width.
+    const hits = ray.intersectObjects([...zones.map(z => z.hit), ...zones.flatMap(z => z.sign ? [z.sign] : [])], false)[0];
+    let zone = hits ? zones.find(o => o.hit === hits.object || o.sign === hits.object) : undefined;
+    if (!zone) {
+      let best = 56; const v = new THREE.Vector3();
+      zones.forEach(o => { [o.hit, o.sign].forEach(m => { if (!m) return; m.getWorldPosition(v).project(camera); const d = Math.hypot((v.x + 1) / 2 * r.width - (e.clientX - r.left), (1 - v.y) / 2 * r.height - (e.clientY - r.top)); if (d < best) { best = d; zone = o; } }); });
+    }
+    if (zone) { zone.bump = 1; onTap(zone.id); }
   });
 
   let paused = false, raf = 0, last = performance.now(), time = 0;

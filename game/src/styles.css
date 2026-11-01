@@ -170,3 +170,4 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .center-t{text-align:center}
 
 .rulelist{display:grid;gap:10px;text-align:left}.rulelist p{margin:0;font-size:15px;line-height:1.45}.rulelist .coin{display:inline-block;vertical-align:-3px;margin-right:2px}
+.exsteps{text-align:left;margin:8px 0;padding-left:22px;display:grid;gap:8px;font-size:15px;line-height:1.45}.hubfoot,.topbar{pointer-events:none}.hubfoot>*,.topbar>*{pointer-events:auto}.hrules{flex:1 1 100%;text-align:center;font-size:13px;padding:2px}

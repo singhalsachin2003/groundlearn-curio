@@ -23,6 +23,8 @@ export interface Profile {
   created: number;
   /** Today's Curio of the day (see daily.ts). */
   daily?: { day: string; lab: string; done: boolean };
+  /** Labs whose worked example the player has already seen. */
+  ex?: string[];
 }
 
 export interface Shell {
@@ -33,6 +35,8 @@ export interface Shell {
   adsForHearts: boolean;
   adFree: boolean;
   seenRules?: boolean;
+  /** 'given' or 'skipped' once a grown-up has answered the email question (the address itself is never kept on the device). */
+  parentEmail?: 'given' | 'skipped';
 }
 
 /** Tunable numbers from the plan. Change here, nowhere else. */
@@ -80,7 +84,7 @@ export function addProfile(name: string, avatar: string, band: Band): Profile {
 export function resetProgress(p: Profile) {
   (['colour', 'inventor', 'tinkerer'] as WorldId[]).forEach(w => writeRaw(slotKey(p.id, w), null));
   p.coins = 0; p.levels = {}; p.disc = []; p.hearts = RULES.maxHearts; p.heartTs = Date.now(); p.adDay = ''; p.adCount = 0;
-  delete (p as { daily?: unknown }).daily;
+  delete (p as { daily?: unknown }).daily; delete (p as { ex?: unknown }).ex;
   saveShell();
 }
 export function removeProfile(id: string) {

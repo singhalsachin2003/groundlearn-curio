@@ -6,6 +6,8 @@ import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, 
 import { send, onNative, inApp } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
 import { createIsland, ZONE_OF, type Island, type ZoneId, type ZoneState } from './island';
+import { EXAMPLES } from './examples';
+import { saveParentEmail, validEmail } from './subscribe';
 import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
 export const PRIVACY_URL = 'https://groundlearn.com/curio/privacy';
@@ -42,6 +44,7 @@ export function start(el: HTMLElement) {
         <button class="pill back" id="wBack" aria-label="${t('back')}">‹ <span id="wBackTxt">${t('island')}</span></button>
         <span class="wlab" id="wLab"></span>
         <span class="grow"></span>
+        <button class="pill" id="wHelp" aria-label="${t('example')}">?<span class="long"> ${t('example')}</span></button>
         <button class="pill coins" id="wCoins"></button>
         <button class="pill hearts" id="wHearts"></button>
       </div>
@@ -49,6 +52,7 @@ export function start(el: HTMLElement) {
     <div id="toasts" class="toasts" aria-live="polite"></div>
     <div id="sheet" class="sheet-wrap" hidden><div class="sheet" role="dialog" aria-modal="true"></div></div>`;
   $('#wBack').onclick = () => leaveWorld();
+  $('#wHelp').onclick = () => { if (current) example(current.lab); };
   $('#wCoins').onclick = () => coinsInfo();
   $('#wHearts').onclick = () => heartsInfo();
 
@@ -188,6 +192,7 @@ function hub() {
       <div class="hubfoot" id="hubFoot">
         ${daily}
         <button class="btn" id="hAll">🗺️ ${t('allWorkshops')}</button>
+        <button class="link hrules" id="hRules">ℹ️ ${t('rulesBtn')}</button>
       </div>
     </div>`;
   $('#screen').classList.add('over-island');
@@ -197,6 +202,7 @@ function hub() {
   $('#hJournal').onclick = () => journal();
   $('#hParent').onclick = () => gate(parentCorner);
   $('#hAll').onclick = () => allWorkshops();
+  $('#hRules').onclick = () => rules();
   document.querySelectorAll<HTMLElement>('#hubFoot [data-lab]').forEach(b => b.onclick = () => enterWorld(LABS.find(l => l.id === b.dataset.lab)!));
   showIsland(true);
   island!.setZones(zoneStates(p));
@@ -260,6 +266,15 @@ function enterWorld(lab: Lab) {
   setWorldLang(S.lang);
   frame = mountWorld($('#worldHost'), lab.world);
   refreshPills();
+  if (!(p.ex || []).includes(lab.id) && EXAMPLES[lab.id]) { (p.ex = p.ex || []).push(lab.id); saveShell(); setTimeout(() => current && example(current.lab), 700); }
+}
+
+/** A worked example for the lab, shown the first time a player opens it and from the "?" button. */
+function example(lab: Lab) {
+  const ex = EXAMPLES[lab.id]; if (!ex) return;
+  sheet('example', `<div class="big-ic">${lab.icon}</div><h2>${t('example')}: ${esc(ex.title)}</h2>
+    <ol class="exsteps">${ex.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>${ex.tip ? `<p class="muted">💡 ${esc(ex.tip)}</p>` : ''}
+    <div class="row-btns"><button class="btn primary" data-close>${t('gotIt')}</button></div>`);
 }
 
 function leaveWorld() {
@@ -357,6 +372,21 @@ function resetAsk(p: Profile) {
   $('#rsGo').onclick = () => { resetProgress(p); closeSheet(); hub(); toast(t('resetDone')); };
 }
 
+/** Before the Ad-free purchase, a grown-up may leave an email (optional) for receipts and news. */
+function emailAsk() {
+  if (S.parentEmail) { send({ t: 'buyAdFree' }); return; }
+  sheet('email', `<div class="big-ic">✉️</div><h2>${t('emailTitle')}</h2><p>${t('emailBody')}</p>
+    <input id="emIn" class="input" type="email" inputmode="email" autocomplete="email" maxlength="254" placeholder="parent@example.com" aria-label="${t('emailTitle')}">
+    <p class="err" id="emErr" hidden>${t('emailBad')}</p><p class="muted">${t('emailConsent')}</p>
+    <div class="row-btns"><button class="btn" id="emSkip">${t('emailSkip')}</button><button class="btn primary" id="emGo">${t('emailGo')}</button></div>`);
+  $('#emSkip').onclick = () => { S.parentEmail = 'skipped'; saveShell(); parentCorner(); send({ t: 'buyAdFree' }); };
+  $('#emGo').onclick = () => {
+    const v = ($('#emIn') as HTMLInputElement).value.trim();
+    if (!validEmail(v)) { $('#emErr').hidden = false; return; }
+    S.parentEmail = 'given'; saveShell(); void saveParentEmail(v, getLang()); parentCorner(); send({ t: 'buyAdFree' });
+  };
+}
+
 /** The "how it works" page: shown once on first launch, and from the player screen and Journal. */
 function rules(first = false) {
   const f = (k: Key) => t(k).replace('{level}', String(RULES.coins.level)).replace('{star}', String(RULES.coins.star)).replace('{disc}', String(RULES.coins.discovery))
@@ -401,16 +431,18 @@ function parentCorner() {
       <section class="kv"><span><b>${t('sound')}</b></span>${toggle('pcSound', S.sound)}</section>
       <section class="kv"><span><b>${t('language')}</b></span><span class="seg"><button data-lang="en" aria-pressed="${S.lang === 'en'}">English</button><button data-lang="hi" aria-pressed="${S.lang === 'hi'}">हिंदी</button></span></section>
       <section><h3>${t('players')}</h3>${plist}</section>
+      <button class="link" id="pcRules">ℹ️ ${t('rulesBtn')}</button>
       <button class="link" id="pcPrivacy">${t('privacy')}</button>
     </div>
     <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
-  document.getElementById('pcBuy')?.addEventListener('click', () => send({ t: 'buyAdFree' }));
+  document.getElementById('pcBuy')?.addEventListener('click', () => emailAsk());
   $('#pcRestore').onclick = () => send({ t: 'restore' });
   $('#pcAdH').onclick = () => { S.adsForHearts = !S.adsForHearts; saveShell(); parentCorner(); };
   $('#pcSound').onclick = () => { S.sound = !S.sound; saveShell(); parentCorner(); };
   document.querySelectorAll<HTMLElement>('[data-lang]').forEach(b => b.onclick = () => { S.lang = b.dataset.lang as 'en' | 'hi'; setLang(S.lang); saveShell(); hub(); parentCorner(); });
   document.querySelectorAll<HTMLSelectElement>('[data-band-of]').forEach(s => s.onchange = () => { const p = S.profiles.find(x => x.id === s.dataset.bandOf); if (p) { p.band = s.value as Band; saveShell(); hub(); parentCorner(); } });
   document.querySelectorAll<HTMLElement>('[data-rm]').forEach(b => b.onclick = () => { if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = t('removeConfirm'); b.classList.add('danger'); return; } removeProfile(b.dataset.rm!); if (active()) { hub(); parentCorner(); } else players(); });
+  $('#pcRules').onclick = () => rules();
   $('#pcPrivacy').onclick = () => send({ t: 'openUrl', url: PRIVACY_URL });
 }
 
@@ -419,7 +451,9 @@ function sheet(kind: string, html: string) {
   const w = $('#sheet'), s = $('.sheet', w);
   w.dataset.kind = kind; s.innerHTML = html; w.hidden = false;
   s.querySelectorAll<HTMLElement>('[data-close]').forEach(b => b.onclick = () => closeSheet());
-  w.onclick = e => { if (e.target === w) closeSheet(); };
+  // A tap that opened this sheet also sends a click to whatever is now under the finger. Ignore it.
+  const opened = Date.now();
+  w.onclick = e => { if (e.target === w && Date.now() - opened > 500) closeSheet(); };
 }
 function closeSheet() { const w = $('#sheet'); if (!w) return; w.hidden = true; w.dataset.kind = ''; }
 

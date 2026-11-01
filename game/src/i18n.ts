@@ -87,6 +87,7 @@ const EN = {
   soonBadge: 'Coming soon',
   bigKids: 'For big kids',
   rulesBtn: 'How to play',
+  example: 'Example',
   rulesTitle: 'How Curio Island works',
   rulesCoins: 'Finish a level for {level} coins, win a star for {star}, make a new discovery for {disc}, and answer a bonus question right for {ok}. The Curio of the day pays {daily} more. Coins are never taken away and cannot be bought with money.',
   rulesHearts: 'You have {max} hearts. A wrong answer costs one heart, but you never lose coins. Hearts come back by themselves, one every {min} minutes. With no hearts you can still explore and experiment. You only need a heart to answer a question.',
@@ -98,6 +99,12 @@ const EN = {
   resetBody: 'This clears every level, star, discovery and coin for {name}, and refills hearts. It cannot be undone.',
   resetDo: 'Yes, clear it',
   resetDone: 'Fresh start! Good luck.',
+  emailTitle: 'Your email, if you like',
+  emailBody: 'A grown-up can leave an email for the Ad-free receipt and news about new labs. You can skip this and still buy Ad-free.',
+  emailBad: 'That email does not look right.',
+  emailConsent: 'We use it only to write to you about Curio Island. We never show it to children or share it. Ask us to delete it any time.',
+  emailSkip: 'Skip',
+  emailGo: 'Continue',
 };
 export type Key = keyof typeof EN;
 
@@ -186,6 +193,7 @@ const HI: Record<Key, string> = {
   soonBadge: 'जल्द आ रहा है',
   bigKids: 'बड़े बच्चों के लिए',
   rulesBtn: 'कैसे खेलें',
+  example: 'उदाहरण',
   rulesTitle: 'क्यूरियो आइलैंड कैसे चलता है',
   rulesCoins: 'लेवल पूरा करने पर {level} सिक्के, सितारे पर {star}, नई खोज पर {disc} और बोनस सवाल का सही जवाब देने पर {ok} सिक्के मिलते हैं। आज की क्यूरियो चुनौती पर {daily} और मिलते हैं। सिक्के कभी वापस नहीं लिए जाते और पैसों से नहीं खरीदे जा सकते।',
   rulesHearts: 'तुम्हारे पास {max} दिल हैं। गलत जवाब पर एक दिल जाता है, पर सिक्के कभी नहीं जाते। दिल अपने आप लौट आते हैं, हर {min} मिनट में एक। दिल न हों तब भी तुम खोज और प्रयोग कर सकते हो। दिल सिर्फ़ सवाल का जवाब देने के लिए चाहिए।',
@@ -197,6 +205,12 @@ const HI: Record<Key, string> = {
   resetBody: 'इससे {name} के सारे लेवल, सितारे, खोज और सिक्के मिट जाएँगे और दिल फिर भर जाएँगे। यह वापस नहीं हो सकता।',
   resetDo: 'हाँ, मिटा दो',
   resetDone: 'नई शुरुआत! शुभकामनाएँ।',
+  emailTitle: 'आपका ईमेल, अगर चाहें',
+  emailBody: 'कोई बड़ा Ad-free की रसीद और नई लैब की ख़बरों के लिए ईमेल दे सकता है। आप इसे छोड़कर भी Ad-free ख़रीद सकते हैं।',
+  emailBad: 'यह ईमेल सही नहीं लगता।',
+  emailConsent: 'हम इसका इस्तेमाल सिर्फ़ क्यूरियो आइलैंड के बारे में लिखने के लिए करते हैं। इसे बच्चों को नहीं दिखाते और किसी से साझा नहीं करते। कभी भी हटवाने के लिए कह सकते हैं।',
+  emailSkip: 'छोड़ें',
+  emailGo: 'आगे बढ़ें',
 };
 
 let lang: Lang = 'en';
