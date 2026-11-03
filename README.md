@@ -9,7 +9,7 @@ game/   The game itself: TypeScript + three.js (r128), built by Vite into ONE ht
   src/        The app shell: players, island hub, coins and hearts, Journal, parent gate, Parent Corner.
   worlds/     The playable prototypes, unchanged except for small hooks:
               colour.html (Colour Studio), inventor.html (the 12 Inventor labs, ages 10+) and
-              tinkerer.html (the 6 Tinkerer labs, ages 7-9: Atom Snap, Kitchen Reactions, Mirror Maze,
+              tinkerer.html (the 6 Tinkerer labs, ages 7-10: Atom Snap, Kitchen Reactions, Mirror Maze,
               Coordinate Pictures, Pea Crosses, Food Chains).
   tests/      Smoke test in headless Chromium (Playwright).
 app/    The Android app (Expo). A full-screen WebView runs the game; the native side keeps

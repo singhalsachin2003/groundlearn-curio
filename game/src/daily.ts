@@ -43,6 +43,7 @@ function hash(s: string) { let h = 2166136261; for (let i = 0; i < s.length; i++
 
 export function labsFor(band: Band): Lab[] {
   if (band === 'explorer') return LABS.filter(l => l.id === 'colour');
+  if (band === 'tinkerer') return LABS.filter(l => l.id === 'colour' || l.only === 'tinkerer');
   return LABS.filter(l => !l.only || l.only === band);
 }
 

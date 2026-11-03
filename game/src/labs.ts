@@ -31,7 +31,7 @@ export const LABS: Lab[] = [
   { id: 'genes', world: 'inventor', subject: 'bio', icon: '🌱', name: { en: 'Genes', hi: 'जीन' }, blurb: { en: 'Grow pea plants', hi: 'मटर के पौधे उगाओ' }, progress: { field: 'geneDone', total: 7, kind: 'levels' } },
   { id: 'body', world: 'inventor', subject: 'bio', icon: '❤️', name: { en: 'Body', hi: 'शरीर' }, blurb: { en: 'Travel through you', hi: 'शरीर के अंदर सफ़र' }, progress: { field: 'bodyDone', total: 8, kind: 'levels' } },
   { id: 'eco', world: 'inventor', subject: 'bio', icon: '🐅', name: { en: 'Ecosystem', hi: 'पारितंत्र' }, blurb: { en: 'Grass, deer, tigers', hi: 'घास, हिरण, बाघ' }, progress: { field: 'ecoDone', total: 5, kind: 'levels' } },
-  // Round 2: the Tinkerer labs (ages 7-9).
+  // Round 2: the Tinkerer labs (ages 7-10).
   { id: 'atom', world: 'tinkerer', only: 'tinkerer', subject: 'chem', icon: '💧', name: { en: 'Atom Snap', hi: 'परमाणु जोड़ो' }, blurb: { en: 'Snap atoms into molecules', hi: 'परमाणु जोड़कर अणु बनाओ' }, progress: { field: 'atomDone', total: 8, kind: 'levels' } },
   { id: 'kitchen', world: 'tinkerer', only: 'tinkerer', subject: 'chem', icon: '🍋', name: { en: 'Kitchen Reactions', hi: 'रसोई की अभिक्रियाएँ' }, blurb: { en: 'Mix safe things, see what happens', hi: 'चीज़ें मिलाओ, देखो क्या होता है' }, progress: { field: 'kitchenFound', total: 12, kind: 'found' } },
   { id: 'mirror', world: 'tinkerer', only: 'tinkerer', subject: 'phy', icon: '✨', name: { en: 'Mirror Maze', hi: 'दर्पण भूलभुलैया' }, blurb: { en: 'Bounce the beam to the star', hi: 'किरण को तारे तक पहुँचाओ' }, progress: { field: 'mirrorStars', total: 8, kind: 'levels' } },

@@ -234,8 +234,7 @@ function allWorkshops() {
   const colour = LABS.find(l => l.id === 'colour')!, inv = LABS.filter(l => l.world === 'inventor');
   let body = '';
   if (p.band === 'inventor') body = `<div class="labs in-sheet">${inv.map(l => labCard(l, p)).join('')}${labCard(colour, p)}${COMING.inventor.map(soonCard).join('')}</div>`;
-  else body = `<div class="labs in-sheet">${labCard(colour, p)}${LABS.filter(l => l.only === p.band).map(l => labCard(l, p)).join('')}${COMING[p.band].map(soonCard).join('')}</div>` +
-    (p.band === 'tinkerer' ? `<h3>${t('challengeLabs')}</h3><p class="muted">${t('challengeNote')}</p><div class="labs in-sheet">${inv.map(l => labCard(l, p)).join('')}</div>` : '');
+  else body = `<div class="labs in-sheet">${labCard(colour, p)}${LABS.filter(l => l.only === p.band).map(l => labCard(l, p)).join('')}${COMING[p.band].map(soonCard).join('')}</div>`;
   sheet('all', `<h2>${t('allWorkshops')}</h2>${body}<div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(LABS.find(l => l.id === b.dataset.lab)!); });
 }
