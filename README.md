@@ -73,4 +73,4 @@ The ad ids and RevenueCat's public SDK key are in `app/src/config.ts`. Developme
 
 ## Parent email (optional)
 
-When a grown-up buys Ad-free (behind the parent gate) the app asks, optionally, for an email address (`game/src/subscribe.ts`). It is never kept on the device; it is posted to the Supabase table `public.curio_parents` (insert-only for the app, see `supabase/curio_parents.sql`). **The table is not created yet.** Until you run that SQL in the chosen Supabase project, saving fails quietly and the purchase still works. The Play Data safety form and the privacy page must say that an optional email address is collected.
+When a grown-up buys Ad-free (behind the parent gate) the app asks, optionally, for an email address (`game/src/subscribe.ts`). It is never kept on the device; it is posted to the Supabase table `public.curio_parents` (insert-only for the app, see `supabase/curio_parents.sql`). The table exists in the OTCLearn Supabase project (created 4 Nov 2026). The Play Data safety form and the privacy page must say that an optional email address is collected; ready-to-paste wording is in `supabase/privacy-and-data-safety-wording.md`.
