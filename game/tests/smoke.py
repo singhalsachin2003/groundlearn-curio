@@ -55,13 +55,14 @@ async def run_vp(b, name, w, h):
     await pg.click('#hAll', force=True); prog = await pg.inner_text('.sheet [data-lab="nets"] .cnt'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     check(prog.startswith('1/6'), f'nets card progress {prog}')
     # Wrong answers cost hearts; at zero the out-of-hearts sheet appears and free play continues.
+    await pg.evaluate("window.__shell.active().coins += 600")  # a heart costs 600 coins
     for _ in range(5): await pg.evaluate("window.curioWorld.answer(false)")
     hearts = await pg.inner_text('#hHearts'); check(hearts.strip().startswith('❤️ 0'), f'hearts after 5 wrong = {hearts.split()[1]}')
     ok = await pg.evaluate("window.curioWorld.canAnswer()"); check(ok is False, 'cannot answer with 0 hearts')
     await pg.wait_for_selector('.sheet #ohBuy'); await shot('5-out-of-hearts')
     await pg.click('#ohBuy'); await pg.wait_for_timeout(200)
-    hearts = await pg.inner_text('#hHearts'); check(hearts.strip().startswith('❤️ 1'), 'bought a heart for 30 coins')
-    coins = await pg.inner_text('#hCoins'); check(coins.strip() == '15', f'coins after buying = {coins.strip()}')
+    hearts = await pg.inner_text('#hHearts'); check(hearts.strip().startswith('❤️ 1'), 'bought a heart for 600 coins')
+    coins = await pg.inner_text('#hCoins'); check(coins.strip() == '45', f'coins after buying = {coins.strip()}')
     for _ in range(1): await pg.evaluate("window.curioWorld.answer(false)")
     await pg.evaluate("window.curioWorld.canAnswer()"); await pg.wait_for_selector('#ohAd')
     await pg.click('#ohAd'); await pg.wait_for_timeout(1600)

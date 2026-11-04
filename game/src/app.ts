@@ -373,7 +373,7 @@ function outOfHearts() {
   sheet('out', `<div class="big-ic">💔</div><h2>${t('outTitle')}</h2><p>${t('outBody')}</p>
     <p class="muted">${t('waitIn')} <b id="ohTimer">${mmss(msToNextHeart(p))}</b></p>
     <div class="col-btns">
-      <button class="btn" id="ohBuy" ${p.coins < RULES.heartCost ? 'disabled' : ''}><i class="coin" aria-hidden="true"></i>${p.coins < RULES.heartCost ? t('needCoins') : t('buyHeart')}</button>
+      <button class="btn" id="ohBuy" ${p.coins < RULES.heartCost ? 'disabled' : ''}><i class="coin" aria-hidden="true"></i>${(p.coins < RULES.heartCost ? t('needCoins') : t('buyHeart')).replace('{cost}', String(RULES.heartCost))}</button>
       ${S.adsForHearts && !S.adFree ? `<button class="btn" id="ohAd" ${canAd ? '' : 'disabled'}>▶ ${left > 0 ? `${t('watchAd')} (${left} ${t('adsLeft')})` : t('noAdsLeft')}</button>` : ''}
       <button class="btn primary" data-close>${t('keepExploring')}</button>
     </div>`);
@@ -470,6 +470,7 @@ function parentCorner() {
     const up = nxt && mine.length && done / mine.length >= 0.75 ? `<div class="moveup">🎉 ${t('moveUp')} <button class="btn small" data-up="${p.id}">${t('moveUpGo')}</button></div>` : '';
     return `${up ? '' : ''}<div class="prow"><span class="av">${p.avatar}</span><span class="pt"><b>${esc(p.name || t(p.band))}</b><small>${t('discovered')}: ${found} · ${lv} ${t('levelsDone')} · ${p.coins} ${t('plusCoins')}</small></span>
       <select data-band-of="${p.id}" aria-label="${t('ageBand')}">${BANDS.map(b => `<option value="${b.id}" ${b.id === p.band ? 'selected' : ''}>${t(b.ages)}</option>`).join('')}</select>
+      <button class="btn small" data-reset="${p.id}">↺ ${t('resetBtn')}</button>
       <button class="btn small" data-rm="${p.id}">${t('remove')}</button></div>${up}`;
   }).join('');
   sheet('parent', `<h2>${t('parentCorner')}</h2>
@@ -498,6 +499,7 @@ function parentCorner() {
   document.querySelectorAll<HTMLElement>('[data-up]').forEach(b => b.onclick = () => { const p = S.profiles.find(x => x.id === b.dataset.up); if (p && NEXT[p.band]) { p.band = NEXT[p.band]!; saveShell(); hub(); parentCorner(); } });
   document.querySelectorAll<HTMLElement>('[data-rm]').forEach(b => b.onclick = () => { if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = t('removeConfirm'); b.classList.add('danger'); return; } removeProfile(b.dataset.rm!); if (active()) { hub(); parentCorner(); } else players(); });
   $('#pcRules').onclick = () => rules();
+  document.querySelectorAll<HTMLElement>('[data-reset]').forEach(b => b.onclick = () => { const p = S.profiles.find(x => x.id === b.dataset.reset); if (p) resetAsk(p); });
   $('#pcPrivacy').onclick = () => send({ t: 'openUrl', url: PRIVACY_URL });
   $('#pcLic').onclick = () => sheet('licences', `<h2>${t('licences')}</h2>${LICENSES.map(l => `<h3>${esc(l.name)}</h3><pre class="lic">${esc(l.text)}</pre>`).join('')}<div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
 }

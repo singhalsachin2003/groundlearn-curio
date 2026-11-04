@@ -48,7 +48,7 @@ export const RULES = {
   maxHearts: 5,
   refillMin: 20,
   refillMinAdFree: 10,
-  heartCost: 30,
+  heartCost: 600,
   adHeartsPerDay: 3,
   coins: { correct: 10, level: 20, star: 5, discovery: 15, daily: 10 },
   ads: { quietStartSec: 180, gapSec: 270, levelGapSec: 150, maxPerSession: 8 },
