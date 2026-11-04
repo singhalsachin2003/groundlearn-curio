@@ -1717,8 +1717,10 @@ games.graph = (function () {
     fixedLine.visible = !!G.fixed; if (G.fixed) placeLine(fixedLine, G.fixed.m, G.fixed.c, 0.08);
     m = 1; c = 0; solved = false; $('gmIn').value = m; $('gcIn').value = c; update0(); renderUI(); if (P.tab === 'graph') renderMission();
   }
-  function setM(v) { if (!solved) budget('graph', li, 14, 6); m = clamp(Math.round(v * 2) / 2, -3, 3); $('gmIn').value = m; update0(); }
-  function setC(v) { if (!solved) budget('graph', li, 14, 6); c = clamp(Math.round(v * 2) / 2, -4, 6); $('gcIn').value = c; update0(); }
+  function setM(v) { const nv = clamp(Math.round(v * 2) / 2, -3, 3); if (nv === m) return; m = nv; $('gmIn').value = m; update0(); }
+  function setC(v) { const nv = clamp(Math.round(v * 2) / 2, -4, 6); if (nv === c) return; c = nv; $('gcIn').value = c; update0(); }
+  // A slider drag fires many steps; count it as one move when the finger lifts.
+  const graphMove = () => { if (!solved) budget('graph', li, 8, 4); };
   function update0() {
     placeLine(line, m, c, 0.15);
     gems.forEach((g, j) => { const on = onLine(G.gems[j]); g.material.color.set(on ? 0xffb423 : 0x8a3fd1); g.material.emissive.set(on ? 0x6a4500 : 0x000000); });
@@ -1772,7 +1774,8 @@ games.graph = (function () {
   }
   function mission() { return { meta: `Graph ${li + 1} of ${GRAPH.length}`, text: G.text, hint: G.hint, stars: P.graphStars[li] ? '<span style="color:var(--mint);-webkit-text-stroke:0">Solved ✓</span>' : '', nav: true, prevOk: li > 0, nextOk: li < GRAPH.length - 1 && !!P.graphStars[li] }; }
   $('gmIn').oninput = e => setM(+e.target.value); $('gcIn').oninput = e => setC(+e.target.value);
-  document.querySelectorAll('[data-gstep]').forEach(b => b.onclick = () => { sfx.click(); if (b.dataset.gstep === 'm') setM(m + +b.dataset.d); else setC(c + +b.dataset.d); });
+  $('gmIn').onchange = graphMove; $('gcIn').onchange = graphMove;
+  document.querySelectorAll('[data-gstep]').forEach(b => b.onclick = () => { sfx.click(); graphMove(); if (b.dataset.gstep === 'm') setM(m + +b.dataset.d); else setC(c + +b.dataset.d); });
   return { scene, camera, update, fit, tap() {}, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.graphLevel, 0, GRAPH.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), setM, setC };
 })();
 
