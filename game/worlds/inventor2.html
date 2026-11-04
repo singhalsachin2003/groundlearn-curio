@@ -1,14 +1,14 @@
 <style>
-/* Inventor Lab 2 (ages 10+): States of Matter, Fractions and Ratio, Sound and Waves, Cells and Microbes. Same cream-card, night-lab look as the other labs. */
+/* Inventor Lab 2: States of Matter, Fractions and Ratio, Sound and Waves, Cells and Microbes (ages 10+), plus Moon Phases and Area and Perimeter, and the Tinkerer labs Equal Groups and Ladoo Fractions. Same cream-card, night-lab look as the other labs. */
 :root{--night:#141c35;--ink:#121528;--card:#fbf8f1;--marigold:#ffb423;--coral:#e2553f;--mint:#1f9d74;--muted:#5d6079;--soft:#efe9da;--blue:#3b82f6;
   --f-body:"Lexend",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--f-mono:ui-monospace,Menlo,monospace;color-scheme:dark}
 [hidden]{display:none !important}
 html,body{height:100%;margin:0}
-body{background:radial-gradient(120% 90% at 50% 0%,#26346a 0%,#141c35 70%);color:var(--ink);font-family:var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(90% 50% at 50% 0%,rgba(255,150,90,.2) 0%,rgba(255,150,90,0) 70%),radial-gradient(120% 90% at 50% 0%,#2c3b78 0%,#141c35 70%);color:var(--ink);font-family:var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
 button{font-family:inherit;color:var(--ink);cursor:pointer}
 button:focus-visible,input:focus-visible{outline:3px solid #6f9bff;outline-offset:2px}
 #app{position:fixed;inset:0;display:flex;flex-direction:column;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 66px) max(12px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 12px)}
-.card{background:var(--card);border:2px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 rgba(0,0,0,.5)}
+.card{background:linear-gradient(#fffdf6,#f6ecd6);border:2px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 rgba(0,0,0,.5)}
 #mission{padding:10px 14px;max-width:640px;width:100%;box-sizing:border-box;align-self:center}
 .meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--coral)}
 .nav button{background:var(--soft);border:2px solid var(--ink);border-radius:10px;width:34px;height:30px;font-size:18px;font-weight:800;margin-left:6px}
@@ -52,6 +52,17 @@ svg.pizza path{cursor:pointer;stroke:#7a3b13;stroke-width:2;transition:fill .15s
 .mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 .fb{font-weight:700;margin:6px 0}
 .did{font-size:14px;background:var(--soft);border-radius:10px;padding:8px 10px;margin-top:8px}
+
+.bsk{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px}
+.b1{background:rgba(255,255,255,.1);border:2px solid var(--card);border-radius:14px;padding:6px 8px;min-width:58px;display:flex;flex-direction:column;align-items:center;font-size:24px;line-height:1.1;color:var(--card)}
+.b1 .fr{display:flex;flex-wrap:wrap;justify-content:center;font-size:20px;max-width:90px}
+.lbox{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:560px}
+.lg{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;border:3px dashed rgba(255,255,255,.55);border-radius:14px;padding:6px;max-width:150px}
+.ld{font-size:30px;line-height:1;background:transparent;border:2px solid transparent;border-radius:12px;padding:2px;min-width:44px;min-height:44px}
+.ld.on{background:rgba(255,180,35,.35);border-color:var(--marigold)}
+.grid8{display:grid;gap:3px;width:min(92%,380px)}
+.cell{aspect-ratio:1;border:0;border-radius:6px;background:rgba(255,255,255,.14);min-height:30px}
+.cell.on{background:var(--marigold);box-shadow:inset 0 0 0 2px #7a3b13}
 </style>
 
 <i id="noTR" hidden></i>
@@ -138,6 +149,62 @@ var LABS = {
       q: Q(['One bacterium doubles each hour. How many after 3 hours?', 'एक जीवाणु हर घंटे दुगना होता है। 3 घंटे बाद कितने?'], [['8', '8'], ['6', '6'], ['3', '3']], 0, ['1 → 2 → 4 → 8. Doubling grows very fast.', '1 → 2 → 4 → 8। दुगना होना बहुत तेज़ बढ़ना है।']) },
     { t: ['Wash the germs away: get below 10 germs in 10 scrubs or fewer.', 'कीटाणु धो डालो: 10 या उससे कम रगड़ में 10 से कम कीटाणु बचें।'], kind: 'scrub',
       q: Q(['Why is soap better than water alone?', 'अकेले पानी से साबुन बेहतर क्यों है?'], [['It lifts germs and grease off so water can rinse them away', 'यह कीटाणु और चिकनाई उठा देता है ताकि पानी उन्हें बहा दे'], ['It kills every germ at once', 'यह सब कीटाणु एक साथ मार देता है'], ['It makes hands warm', 'यह हाथ गरम करता है']], 0, ['Soap breaks up grease that holds germs. Scrub for about 20 seconds.', 'साबुन चिकनाई तोड़ता है जिसमें कीटाणु चिपके होते हैं। लगभग 20 सेकंड रगड़ो।']) }
+  ] },
+  groups: { field: 'groupsDone', name: ['Equal Groups', 'बराबर समूह'], levels: [
+    { t: ['Make 3 baskets with 2 mangoes in each.', '3 टोकरियाँ बनाओ, हर टोकरी में 2 आम।'], f: '🥭', g: 3, k: 2,
+      q: Q(['How many mangoes are there in all?', 'कुल कितने आम हैं?'], [['6', '6'], ['5', '5'], ['8', '8']], 0, ['3 groups of 2 is 2 + 2 + 2 = 6, or 3 × 2 = 6.', '2 के 3 समूह यानी 2 + 2 + 2 = 6, या 3 × 2 = 6।']) },
+    { t: ['Make 4 baskets with 3 oranges in each.', '4 टोकरियाँ बनाओ, हर टोकरी में 3 संतरे।'], f: '🍊', g: 4, k: 3,
+      q: Q(['4 × 3 = ?', '4 × 3 = ?'], [['12', '12'], ['7', '7'], ['34', '34']], 0, ['Multiplying is a quick way to add equal groups: 3 + 3 + 3 + 3 = 12.', 'गुणा बराबर समूहों को जोड़ने का तेज़ तरीक़ा है: 3 + 3 + 3 + 3 = 12।']) },
+    { t: ['Share 12 apples into 3 equal baskets. Fill each basket.', '12 सेब 3 बराबर टोकरियों में बाँटो। हर टोकरी भरो।'], f: '🍎', total: 12, g: 3,
+      q: Q(['12 ÷ 3 = ?', '12 ÷ 3 = ?'], [['4', '4'], ['9', '9'], ['36', '36']], 0, ['Dividing is sharing equally. 3 baskets of 4 make 12, so 12 ÷ 3 = 4.', 'भाग का मतलब बराबर बाँटना है। 4-4 की 3 टोकरियाँ 12 बनाती हैं, इसलिए 12 ÷ 3 = 4।']) },
+    { t: ['Put 15 bananas into 5 equal baskets.', '15 केले 5 बराबर टोकरियों में रखो।'], f: '🍌', total: 15, g: 5,
+      q: Q(['5 × 3 = ?', '5 × 3 = ?'], [['15', '15'], ['8', '8'], ['53', '53']], 0, ['5 baskets of 3 bananas is 15, so 15 ÷ 5 = 3 and 5 × 3 = 15 are partners.', '3-3 केलों की 5 टोकरियाँ 15 होती हैं, इसलिए 15 ÷ 5 = 3 और 5 × 3 = 15 जोड़ीदार हैं।']) },
+    { t: ['Make 20 strawberries with 4 in every basket. How many baskets?', 'हर टोकरी में 4 स्ट्रॉबेरी रखकर कुल 20 बनाओ। कितनी टोकरियाँ?'], f: '🍓', total: 20, k: 4,
+      q: Q(['20 ÷ 4 = ?', '20 ÷ 4 = ?'], [['5', '5'], ['16', '16'], ['24', '24']], 0, ['How many 4s fit in 20? 5 of them: 4 × 5 = 20.', '20 में 4 कितनी बार आता है? 5 बार: 4 × 5 = 20।']) },
+    { t: ['Make 24 grapes with 4 baskets. Then try 6 baskets.', '4 टोकरियों से 24 अंगूर बनाओ। फिर 6 टोकरियाँ आज़माओ।'], f: '🍇', total: 24, g: 4,
+      q: Q(['Is 4 × 6 the same as 6 × 4?', 'क्या 4 × 6 और 6 × 4 बराबर हैं?'], [['Yes, both are 24', 'हाँ, दोनों 24 हैं'], ['No, 6 × 4 is bigger', 'नहीं, 6 × 4 बड़ा है'], ['No, 4 × 6 is bigger', 'नहीं, 4 × 6 बड़ा है']], 0, ['The order does not change a product: 4 baskets of 6 and 6 baskets of 4 both make 24.', 'क्रम बदलने से गुणनफल नहीं बदलता: 6-6 की 4 टोकरियाँ और 4-4 की 6 टोकरियाँ दोनों 24 हैं।']) }
+  ] },
+  ladoo: { field: 'ladooDone', name: ['Ladoo Fractions', 'लड्डू के भिन्न'], levels: [
+    { t: ['Take 1/2 of the 8 ladoos. Tap the ones you take.', '8 लड्डुओं का 1/2 लो। जो लेने हैं उन्हें छुओ।'], n: 8, d: 2, num: 1, k: 4,
+      q: Q(['Which fraction is the same as 1/2?', 'कौन सी भिन्न 1/2 के बराबर है?'], [['2/4', '2/4'], ['1/4', '1/4'], ['3/4', '3/4']], 0, ['2 out of 4 is half, so 2/4 = 1/2.', '4 में से 2 आधा है, इसलिए 2/4 = 1/2।']) },
+    { t: ['Take 1/4 of the 8 ladoos.', '8 लड्डुओं का 1/4 लो।'], n: 8, d: 4, num: 1, k: 2,
+      q: Q(['To find 1/4 of 8 you…', '8 का 1/4 निकालने के लिए…'], [['divide 8 by 4', '8 को 4 से भाग दो'], ['multiply 8 by 4', '8 को 4 से गुणा करो'], ['add 4 to 8', '8 में 4 जोड़ो']], 0, ['The bottom number says how many equal parts. 8 ÷ 4 = 2 in each part.', 'नीचे की संख्या बताती है कि कितने बराबर भाग। 8 ÷ 4 = 2 हर भाग में।']) },
+    { t: ['Take 3/4 of the 12 ladoos.', '12 लड्डुओं का 3/4 लो।'], n: 12, d: 4, num: 3, k: 9,
+      q: Q(['What is 1/4 of 12?', '12 का 1/4 कितना है?'], [['3', '3'], ['4', '4'], ['9', '9']], 0, ['12 ÷ 4 = 3 in one part. Then 3 parts make 3 × 3 = 9.', 'एक भाग में 12 ÷ 4 = 3। तो 3 भाग यानी 3 × 3 = 9।']) },
+    { t: ['Take 2/3 of the 9 ladoos.', '9 लड्डुओं का 2/3 लो।'], n: 9, d: 3, num: 2, k: 6,
+      q: Q(['In 2/3, what does the bottom number 3 tell you?', '2/3 में नीचे की संख्या 3 क्या बताती है?'], [['how many equal parts make the whole', 'पूरा कितने बराबर भागों से बना है'], ['how many parts you take', 'तुम कितने भाग लेते हो'], ['the answer', 'उत्तर']], 0, ['The bottom number (denominator) counts equal parts of the whole. The top number counts the parts you take.', 'नीचे की संख्या (हर) पूरे के बराबर भागों को गिनती है। ऊपर की संख्या (अंश) लिए गए भागों को।']) },
+    { t: ['Take 1/5 of the 10 ladoos.', '10 लड्डुओं का 1/5 लो।'], n: 10, d: 5, num: 1, k: 2,
+      q: Q(['1/5 of 10 = ?', '10 का 1/5 = ?'], [['2', '2'], ['5', '5'], ['50', '50']], 0, ['10 ÷ 5 = 2.', '10 ÷ 5 = 2।']) },
+    { t: ['Take 3/5 of the 10 ladoos.', '10 लड्डुओं का 3/5 लो।'], n: 10, d: 5, num: 3, k: 6,
+      q: Q(['Which is more of the same box: 3/5 or 1/5?', 'एक ही डिब्बे का कौन सा भाग ज़्यादा है: 3/5 या 1/5?'], [['3/5', '3/5'], ['1/5', '1/5'], ['They are equal', 'दोनों बराबर हैं']], 0, ['Same size parts, so more parts means more: 3 parts beat 1 part.', 'भाग बराबर हैं, इसलिए ज़्यादा भाग यानी ज़्यादा मात्रा: 3 भाग 1 भाग से ज़्यादा।']) }
+  ] },
+  moon: { field: 'moonDone', name: ['Moon Phases', 'चाँद की कलाएँ'], levels: [
+    { t: ['Make a New Moon: put the Moon between the Earth and the Sun.', 'अमावस्या बनाओ: चाँद को पृथ्वी और सूरज के बीच रखो।'], target: 0,
+      q: Q(['At new moon, the lit half of the Moon faces…', 'अमावस्या पर चाँद का रोशन आधा हिस्सा किधर होता है…'], [['away from the Earth', 'पृथ्वी से दूर'], ['towards the Earth', 'पृथ्वी की ओर'], ['nowhere, it is unlit', 'कहीं नहीं, वह अँधेरा है']], 0, ['The Sun always lights half the Moon. At new moon that half faces away from us, so we see the dark side.', 'सूरज हमेशा चाँद का आधा हिस्सा रोशन करता है। अमावस्या पर वह आधा हमसे दूर होता है, इसलिए हमें अँधेरा हिस्सा दिखता है।']) },
+    { t: ['Make a Full Moon: the Earth is between the Sun and the Moon.', 'पूर्णिमा बनाओ: पृथ्वी सूरज और चाँद के बीच हो।'], target: 180,
+      q: Q(['At full moon, we see…', 'पूर्णिमा पर हमें दिखता है…'], [['all of the lit half', 'पूरा रोशन आधा हिस्सा'], ['half of the lit half', 'रोशन हिस्से का आधा'], ['none of it', 'कुछ भी नहीं']], 0, ['The lit half faces the Earth, so the whole round face shines.', 'रोशन हिस्सा पृथ्वी की ओर होता है, इसलिए पूरा गोल चेहरा चमकता है।']) },
+    { t: ['Make a First Quarter: half the Moon lit, on the right.', 'पहली तिमाही बनाओ: चाँद का आधा हिस्सा रोशन, दाईं ओर।'], target: 90,
+      q: Q(['How long does the Moon take to go round the Earth once?', 'चाँद को पृथ्वी का एक चक्कर लगाने में कितना समय लगता है?'], [['about one month', 'लगभग एक महीना'], ['one day', 'एक दिन'], ['one year', 'एक साल']], 0, ['A month is about 29.5 days from one new moon to the next.', 'एक अमावस्या से अगली तक लगभग 29.5 दिन, यानी करीब एक महीना।']) },
+    { t: ['Make a thin growing crescent (a waxing crescent) on the right.', 'दाईं ओर एक पतला बढ़ता हुआ अर्धचंद्र (शुक्ल पक्ष का चाँद) बनाओ।'], target: 45,
+      q: Q(['Waxing means the lit part is…', 'बढ़ने (waxing) का मतलब रोशन हिस्सा…'], [['getting bigger', 'बड़ा हो रहा है'], ['getting smaller', 'छोटा हो रहा है'], ['changing colour', 'रंग बदल रहा है']], 0, ['Waxing: growing from new moon to full moon. Waning: shrinking back.', 'वैक्सिंग: अमावस्या से पूर्णिमा की ओर बढ़ना। वेनिंग: वापस घटना।']) },
+    { t: ['Make a waning gibbous: more than half lit, now shrinking, lit on the left.', 'घटता हुआ गिबस बनाओ: आधे से ज़्यादा रोशन, अब घट रहा है, बाईं ओर रोशन।'], target: 225,
+      q: Q(['After the full moon, the lit part…', 'पूर्णिमा के बाद रोशन हिस्सा…'], [['wanes (shrinks)', 'घटता है'], ['waxes (grows)', 'बढ़ता है'], ['disappears at once', 'तुरंत ग़ायब हो जाता है']], 0, ['Each night a little less is lit until the next new moon.', 'हर रात थोड़ा कम हिस्सा रोशन दिखता है, अगली अमावस्या तक।']) },
+    { t: ['Make a Third Quarter: half the Moon lit, on the left.', 'तीसरी तिमाही बनाओ: चाँद का आधा हिस्सा रोशन, बाईं ओर।'], target: 270,
+      q: Q(['Does the Moon make its own light?', 'क्या चाँद अपनी रोशनी ख़ुद बनाता है?'], [['No, it reflects sunlight', 'नहीं, वह सूरज की रोशनी लौटाता है'], ['Yes, like a lamp', 'हाँ, दीये की तरह'], ['Only on full moon', 'सिर्फ़ पूर्णिमा पर']], 0, ['The Moon is a ball of rock that bounces back light from the Sun.', 'चाँद चट्टान की गेंद है जो सूरज की रोशनी को लौटाता है।']) }
+  ] },
+  area: { field: 'areaDone', name: ['Area and Perimeter', 'क्षेत्रफल और परिमाप'], levels: [
+    { t: ['Colour squares to make area 6 and perimeter 10.', 'वर्ग रंगकर क्षेत्रफल 6 और परिमाप 10 बनाओ।'], A: 6, P: 10,
+      q: Q(['Area is measured in…', 'क्षेत्रफल नापा जाता है…'], [['square units', 'वर्ग इकाइयों में'], ['plain units', 'सीधी इकाइयों में'], ['cubic units', 'घन इकाइयों में']], 0, ['Area counts squares that cover the inside of a shape.', 'क्षेत्रफल आकृति के अंदर के वर्गों को गिनता है।']) },
+    { t: ['Make area 8 and perimeter 12.', 'क्षेत्रफल 8 और परिमाप 12 बनाओ।'], A: 8, P: 12,
+      q: Q(['Perimeter is…', 'परिमाप है…'], [['the distance around the outside', 'बाहर की ओर चारों तरफ़ की दूरी'], ['the space inside', 'अंदर की जगह'], ['the number of corners', 'कोनों की संख्या']], 0, ['Walk round the edge of the shape and count the sides of squares you pass.', 'आकृति के किनारे पर चलो और जितने वर्गों की भुजाएँ पार करो उन्हें गिनो।']) },
+    { t: ['Make area 9 and perimeter 12.', 'क्षेत्रफल 9 और परिमाप 12 बनाओ।'], A: 9, P: 12,
+      q: Q(['A 3 × 3 square has area…', '3 × 3 के वर्ग का क्षेत्रफल…'], [['9', '9'], ['6', '6'], ['12', '12']], 0, ['Rows times columns: 3 × 3 = 9 squares.', 'पंक्तियाँ गुणा स्तंभ: 3 × 3 = 9 वर्ग।']) },
+    { t: ['Make area 12 and perimeter 14.', 'क्षेत्रफल 12 और परिमाप 14 बनाओ।'], A: 12, P: 14,
+      q: Q(['Two shapes both have area 12. Must their perimeters match?', 'दो आकृतियों का क्षेत्रफल 12 है। क्या उनके परिमाप बराबर होंगे?'], [['No, they can differ', 'नहीं, अलग हो सकते हैं'], ['Yes, always', 'हाँ, हमेशा'], ['Only for squares', 'सिर्फ़ वर्ग के लिए']], 0, ['Next level shows it: area 12 can have a different perimeter.', 'अगला स्तर दिखाएगा: क्षेत्रफल 12 का परिमाप अलग हो सकता है।']) },
+    { t: ['Area 12 again, but perimeter 16. Make it long and thin.', 'फिर क्षेत्रफल 12, पर परिमाप 16। इसे लंबा और पतला बनाओ।'], A: 12, P: 16,
+      q: Q(['3 × 4 and 2 × 6 both have area 12. Which has the longer perimeter?', '3 × 4 और 2 × 6 दोनों का क्षेत्रफल 12 है। किसका परिमाप ज़्यादा है?'], [['2 × 6 (16)', '2 × 6 (16)'], ['3 × 4 (14)', '3 × 4 (14)'], ['They match', 'बराबर']], 0, ['Long thin shapes have more edge: 2 × (2 + 6) = 16 against 2 × (3 + 4) = 14.', 'लंबी पतली आकृतियों का किनारा ज़्यादा होता है: 2 × (2 + 6) = 16, जबकि 2 × (3 + 4) = 14।']) },
+    { t: ['Make a square with area 16 and perimeter 16.', 'क्षेत्रफल 16 और परिमाप 16 वाला वर्ग बनाओ।'], A: 16, P: 16,
+      q: Q(['With perimeter 16, a 4 × 4 square has area 16. A 2 × 6 rectangle has area…', 'परिमाप 16 पर 4 × 4 के वर्ग का क्षेत्रफल 16 है। 2 × 6 के आयत का क्षेत्रफल…'], [['12', '12'], ['16', '16'], ['8', '8']], 0, ['Same fence, different fields. The most square-like shape holds the most area.', 'बाड़ एक जैसी, खेत अलग। जो आकृति वर्ग के सबसे क़रीब हो उसमें सबसे ज़्यादा क्षेत्रफल आता है।']) }
   ] }
 };
 var tab = LABS[save.tab] ? save.tab : 'matter', L = LABS[tab], levels = L.levels;
@@ -300,6 +367,104 @@ MOUNT.cell = function (lv) {
     $('rs').onclick = function () { germs = 100; scrubs = 0; draw(); };
     draw(); solver = function () { soap = true; for (var i = 0; i < 8; i++) $('sc').click(); };
   }
+};
+
+/* ---------------- Equal Groups (Tinkerer) ---------------- */
+MOUNT.groups = function (lv) {
+  var g = 1, k = 1;
+  $('stage').innerHTML = '<div style="text-align:center;width:100%"><div class="bsk" id="bk"></div><div class="num" id="eq"></div></div>';
+  $('ctrl').innerHTML = '<div class="row"><b>🧺 ' + T(['Baskets', 'टोकरियाँ']) + '</b><button class="btn" id="gm" aria-label="fewer baskets">−</button><span class="state" id="gn">1</span><button class="btn" id="gp" aria-label="more baskets">+</button></div>' +
+    '<div class="row"><b>' + lv.f + ' ' + T(['In each basket', 'हर टोकरी में']) + '</b><button class="btn" id="km" aria-label="fewer in each">−</button><span class="state" id="kn">1</span><button class="btn" id="kp" aria-label="more in each">+</button></div><span class="note" id="gh"></span>';
+  var ok = function () { return (!lv.total || g * k === lv.total) && (!lv.g || g === lv.g) && (!lv.k || k === lv.k); };
+  function draw() {
+    var h = ''; for (var i = 0; i < g; i++) h += '<div class="b1"><span>🧺</span><span class="fr">' + new Array(k + 1).join(lv.f) + '</span></div>';
+    $('bk').innerHTML = h; $('gn').textContent = g; $('kn').textContent = k;
+    $('eq').textContent = g + ' × ' + k + ' = ' + g * k;
+    $('gh').textContent = lv.total ? (HI ? 'लक्ष्य: कुल ' : 'Goal: ') + lv.total + (HI ? '' : ' in all') : '';
+    if (ok()) setTimeout(function () { if (ok()) solved(); }, 500);
+  }
+  function bump(w, d) { if (w === 'g') g = Math.max(1, Math.min(6, g + d)); else k = Math.max(1, Math.min(6, k + d)); sfx.pop(); draw(); }
+  $('gp').onclick = function () { bump('g', 1); }; $('gm').onclick = function () { bump('g', -1); }; $('kp').onclick = function () { bump('k', 1); }; $('km').onclick = function () { bump('k', -1); };
+  draw();
+  solver = function () { var tg = lv.g || lv.total / lv.k, tk = lv.k || lv.total / lv.g; g = tg; k = tk; draw(); };
+};
+
+/* ---------------- Ladoo Fractions (Tinkerer) ---------------- */
+MOUNT.ladoo = function (lv) {
+  var per = lv.n / lv.d, taken = {}, h = '';
+  for (var gi = 0; gi < lv.d; gi++) { h += '<div class="lg">'; for (var j = 0; j < per; j++) { var id = gi * per + j; h += '<button class="ld" data-i="' + id + '" aria-pressed="false" aria-label="ladoo ' + (id + 1) + '">🟠</button>'; } h += '</div>'; }
+  $('stage').innerHTML = '<div class="lbox">' + h + '</div>';
+  $('ctrl').innerHTML = '<div class="row"><span class="state" id="lf">' + lv.num + '/' + lv.d + ' ' + T(['of', 'का']) + ' ' + lv.n + '</span><span class="state" id="lt"></span></div><span class="note">' + T(['The box is split into ' + lv.d + ' equal groups of ' + per + '.', 'डिब्बा ' + lv.d + ' बराबर समूहों में बँटा है, हर समूह में ' + per + '।']) + '</span>';
+  function count() { return Object.keys(taken).filter(function (x) { return taken[x]; }).length; }
+  function upd() { var c = count(); $('lt').textContent = (HI ? 'लिए: ' : 'Taken: ') + c; if (c === lv.k) setTimeout(function () { if (count() === lv.k) solved(); }, 450); }
+  function tog(b) { var i = b.dataset.i; taken[i] = !taken[i]; b.classList.toggle('on', !!taken[i]); b.setAttribute('aria-pressed', taken[i] ? 'true' : 'false'); b.textContent = taken[i] ? '😋' : '🟠'; sfx.pop(); upd(); }
+  document.querySelectorAll('.ld').forEach(function (b) { b.onclick = function () { tog(b); }; });
+  upd(); solver = function () { var bs = document.querySelectorAll('.ld'); for (var j = 0; j < lv.k; j++) tog(bs[j]); };
+};
+
+/* ---------------- Moon Phases ---------------- */
+MOUNT.moon = function (lv) {
+  var W = 340, H = 230, cx = 200, cy = 80, R = 62, th = 100, touched = false, running = true;
+  $('stage').innerHTML = '<canvas id="cv" width="' + W + '" height="' + H + '"></canvas>'; var cv = $('cv'), g = cv.getContext('2d');
+  $('ctrl').innerHTML = range('mo', HI ? 'चाँद की जगह' : 'Moon position', 0, 355, 5, 100) + '<div class="row"><span class="state" id="ph"></span></div>';
+  var NAMES = function (a) { var c = Math.cos(a * Math.PI / 180); return a < 8 || a > 352 ? ['New Moon', 'अमावस्या'] : Math.abs(a - 180) < 8 ? ['Full Moon', 'पूर्णिमा'] : Math.abs(a - 90) < 8 ? ['First Quarter', 'पहली तिमाही'] : Math.abs(a - 270) < 8 ? ['Third Quarter', 'तीसरी तिमाही'] : a < 90 ? ['Waxing Crescent', 'बढ़ता अर्धचंद्र'] : a < 180 ? ['Waxing Gibbous', 'बढ़ता गिबस'] : a < 270 ? ['Waning Gibbous', 'घटता गिबस'] : ['Waning Crescent', 'घटता अर्धचंद्र']; };
+  function disc(x, y, r, a) {
+    var c = Math.cos(a * Math.PI / 180), waxing = a < 180;
+    g.save(); g.beginPath(); g.arc(x, y, r, 0, 7); g.clip(); g.fillStyle = '#2a3158'; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+    g.fillStyle = '#fff6d6'; g.fillRect(waxing ? x : x - r, y - r, r, 2 * r);
+    if (c > 0) { g.save(); g.beginPath(); g.rect(waxing ? x : x - r, y - r, r, 2 * r); g.clip(); g.beginPath(); g.ellipse(x, y, c * r, r, 0, 0, 7); g.fillStyle = '#2a3158'; g.fill(); g.restore(); }
+    else { g.save(); g.beginPath(); g.rect(waxing ? x - r : x, y - r, r, 2 * r); g.clip(); g.beginPath(); g.ellipse(x, y, -c * r, r, 0, 0, 7); g.fillStyle = '#fff6d6'; g.fill(); g.restore(); }
+    g.restore(); g.strokeStyle = '#8a8fb0'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, r, 0, 7); g.stroke();
+  }
+  function draw() {
+    g.fillStyle = '#0e1430'; g.fillRect(0, 0, W, H);
+    for (var s = 0; s < 18; s++) { g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect((s * 71) % W, (s * 37) % 150, 2, 2); }
+    // sun on the left with rays pointing right
+    g.fillStyle = '#ffb423'; g.beginPath(); g.arc(34, cy, 24, 0, 7); g.fill(); g.strokeStyle = 'rgba(255,180,35,.5)'; g.lineWidth = 2;
+    for (var r = -2; r <= 2; r++) { g.beginPath(); g.moveTo(66, cy + r * 18); g.lineTo(cx - R - 36, cy + r * 18); g.stroke(); }
+    g.strokeStyle = 'rgba(255,255,255,.25)'; g.setLineDash([4, 5]); g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke(); g.setLineDash([]);
+    g.fillStyle = '#3b82f6'; g.beginPath(); g.arc(cx, cy, 16, 0, 7); g.fill(); g.fillStyle = '#2fb36e'; g.fillRect(cx - 6, cy - 8, 8, 6);
+    var mx = cx - R * Math.cos(th * Math.PI / 180), my = cy + R * Math.sin(th * Math.PI / 180);
+    g.fillStyle = '#fff6d6'; g.beginPath(); g.arc(mx, my, 9, 0, 7); g.fill(); g.fillStyle = '#2a3158'; g.beginPath(); g.arc(mx, my, 9, -Math.PI / 2, Math.PI / 2); g.fill();
+    g.fillStyle = '#8a8fb0'; g.font = '12px sans-serif'; g.textAlign = 'center'; g.fillText(HI ? 'सूरज' : 'Sun', 34, cy + 42); g.fillText(HI ? 'पृथ्वी' : 'Earth', cx, cy + 34);
+  }
+  var onMoon = function () {
+    var d = Math.abs(((th - lv.target + 540) % 360) - 180); return d <= 12;
+  };
+  var ctl = wire('mo', function (v) { return v + '°'; }, function (v) {
+    th = v; touched = true; $('ph').textContent = T(NAMES(v)); render();
+    if (onMoon()) setTimeout(function () { if (onMoon()) solved(); }, 500);
+  });
+  function render() {
+    draw(); var x = 70, y = 190; g.fillStyle = '#0e1430'; g.fillRect(x - 40, y - 40, 80, 80); disc(x, y, 30, th);
+    g.fillStyle = '#8a8fb0'; g.font = '12px sans-serif'; g.textAlign = 'left'; g.fillText(HI ? 'पृथ्वी से दिखता है' : 'Seen from Earth', 118, 196);
+  }
+  teardown = function () { running = false; };
+  render();
+  solver = function () { ctl.set(lv.target % 360 === 0 ? 0 : lv.target); };
+};
+
+/* ---------------- Area and Perimeter ---------------- */
+MOUNT.area = function (lv) {
+  var COLS = 8, ROWS = 6, on = {};
+  var h = ''; for (var r = 0; r < ROWS; r++) for (var c = 0; c < COLS; c++) h += '<button class="cell" data-r="' + r + '" data-c="' + c + '" aria-pressed="false" aria-label="square ' + (r + 1) + ',' + (c + 1) + '"></button>';
+  $('stage').innerHTML = '<div class="grid8" style="grid-template-columns:repeat(' + COLS + ',1fr)">' + h + '</div>';
+  $('ctrl').innerHTML = '<div class="row"><span class="state" id="ar"></span><span class="state" id="pe"></span></div><div class="row"><span class="note">' + T(['Goal: area ' + lv.A + ', perimeter ' + lv.P, 'लक्ष्य: क्षेत्रफल ' + lv.A + ', परिमाप ' + lv.P]) + '</span><button class="btn" id="ac">↺ ' + T(['Clear', 'साफ़ करो']) + '</button></div>';
+  function has(r, c) { return !!on[r + ',' + c]; }
+  function stats() {
+    var a = 0, p = 0; for (var r = 0; r < ROWS; r++) for (var c = 0; c < COLS; c++) if (has(r, c)) { a++; if (!has(r - 1, c)) p++; if (!has(r + 1, c)) p++; if (!has(r, c - 1)) p++; if (!has(r, c + 1)) p++; }
+    return { a: a, p: p };
+  }
+  function upd() { var s = stats(); $('ar').textContent = (HI ? 'क्षेत्रफल ' : 'Area ') + s.a; $('pe').textContent = (HI ? 'परिमाप ' : 'Perimeter ') + s.p; if (s.a === lv.A && s.p === lv.P) setTimeout(function () { var t = stats(); if (t.a === lv.A && t.p === lv.P) solved(); }, 500); }
+  function tog(b) { var key = b.dataset.r + ',' + b.dataset.c; on[key] = !on[key]; b.classList.toggle('on', !!on[key]); b.setAttribute('aria-pressed', on[key] ? 'true' : 'false'); sfx.pop(); upd(); }
+  document.querySelectorAll('.cell').forEach(function (b) { b.onclick = function () { tog(b); }; });
+  $('ac').onclick = function () { on = {}; document.querySelectorAll('.cell').forEach(function (b) { b.classList.remove('on'); b.setAttribute('aria-pressed', 'false'); }); upd(); };
+  upd();
+  solver = function () {
+    for (var w = 1; w <= COLS; w++) for (var hh = 1; hh <= ROWS; hh++) if (w * hh === lv.A && 2 * (w + hh) === lv.P) {
+      for (var r = 0; r < hh; r++) for (var c = 0; c < w; c++) tog(document.querySelector('.cell[data-r="' + r + '"][data-c="' + c + '"]')); return;
+    }
+  };
 };
 
 window.__curio = { tab: tab, level: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { var b = $('mdNext'); if (!$('overlay').hidden && b) b.click(); } };

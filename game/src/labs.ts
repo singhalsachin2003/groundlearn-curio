@@ -50,6 +50,13 @@ export const LABS: Lab[] = [
   { id: 'fraction', world: 'inventor2', subject: 'math', icon: '🍕', name: { en: 'Fractions and Ratio', hi: 'भिन्न और अनुपात' }, blurb: { en: 'Slice, share and mix', hi: 'काटो, बाँटो, मिलाओ' }, progress: { field: 'fractionDone', total: 6, kind: 'levels' } },
   { id: 'sound', world: 'inventor2', subject: 'phy', icon: '🔊', name: { en: 'Sound and Waves', hi: 'ध्वनि और तरंगें' }, blurb: { en: 'Tune pitch and loudness', hi: 'सुर और आवाज़ ठीक करो' }, progress: { field: 'soundDone', total: 5, kind: 'levels' } },
   { id: 'cell', world: 'inventor2', subject: 'bio', icon: '🦠', name: { en: 'Cells and Microbes', hi: 'कोशिकाएँ और सूक्ष्मजीव' }, blurb: { en: 'Build a cell, watch germs grow', hi: 'कोशिका बनाओ, जीवाणु बढ़ते देखो' }, progress: { field: 'cellDone', total: 5, kind: 'levels' } },
+  // Round 4: ideas from play-and-learn maths sites, one pair per age band.
+  { id: 'share', world: 'explorer', only: 'explorer', subject: 'math', icon: '🍬', name: { en: 'Share the Sweets', hi: 'मिठाई बाँटो' }, blurb: { en: 'Give every friend the same', hi: 'हर दोस्त को बराबर दो' }, progress: { field: 'shareDone', total: 6, kind: 'levels' } },
+  { id: 'clock', world: 'explorer', only: 'explorer', subject: 'math', icon: '🕒', name: { en: 'Clock Time', hi: 'घड़ी का समय' }, blurb: { en: 'What time is it?', hi: 'कितने बजे हैं?' }, progress: { field: 'clockDone', total: 6, kind: 'levels' } },
+  { id: 'groups', world: 'inventor2', only: 'tinkerer', subject: 'math', icon: '🧺', name: { en: 'Equal Groups', hi: 'बराबर समूह' }, blurb: { en: 'Baskets with the same number', hi: 'हर टोकरी में बराबर' }, progress: { field: 'groupsDone', total: 6, kind: 'levels' } },
+  { id: 'ladoo', world: 'inventor2', only: 'tinkerer', subject: 'math', icon: '🟠', name: { en: 'Ladoo Fractions', hi: 'लड्डू के भिन्न' }, blurb: { en: 'Take a fraction of the box', hi: 'डिब्बे का एक भिन्न भाग लो' }, progress: { field: 'ladooDone', total: 6, kind: 'levels' } },
+  { id: 'moon', world: 'inventor2', subject: 'phy', icon: '🌙', name: { en: 'Moon Phases', hi: 'चाँद की कलाएँ' }, blurb: { en: 'Move the Moon round the Earth', hi: 'चाँद को पृथ्वी के चारों ओर घुमाओ' }, progress: { field: 'moonDone', total: 6, kind: 'levels' } },
+  { id: 'area', world: 'inventor2', subject: 'math', icon: '📐', name: { en: 'Area and Perimeter', hi: 'क्षेत्रफल और परिमाप' }, blurb: { en: 'Build shapes on a grid', hi: 'ग्रिड पर आकृतियाँ बनाओ' }, progress: { field: 'areaDone', total: 6, kind: 'levels' } },
 ];
 
 
@@ -67,7 +74,7 @@ export const LEVEL_FIELDS: Record<string, string> = {
   launchStars: 'launch', lightStars: 'light', graphStars: 'graph', bodyDone: 'body', balSolved: 'balance',
   geneDone: 'genes', circDone: 'circuit', ecoDone: 'eco', machDone: 'mach', netsDone: 'nets',
   atomDone: 'atom', fizzDone: 'fizz', seesawDone: 'seesaw', bulbDone: 'bulb', scalesDone: 'scales', babyDone: 'baby', pondDone: 'pond',
-  matterDone: 'matter', fractionDone: 'fraction', soundDone: 'sound', cellDone: 'cell', mirrorStars: 'mirror', coordDone: 'coord', peaDone: 'pea', chainDone: 'chain',
+  matterDone: 'matter', fractionDone: 'fraction', soundDone: 'sound', cellDone: 'cell', shareDone: 'share', clockDone: 'clock', groupsDone: 'groups', ladooDone: 'ladoo', moonDone: 'moon', areaDone: 'area', mirrorStars: 'mirror', coordDone: 'coord', peaDone: 'pea', chainDone: 'chain',
 };
 /** Collections in a world save where each new item is a discovery (field → lab id). */
 export const FOUND_FIELDS: Record<WorldId, Record<string, string>> = {

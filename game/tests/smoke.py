@@ -70,12 +70,12 @@ async def run_vp(b, name, w, h):
     # Second player in the Explorer band sees Colour Studio only.
     await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tara'); await pg.click('[data-band="explorer"]'); await pg.click('#npGo')
     await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800); await shot('7-hub-explorer')
-    await pg.click('#hAll'); n_labs = await pg.locator('.sheet [data-lab]').count(); check(n_labs == 7, f'explorer sees {n_labs} playable labs (Colour Studio and six of their own)'); check(await pg.locator('.sheet [data-lab="forge"]').count() == 0, 'explorer does not see Inventor labs'); await shot('7b-all-explorer')
+    await pg.click('#hAll'); n_labs = await pg.locator('.sheet [data-lab]').count(); check(n_labs == 9, f'explorer sees {n_labs} playable labs (Colour Studio and eight of their own)'); check(await pg.locator('.sheet [data-lab="forge"]').count() == 0, 'explorer does not see Inventor labs'); await shot('7b-all-explorer')
     await pg.click('.sheet [data-lab="colour"]'); await pg.wait_for_timeout(3000); check(await dismiss(pg), 'worked example shows on first visit'); await shot('8-colour')
     await pg.click('#wBack'); await pg.wait_for_selector('.hub3d')
     # Explorer labs: six rounds each, solved through the world's hook; wrong answers never cost hearts.
     WJ = "document.querySelector('.world-frame').contentWindow.__curio"
-    for lab in ('fizz', 'seesaw', 'bulb', 'scales', 'baby', 'pond'):
+    for lab in ('fizz', 'seesaw', 'bulb', 'scales', 'baby', 'pond', 'share', 'clock'):
         await pg.click('#hAll'); await pg.click(f'.sheet [data-lab="{lab}"]'); await pg.wait_for_timeout(1800); await dismiss(pg)
         if lab == 'fizz': await shot('7c-fizz')
         for i in range(6):
@@ -88,7 +88,7 @@ async def run_vp(b, name, w, h):
     await pg.click('.sheet [data-lab="circuit"]'); await pg.wait_for_timeout(2500); check(await dismiss(pg), 'worked example shows on first visit'); await shot('9-circuit')
     await pg.click('#wBack')
     # The four newer Inventor labs: solve each level, answer the bonus question (first option is right).
-    for lab, n in (('matter', 5), ('fraction', 6), ('sound', 5), ('cell', 5)):
+    for lab, n in (('matter', 5), ('fraction', 6), ('sound', 5), ('cell', 5), ('moon', 6), ('area', 6)):
         await pg.click('#hAll'); await pg.click(f'.sheet [data-lab="{lab}"]'); await pg.wait_for_timeout(1800); await dismiss(pg)
         if lab in ('matter', 'cell'): await shot(f'9b-{lab}')
         for i in range(n):
@@ -141,6 +141,16 @@ async def run_vp(b, name, w, h):
     for lab, want in (('atom', '1/8'), ('kitchen', '1/12'), ('mirror', '1/8')):
         prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(want), f'{lab} progress {prog}')
     await pg.click('.sheet [data-close]')
+    # Round 4 Tinkerer labs (hosted in the second Inventor world): solve every level, answer the bonus question.
+    for lab, n in (('groups', 6), ('ladoo', 6)):
+        await pg.click('#hAll'); await pg.click(f'.sheet [data-lab="{lab}"]'); await pg.wait_for_timeout(1800); await dismiss(pg)
+        if lab == 'groups': await shot('17b-groups')
+        for i in range(n):
+            await pg.evaluate(f"{WJ}.solve()"); await pg.wait_for_timeout(1700)
+            await pg.evaluate("document.querySelector('.world-frame').contentDocument.querySelector('#modal .qopt').click()"); await pg.wait_for_timeout(200)
+            await pg.evaluate(f"{WJ}.next()"); await pg.wait_for_timeout(300)
+        await pg.click('#wBack'); await pg.wait_for_selector('.hub3d')
+        await pg.click('#hAll'); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(f'{n}/{n}'), f'tinkerer {lab} finished {n}/{n}'); await pg.click('[data-close]')
     # Journal: start fresh clears the player's progress (behind the parent gate).
     await pg.click('#hJournal'); await pg.wait_for_selector('#jReset'); await shot('18-journal')
     await pg.click('#jReset'); q = await pg.inner_text('.gate-q')

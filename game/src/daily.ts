@@ -45,6 +45,12 @@ const ASK: Record<string, { en: string; hi: string }> = {
   matter: { en: 'Can you melt, boil or freeze something new?', hi: 'क्या तुम कुछ नया पिघला, उबाल या जमा सकते हो?' },
   fraction: { en: 'Can you solve a new slice or mix puzzle?', hi: 'क्या तुम टुकड़ों या मिश्रण की नई पहेली हल कर सकते हो?' },
   sound: { en: 'Can you tune a new sound?', hi: 'क्या तुम एक नई आवाज़ ठीक कर सकते हो?' },
+  share: { en: 'Can you share the sweets so everyone gets the same?', hi: 'क्या तुम मिठाई ऐसे बाँट सकते हो कि सबको बराबर मिले?' },
+  clock: { en: 'Can you read the time on a clock?', hi: 'क्या तुम घड़ी देखकर समय बता सकते हो?' },
+  groups: { en: 'Can you fill the baskets with equal groups?', hi: 'क्या तुम टोकरियों में बराबर-बराबर भर सकते हो?' },
+  ladoo: { en: 'Can you take the right fraction of the ladoos?', hi: 'क्या तुम लड्डुओं का सही भिन्न भाग ले सकते हो?' },
+  moon: { en: 'Can you set the Moon to a new phase?', hi: 'क्या तुम चाँद की एक नई कला बना सकते हो?' },
+  area: { en: 'Can you build a shape with the right area and perimeter?', hi: 'क्या तुम सही क्षेत्रफल और परिमाप वाली आकृति बना सकते हो?' },
   cell: { en: 'Can you finish a new cell or germ puzzle?', hi: 'क्या तुम कोशिका या जीवाणु की नई पहेली पूरी कर सकते हो?' },
 };
 

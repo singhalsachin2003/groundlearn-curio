@@ -4,7 +4,7 @@
   --f-body:"Lexend",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
 [hidden]{display:none !important}
 html,body{height:100%;margin:0}
-body{background:radial-gradient(120% 90% at 50% 0%,#2b3a73 0%,#141c35 70%);color:var(--card);font-family:var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+body{background:radial-gradient(90% 55% at 50% 0%,rgba(255,150,90,.28) 0%,rgba(255,150,90,0) 70%),radial-gradient(120% 90% at 50% 0%,#34407f 0%,#171c3a 70%);color:var(--card);font-family:var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 button{font-family:inherit;cursor:pointer;border:0;color:var(--ink)}
 button:focus-visible{outline:4px solid #6f9bff;outline-offset:3px}
 #app{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 66px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
@@ -13,17 +13,24 @@ button:focus-visible{outline:4px solid #6f9bff;outline-offset:3px}
 #dots i{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.18);border:3px solid transparent;box-sizing:border-box}
 #dots i.on{background:var(--marigold)}
 #dots i.cur{border-color:var(--card)}
-#say{width:60px;height:60px;border-radius:50%;background:var(--card);font-size:30px;box-shadow:0 4px 0 rgba(0,0,0,.45)}
-#goal{margin:6px 0 0;display:flex;align-items:center;gap:12px;background:var(--card);color:var(--ink);border-radius:20px;padding:10px 18px;font-weight:700;font-size:clamp(20px,5.2vw,28px);box-shadow:0 4px 0 rgba(0,0,0,.45);max-width:560px;box-sizing:border-box}
+#say{height:60px;min-width:60px;padding:0 18px;border-radius:30px;background:linear-gradient(#fffdf6,#f3e8cf);font-size:28px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 0 rgba(0,0,0,.45)}
+#say span{font-size:16px;font-weight:800;color:var(--ink)}
+#goal{margin:6px 0 0;display:flex;align-items:center;gap:12px;background:linear-gradient(#fffdf6,#f6ecd6);border:3px solid #fff;color:var(--ink);border-radius:20px;padding:10px 18px;font-weight:700;font-size:clamp(20px,5.2vw,28px);box-shadow:0 4px 0 rgba(0,0,0,.45);max-width:560px;box-sizing:border-box}
 #goal b{font-size:clamp(34px,9vw,48px);line-height:1}
 #scene{flex:1;width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:0;position:relative}
 #tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:560px;padding-bottom:6px}
-.big{width:clamp(76px,22vw,104px);height:clamp(76px,22vw,104px);border-radius:24px;background:var(--card);font-size:clamp(40px,12vw,56px);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 5px 0 rgba(0,0,0,.45);line-height:1;touch-action:manipulation}
+.big{width:clamp(76px,22vw,104px);height:clamp(76px,22vw,104px);border-radius:26px;background:linear-gradient(#fffdf6,#f3e8cf);border:3px solid #fff;box-sizing:border-box;font-size:clamp(40px,12vw,56px);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 5px 0 rgba(0,0,0,.45);line-height:1;touch-action:manipulation}
 .big small{font-size:12px;font-weight:700;margin-top:3px;color:var(--ink);text-align:center;line-height:1.1}
 .big:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.45)}
 .big.used{opacity:.35}
-.huge{font-size:clamp(70px,24vw,120px);line-height:1;transition:transform .35s}
+.huge{font-size:clamp(70px,24vw,120px);line-height:1;transition:transform .35s;filter:drop-shadow(0 8px 0 rgba(0,0,0,.28))}
 .row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.plate{width:clamp(96px,28vw,140px);min-height:clamp(128px,34vw,170px);border-radius:24px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;padding:8px 4px;box-shadow:0 5px 0 rgba(0,0,0,.45);font-size:clamp(40px,12vw,56px);line-height:1;touch-action:manipulation}
+.plate .pl{display:flex;flex-wrap:wrap;justify-content:center;font-size:clamp(20px,6vw,28px);line-height:1.05;border-top:6px solid #c98b4a;padding-top:4px;width:86%;min-height:2.3em;align-content:flex-start}
+.plate:active{transform:translateY(3px)}
+.pile{font-size:clamp(26px,8vw,38px);line-height:1.1;min-height:1.2em;text-align:center;max-width:92%}
+.clockface{width:min(64vw,250px);height:auto;filter:drop-shadow(0 6px 0 rgba(0,0,0,.4))}
+.big.num2{font-size:clamp(40px,12vw,58px);font-weight:800;color:var(--ink)}
 .pop{animation:pop .5s ease}
 .shake{animation:shake .4s}
 @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
@@ -53,7 +60,7 @@ button:focus-visible{outline:4px solid #6f9bff;outline-offset:3px}
 </style>
 
 <div id="app">
-  <div id="top"><div id="dots" aria-hidden="true"></div><button id="say" aria-label="Listen again">🔊</button></div>
+  <div id="top"><div id="dots" aria-hidden="true"></div><button id="say" aria-label="Listen again">🔊<span id="sayT"></span></button></div>
   <div id="goal"><b id="gi"></b><span id="gt"></span></div>
   <div id="scene"></div>
   <div id="tray"></div>
@@ -70,6 +77,7 @@ var save = {}; try { save = JSON.parse(localStorage.getItem(KEY) || '{}') || {};
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
 function T(a) { return HI ? a[1] : a[0]; }
 var $ = function (id) { return document.getElementById(id); };
+$('sayT').textContent = T(['Listen', 'सुनो']);
 function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
 
 /* ---------- sound and voice ---------- */
@@ -145,11 +153,22 @@ var POND = [
   { who: ['🦩', ['flamingo', 'राजहंस']], food: ['🦐', ['shrimp', 'झींगा']], other: [['🍔', ['burger', 'बर्गर']], ['🧱', ['brick', 'ईंट']]] }
 ];
 
+var SHARE = [[2, 2], [4, 2], [6, 2], [8, 2], [6, 3], [9, 3]], FRIENDS = ['🐻', '🐰', '🐯'];
+var CLOCK = [3, 6, 9, 12, 2, 5];
+function clockSvg(h) {
+  var a = h % 12 * 30, rad = function (d) { return (d - 90) * Math.PI / 180; }, svg = '<svg class="clockface" viewBox="-110 -110 220 220" role="img" aria-label="clock"><circle r="102" fill="#fbf8f1" stroke="#c98b4a" stroke-width="10"/>';
+  for (var n = 1; n <= 12; n++) svg += '<text x="' + (78 * Math.cos(rad(n * 30))).toFixed(1) + '" y="' + (78 * Math.sin(rad(n * 30)) + 9).toFixed(1) + '" text-anchor="middle" font-size="26" font-weight="800" fill="#121528">' + n + '</text>';
+  svg += '<line x1="0" y1="0" x2="' + (46 * Math.cos(rad(a))).toFixed(1) + '" y2="' + (46 * Math.sin(rad(a))).toFixed(1) + '" stroke="#e2553f" stroke-width="10" stroke-linecap="round"/>';
+  svg += '<line x1="0" y1="0" x2="0" y2="-56" stroke="#121528" stroke-width="6" stroke-linecap="round"/><circle r="7" fill="#121528"/></svg>';
+  return svg;
+}
+
 /* ---------- games ---------- */
 var GAMES = {
   fizz: { field: 'fizzDone', n: FIZZ.length, run: runFizz }, seesaw: { field: 'seesawDone', n: SEESAW.length, run: runSeesaw },
   bulb: { field: 'bulbDone', n: BULB.length, run: runBulb }, scales: { field: 'scalesDone', n: FRUIT.length, run: runScales },
-  baby: { field: 'babyDone', n: BABY.length, run: runBaby }, pond: { field: 'pondDone', n: POND.length, run: runPond }
+  baby: { field: 'babyDone', n: BABY.length, run: runBaby }, pond: { field: 'pondDone', n: POND.length, run: runPond },
+  share: { field: 'shareDone', n: SHARE.length, run: runShare }, clock: { field: 'clockDone', n: CLOCK.length, run: runClock }
 };
 var tab = GAMES[save.tab] ? save.tab : 'fizz', G = GAMES[tab], done = (save[G.field] && typeof save[G.field] === 'object') ? save[G.field] : {}, cur = 0, solver = null, busy = false;
 save[G.field] = done;
@@ -265,6 +284,45 @@ function runPond(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.j); }; });
   solver = function () { for (var j = 0; j < opts.length; j++) if (opts[j][2]) { tap(j); return; } };
+}
+
+function runShare(i) {
+  var N = SHARE[i][0], F = SHARE[i][1], left = N, got = [];
+  for (var f = 0; f < F; f++) got.push(0);
+  goal('🍬', ['Share the sweets so everyone gets the same.', 'मिठाई ऐसे बाँटो कि सबको बराबर मिले।']);
+  $('scene').innerHTML = '<div class="pile" id="pile"></div><div class="row" id="fr"></div>';
+  function draw() {
+    $('pile').textContent = new Array(left + 1).join('🍬');
+    $('fr').innerHTML = got.map(function (g, j) { return '<button class="plate" data-f="' + j + '" aria-label="friend ' + (j + 1) + '">' + FRIENDS[j] + '<span class="pl">' + new Array(g + 1).join('🍬') + '</span></button>'; }).join('');
+    document.querySelectorAll('.plate').forEach(function (b) { b.onclick = function () { give(+b.dataset.f); }; });
+  }
+  function give(j) {
+    if (busy || left < 1) return; left--; got[j]++; sfx.pop(); draw();
+    if (left > 0) return;
+    var each = got[0], same = got.every(function (g) { return g === each; });
+    if (same) { busy = true; var m = [N + ' sweets. Each gets ' + each + '!', N + ' मिठाइयाँ। हर एक को ' + each + '!']; say(m); later(1400, function () { win(m); }); }
+    else { sfx.no(); $('fr').classList.add('shake'); say(['Not the same. Try again!', 'बराबर नहीं हुआ। फिर से करो!']);
+      later(1500, function () { left = N; got = got.map(function () { return 0; }); $('fr').classList.remove('shake'); draw(); }); }
+  }
+  draw();
+  solver = function () { var j = 0; while (left > 0) { give(j % F); j++; } };
+}
+
+function runClock(i) {
+  var h = CLOCK[i], opts = [h, h % 12 + 1, (h + 7) % 12 + 1];
+  opts = opts.filter(function (v, k) { return opts.indexOf(v) === k; });
+  while (opts.length < 3) opts.push((opts[opts.length - 1] + 3) % 12 + 1);
+  opts.sort(function (a, b) { return (i % 2) ? b - a : a - b; });
+  goal('🕒', ['What time is it?', 'कितने बजे हैं?']);
+  $('scene').innerHTML = clockSvg(h);
+  $('tray').innerHTML = opts.map(function (v) { return '<button class="big num2" data-v="' + v + '" aria-label="' + v + '">' + v + '</button>'; }).join('');
+  function tap(v) {
+    if (busy) return; sfx.pop();
+    if (v === h) { busy = true; var m = ['It is ' + h + " o'clock!", h + ' बजे हैं!']; say(m); later(1300, function () { win(m); }); }
+    else { sfx.no(); var b = document.querySelector('[data-v="' + v + '"]'); b.classList.add('shake'); say(['Not this one. Try again!', 'यह नहीं। फिर से देखो!']); later(500, function () { b.classList.remove('shake'); }); }
+  }
+  document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.v); }; });
+  solver = function () { tap(h); };
 }
 
 /* test hooks used by the app's smoke test */
