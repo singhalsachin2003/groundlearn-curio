@@ -49,7 +49,7 @@ export const RULES = {
   heartCost: 30,
   adHeartsPerDay: 3,
   coins: { correct: 10, level: 20, star: 5, discovery: 15, daily: 10 },
-  ads: { quietStartSec: 180, gapSec: 270 },
+  ads: { quietStartSec: 180, gapSec: 270, levelGapSec: 150, maxPerSession: 8 },
 };
 
 const SHELL_KEY = 'gl:shell';

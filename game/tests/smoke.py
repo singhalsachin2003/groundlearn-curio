@@ -17,7 +17,6 @@ async def dismiss(pg):
         await pg.wait_for_timeout(250)
         shown = await pg.evaluate("(() => { const w = document.getElementById('sheet'); if (!w.hidden && w.dataset.kind === 'example') { w.querySelector('[data-close]').click(); return true; } return false; })()")
         if shown: return True
-    await pg.screenshot(path=str(OUT / 'debug-no-example.png'))
     return False
 
 async def run_vp(b, name, w, h):
@@ -74,6 +73,8 @@ async def run_vp(b, name, w, h):
     # Second player in the Explorer band sees Colour Studio only.
     await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tara'); await pg.click('[data-band="explorer"]'); await pg.click('#npGo')
     await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800); await shot('7-hub-explorer')
+    for _ in range(3): await pg.evaluate("window.curioWorld.answer(false)")
+    h = await pg.inner_text('#hHearts'); check(h.strip().startswith('❤️ 5'), 'explorer loses no hearts on wrong answers')
     await pg.click('#hAll'); n_labs = await pg.locator('.sheet [data-lab]').count(); check(n_labs == 11, f'explorer sees {n_labs} playable labs (Colour Studio and ten of their own)'); check(await pg.locator('.sheet [data-lab="forge"]').count() == 0, 'explorer does not see Inventor labs'); await shot('7b-all-explorer')
     await pg.click('.sheet [data-lab="colour"]'); await pg.wait_for_timeout(3000); check(await dismiss(pg), 'worked example shows on first visit'); await shot('8-colour')
     await pg.click('#wBack'); await pg.wait_for_selector('.hub3d')

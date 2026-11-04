@@ -29,7 +29,7 @@ let root: HTMLElement;
 let frame: HTMLIFrameElement | null = null;
 let current: { lab: Lab; world: WorldId; pid: string } | null = null;
 const sessionStart = Date.now();
-let lastAd = 0;
+let lastAd = 0, adsShown = 0, levelThisVisit = false, bannerOn = false, bannerTimer = 0;
 let price = '₹99';
 let island: Island | null = null;
 const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -70,7 +70,7 @@ export function start(el: HTMLElement) {
   });
 
   onNative(m => {
-    if (m.t === 'adFree') { S.adFree = m.value; if (m.price) price = m.price; saveShell(); refreshPills(); if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
+    if (m.t === 'adFree') { S.adFree = m.value; syncBanner(!$('#islandHost').hidden); if (m.price) price = m.price; saveShell(); refreshPills(); if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
     if (m.t === 'purchase' && !m.ok && m.message) toast(m.message);
     if (m.t === 'back') onBack();
   });
@@ -109,7 +109,7 @@ function rewardDiff(world: WorldId, oldRaw: string | null, newRaw: string | null
       const nv = (b[field] || {}) as Record<string, unknown>;
       for (const [lvl, val] of Object.entries(nv)) {
         const key = `${lab}:${lvl}`, stars = typeof val === 'number' ? val : 0, had = p.levels[key];
-        if (had === undefined) { gained += RULES.coins.level + stars * RULES.coins.star; p.levels[key] = stars; notes.push(t('levelDone')); moved.add(lab); }
+        if (had === undefined) { gained += RULES.coins.level + stars * RULES.coins.star; p.levels[key] = stars; notes.push(t('levelDone')); moved.add(lab); levelThisVisit = true; }
         else if (stars > had) { gained += (stars - had) * RULES.coins.star; p.levels[key] = stars; moved.add(lab); notes.push(`★ ${stars - had} ${stars - had === 1 ? t('star') : t('stars')}`); }
       }
     }
@@ -132,7 +132,7 @@ function players() {
   const list = S.profiles.map(p => `<button class="player" data-pid="${p.id}"><span class="av">${p.avatar}</span><b>${esc(p.name || '—')}</b><small>${t(p.band)}</small></button>`).join('');
   $('#screen').innerHTML = `
     <section class="center">
-      <div class="logo"><small>GroundLearn</small><b>Curio Island</b></div>
+      <div class="logo"><b>Curio Island</b><small class="by">${t('byGl')}</small></div>
       <h1>${t('whoPlaying')}</h1>
       <div class="players">${list}<button class="player add" id="pAdd"><span class="av">＋</span><b>${t('addPlayer')}</b></button></div>
       <button class="link" id="pRules">ℹ️ ${t('rulesBtn')}</button>
@@ -238,7 +238,7 @@ function allWorkshops() {
 function showIsland(on: boolean) {
   const host = $('#islandHost');
   if (on && !island) island = createIsland(host, z => zoneSheet(z), reduceMotion);
-  host.hidden = !on; island?.pause(!on);
+  host.hidden = !on; island?.pause(!on); syncBanner(on);
   if (!on) $('#screen').classList.remove('over-island');
 }
 function fitIsland() {
@@ -279,17 +279,30 @@ function leaveWorld() {
   unmountWorld(frame); frame = null; current = null;
   $('#world').hidden = true; $('#screen').hidden = false;
   hub();
-  maybeInterstitial();
+  const finished = levelThisVisit; levelThisVisit = false;
+  maybeInterstitial(finished);
 }
 
-/** Ads only at natural breaks: leaving a workshop. None in the first minutes, then spaced out. */
-function maybeInterstitial() {
-  if (S.adFree) return;
+/** Ads only at natural breaks: leaving a lab (sooner after a finished level). None in the first minutes, spaced out, capped per session. */
+function maybeInterstitial(afterLevel = false) {
+  if (S.adFree || !inApp) return;
   const now = Date.now();
   if (now - sessionStart < RULES.ads.quietStartSec * 1000) return;
-  if (lastAd && now - lastAd < RULES.ads.gapSec * 1000) return;
-  if (!inApp) return;
-  lastAd = now; send({ t: 'interstitial' });
+  if (adsShown >= RULES.ads.maxPerSession) return;
+  const gap = (afterLevel ? RULES.ads.levelGapSec : RULES.ads.gapSec) * 1000;
+  if (lastAd && now - lastAd < gap) return;
+  lastAd = now; adsShown++; send({ t: 'interstitial' });
+}
+
+/** A small banner under the island hub only: never in a lab, never in the first minutes, never with Ad-free. */
+function syncBanner(hubShown: boolean) {
+  clearTimeout(bannerTimer);
+  const wait = RULES.ads.quietStartSec * 1000 - (Date.now() - sessionStart);
+  const parentOpen = !$('#sheet').hidden && $('#sheet').dataset.kind === 'parent';
+  const want = (hubShown || parentOpen) && !S.adFree && inApp;
+  if (want && wait > 0) { bannerTimer = window.setTimeout(() => syncBanner(!$('#islandHost').hidden), wait + 500); return; }
+  if (want === bannerOn) return;
+  bannerOn = want; send({ t: 'banner', show: want });
 }
 
 function onBack() {
@@ -432,6 +445,7 @@ function parentCorner() {
       <section><h3>${t('players')}</h3>${plist}</section>
       <button class="link" id="pcRules">ℹ️ ${t('rulesBtn')}</button>
       <button class="link" id="pcPrivacy">${t('privacy')}</button>
+      <section class="about"><h3>${t('aboutTitle')}</h3><p class="muted">${t('aboutBody')}</p><p class="muted">${t('aboutCredits')}</p><p class="muted">${t('aboutNote')}</p><p><b>${t('byGl')}</b> · © 2026</p></section>
     </div>
     <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   document.getElementById('pcBuy')?.addEventListener('click', () => emailAsk());
@@ -450,13 +464,13 @@ function parentCorner() {
 /* =================================================================== sheets and toasts */
 function sheet(kind: string, html: string) {
   const w = $('#sheet'), s = $('.sheet', w);
-  w.dataset.kind = kind; s.innerHTML = html; w.hidden = false;
+  w.dataset.kind = kind; s.innerHTML = html; w.hidden = false; syncBanner(!$('#islandHost').hidden);
   s.querySelectorAll<HTMLElement>('[data-close]').forEach(b => b.onclick = () => closeSheet());
   // A tap that opened this sheet also sends a click to whatever is now under the finger. Ignore it.
   const opened = Date.now();
   w.onclick = e => { if (e.target === w && Date.now() - opened > 500) closeSheet(); };
 }
-function closeSheet() { const w = $('#sheet'); if (!w) return; w.hidden = true; w.dataset.kind = ''; }
+function closeSheet() { const w = $('#sheet'); if (!w) return; w.hidden = true; w.dataset.kind = ''; syncBanner(!$('#islandHost').hidden); }
 
 export function toast(msg: string, kind: '' | 'bad' = '') {
   const el = document.createElement('div'); el.className = 'toast ' + kind; el.textContent = msg;
