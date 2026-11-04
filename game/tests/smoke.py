@@ -52,7 +52,7 @@ async def run_vp(b, name, w, h):
     await pg.evaluate("(() => { const d = document.querySelector('.world-frame').contentDocument; const o = d.getElementById('overlay'); if (o && !o.hidden) d.getElementById('mdPri').click(); })()")
     await pg.evaluate("document.getElementById('wBack').click()"); await pg.wait_for_selector('.hub3d')
     check(await pg.locator('.daily.done').count() == 1, 'Curio of the day shows as done')
-    await pg.click('#hAll', force=True); prog = await pg.inner_text('.sheet [data-lab="nets"] .cnt'); await pg.click('.sheet [data-close]')
+    await pg.click('#hAll', force=True); prog = await pg.inner_text('.sheet [data-lab="nets"] .cnt'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     check(prog.startswith('1/6'), f'nets card progress {prog}')
     # Wrong answers cost hearts; at zero the out-of-hearts sheet appears and free play continues.
     for _ in range(5): await pg.evaluate("window.curioWorld.answer(false)")
@@ -76,7 +76,7 @@ async def run_vp(b, name, w, h):
     await pg.wait_for_selector('#pcAdH'); await shot('6-parent')
     await pg.click('#pcBuy'); await pg.wait_for_selector('#emSkip'); await shot('6b-email'); await pg.fill('#emIn', 'nope'); await pg.click('#emGo'); check(await pg.locator('#emErr').is_visible(), 'bad email is refused'); await pg.click('#emSkip'); await pg.wait_for_timeout(900)
     txt = await pg.inner_text('.sheet'); check('Ad-free is on' in txt, 'Ad-free purchase (browser stand-in)')
-    await pg.click('[data-close]')
+    await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     # Second player in the Explorer band sees Colour Studio only.
     await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tara'); await pg.click('[data-band="explorer"]'); await pg.click('#npGo')
     await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800); await shot('7-hub-explorer')
@@ -96,7 +96,7 @@ async def run_vp(b, name, w, h):
         for i in range(6):
             await pg.evaluate(f"{WJ}.solve()"); await pg.wait_for_timeout(2200); await pg.evaluate(f"{WJ}.next()"); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('wBack').click()"); await pg.wait_for_selector('.hub3d')
-        await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith('6/6'), f'explorer {lab} finished 6/6'); await pg.click('[data-close]')
+        await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith('6/6'), f'explorer {lab} finished 6/6'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     # Players keep separate saves.
     await pg.click('#hWho'); await pg.click('.player >> text=Manan'); await pg.wait_for_selector('.hub3d')
     await pg.click('#hAll', force=True); prog = await pg.inner_text('.sheet [data-lab="nets"] .cnt'); check(prog.startswith('1/6'), 'Manan keeps his own progress')
@@ -112,7 +112,7 @@ async def run_vp(b, name, w, h):
             await pg.evaluate("document.querySelector('.world-frame').contentDocument.querySelector('#modal .qopt').click()"); await pg.wait_for_timeout(200)
             await pg.evaluate(f"{WJ}.next()"); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('wBack').click()"); await pg.wait_for_selector('.hub3d')
-        await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(f'{n}/{n}'), f'inventor {lab} finished {n}/{n}'); await pg.click('[data-close]')
+        await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(f'{n}/{n}'), f'inventor {lab} finished {n}/{n}'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     # Tinkerer band: its own labs, driven through the world's test hooks; rewards come from diffing the saves.
     await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tia'); await pg.click('[data-band="tinkerer"]'); await pg.click('#npGo')
     await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800)
@@ -153,10 +153,10 @@ async def run_vp(b, name, w, h):
     await pg.click('#hAll', force=True)
     for lab, want in (('coord', '1/6'), ('pea', '1/6'), ('chain', '1/6')):
         prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(want), f'{lab} progress {prog}')
-    await pg.click('.sheet [data-close]'); await pg.click('#hAll', force=True)
+    await pg.evaluate("document.querySelector('#sheet [data-close]').click()"); await pg.click('#hAll', force=True)
     for lab, want in (('atom', '1/8'), ('kitchen', '1/12'), ('mirror', '1/8')):
         prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(want), f'{lab} progress {prog}')
-    await pg.click('.sheet [data-close]')
+    await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     # Round 4 Tinkerer labs (hosted in the second Inventor world): solve every level, answer the bonus question.
     for lab, n in (('groups', 6), ('ladoo', 6), ('symmetry', 6), ('water', 6)):
         await pg.click('#hAll', force=True); await pg.click(f'.sheet [data-lab="{lab}"]'); await pg.wait_for_timeout(1800); await dismiss(pg)
@@ -167,14 +167,14 @@ async def run_vp(b, name, w, h):
             await pg.evaluate("document.querySelector('.world-frame').contentDocument.querySelector('#modal .qopt').click()"); await pg.wait_for_timeout(200)
             await pg.evaluate(f"{WJ}.next()"); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('wBack').click()"); await pg.wait_for_selector('.hub3d')
-        await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(f'{n}/{n}'), f'tinkerer {lab} finished {n}/{n}'); await pg.click('[data-close]')
+        await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(f'{n}/{n}'), f'tinkerer {lab} finished {n}/{n}'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     # Journal: start fresh clears the player's progress (behind the parent gate).
     await pg.click('#hJournal'); await pg.wait_for_selector('#jReset'); await shot('18-journal')
     await pg.click('#jReset'); q = await pg.inner_text('.gate-q')
     a_txt, b_txt = q.split('×'); b_txt = b_txt.split('=')[0].strip(); a_txt = a_txt.strip(); parts = a_txt.split('-'); a = T[parts[0]] + (W[parts[1]] if len(parts) > 1 else 0)
     await pg.fill('#gIn', str(a * W[b_txt])); await pg.click('#gOk'); await pg.wait_for_selector('#rsGo'); await shot('19-reset-ask'); await pg.click('#rsGo'); await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(400)
     coins = await pg.inner_text('#hCoins'); check(coins.strip() == '0', 'start fresh: coins back to 0')
-    await pg.click('#hAll', force=True); prog = await pg.inner_text('.sheet [data-lab="atom"] .cnt'); check(prog.startswith('0/8'), f'start fresh: atom progress {prog}'); await pg.click('.sheet [data-close]')
+    await pg.click('#hAll', force=True); prog = await pg.inner_text('.sheet [data-lab="atom"] .cnt'); check(prog.startswith('0/8'), f'start fresh: atom progress {prog}'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     # Hindi: the Tinkerer, Explorer and newer Inventor labs show their text in Hindi.
     dev = re.compile('[\u0900-\u097F]')
     await pg.click('#hWho'); await pg.click('#pLang'); await pg.wait_for_timeout(300)

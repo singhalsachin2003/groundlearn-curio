@@ -9,6 +9,7 @@ import { createIsland, ZONE_OF, type Island, type ZoneId, type ZoneState } from 
 import { EXAMPLES } from './examples';
 import { EXAMPLES_HI } from './examples_hi';
 import { saveParentEmail, validEmail } from './subscribe';
+import { LICENSES } from './licenses';
 import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
 export const PRIVACY_URL = 'https://groundlearn.com/curio/privacy';
@@ -29,7 +30,7 @@ let root: HTMLElement;
 let frame: HTMLIFrameElement | null = null;
 let current: { lab: Lab; world: WorldId; pid: string } | null = null;
 const sessionStart = Date.now();
-let lastAd = 0, adsShown = 0, levelThisVisit = false, bannerMode = 'off', bannerTimer = 0;
+let lastOut = 0, lastAd = 0, adsShown = 0, levelThisVisit = false, bannerMode = 'off', bannerTimer = 0;
 let price = '₹99';
 let island: Island | null = null;
 const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -80,7 +81,9 @@ export function start(el: HTMLElement) {
     canAnswer(): boolean {
       const p = active(); if (!p) return true; regen(p);
       if (p.hearts > 0 || p.band === 'explorer') return true;
-      outOfHearts(); return false;
+      // Don't nag: the out-of-hearts sheet shows at most once a minute; otherwise a quiet toast.
+      if (Date.now() - lastOut > 60_000) { lastOut = Date.now(); outOfHearts(); } else toast(`${t('outTitle')} 💔`, 'bad');
+      return false;
     },
     answer(correct: boolean) {
       const p = active(); if (!p) return;
@@ -324,6 +327,7 @@ function refreshPills() {
   document.querySelectorAll('#hCoins,#wCoins').forEach(e => { e.innerHTML = c; e.setAttribute('aria-label', `${t('coins')}: ${p.coins}`); });
   document.querySelectorAll('#hHearts,#wHearts').forEach(e => { e.innerHTML = h; e.setAttribute('aria-label', `${t('hearts')}: ${p.hearts}`); });
   const live = document.getElementById('ohTimer'); if (live) live.textContent = p.hearts > 0 ? '' : mmss(msToNextHeart(p));
+  if (p.hearts > 0) lastOut = 0; // got a heart back: the next time they run out, show the sheet again
   if (p.hearts > 0 && $('#sheet').dataset.kind === 'out') closeSheet();
 }
 
@@ -447,7 +451,7 @@ function parentCorner() {
       <section><h3>${t('players')}</h3>${plist}</section>
       <button class="link" id="pcRules">ℹ️ ${t('rulesBtn')}</button>
       <button class="link" id="pcPrivacy">${t('privacy')}</button>
-      <section class="about"><h3>${t('aboutTitle')}</h3><p class="muted">${t('aboutBody')}</p><p class="muted">${t('aboutCredits')}</p><p class="muted">${t('aboutNote')}</p><p><b>${t('byGl')}</b> · © 2026</p></section>
+      <section class="about"><h3>${t('aboutTitle')}</h3><p class="muted">${t('aboutBody')}</p><p class="muted">${t('aboutCredits')}</p><p class="muted">${t('aboutNote')}</p><p><b>${t('byGl')}</b> · © 2026</p><button class="link" id="pcLic">${t('licences')}</button></section>
     </div>
     <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   document.getElementById('pcBuy')?.addEventListener('click', () => emailAsk());
@@ -461,6 +465,7 @@ function parentCorner() {
   document.querySelectorAll<HTMLElement>('[data-rm]').forEach(b => b.onclick = () => { if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = t('removeConfirm'); b.classList.add('danger'); return; } removeProfile(b.dataset.rm!); if (active()) { hub(); parentCorner(); } else players(); });
   $('#pcRules').onclick = () => rules();
   $('#pcPrivacy').onclick = () => send({ t: 'openUrl', url: PRIVACY_URL });
+  $('#pcLic').onclick = () => sheet('licences', `<h2>${t('licences')}</h2>${LICENSES.map(l => `<h3>${esc(l.name)}</h3><pre class="lic">${esc(l.text)}</pre>`).join('')}<div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
 }
 
 /* =================================================================== sheets and toasts */
