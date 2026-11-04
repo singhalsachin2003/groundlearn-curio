@@ -5,7 +5,7 @@ export type ToNative =
   | { t: 'ready' }
   | { t: 'save'; data: Record<string, string> }
   | { t: 'interstitial' }
-  | { t: 'banner'; show: boolean }
+  | { t: 'banner'; mode: 'off' | 'space' | 'ad' }
   | { t: 'rewarded'; id: number }
   | { t: 'buyAdFree' }
   | { t: 'restore' }

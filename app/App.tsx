@@ -31,7 +31,7 @@ const BASE_URL = 'https://curio.groundlearn.app/';
 const OPEN_OK = /^https:\/\/(www\.)?groundlearn\.com\//; // only our own pages, and only from Parent Corner
 
 type FromGame =
-  | { t: 'ready' } | { t: 'save'; data: Record<string, string> } | { t: 'interstitial' } | { t: 'banner'; show: boolean } | { t: 'rewarded'; id: number }
+  | { t: 'ready' } | { t: 'save'; data: Record<string, string> } | { t: 'interstitial' } | { t: 'banner'; mode: 'off' | 'space' | 'ad' } | { t: 'rewarded'; id: number }
   | { t: 'buyAdFree' } | { t: 'restore' } | { t: 'openUrl'; url: string } | { t: 'exit' };
 
 /** Shows what went wrong instead of closing, so a tester can send a screenshot. */
@@ -62,7 +62,8 @@ function App() {
   const web = useRef<WebViewHandle>(null);
   const [boot, setBoot] = useState<string | null>(null);
   const adFree = useRef(false);
-  const [banner, setBanner] = useState(false);
+  const [banner, setBanner] = useState<'off' | 'space' | 'ad'>('off');
+  const [adCover, setAdCover] = useState(false); // one ad at a time: no banner while an interstitial is up
   const price = useRef<string | undefined>(undefined);
 
   const toGame = useCallback((m: object) => {
@@ -84,7 +85,7 @@ function App() {
   }, []);
 
   const setAdFree = useCallback((v: boolean, p?: string) => {
-    adFree.current = v; if (p) price.current = p; if (v) setBanner(false);
+    adFree.current = v; if (p) price.current = p; if (v) setBanner('off');
     AsyncStorage.setItem(ADFREE_KEY, v ? '1' : '0').catch(() => {});
     toGame({ t: 'adFree', value: v, price: price.current });
   }, [toGame]);
@@ -102,9 +103,9 @@ function App() {
         try { billing()?.initPurchases(setAdFree).catch(e => reportError(e, 'Purchases')); } catch (e) { reportError(e, 'Purchases'); }
         break;
       case 'save': AsyncStorage.setItem(SAVE_KEY, JSON.stringify(m.data)).catch(() => {}); break;
-      case 'interstitial': if (!adFree.current) ads()?.showInterstitial(); break;
-      case 'banner': setBanner(m.show && !adFree.current); break;
-      case 'rewarded': { const a = ads(); toGame({ t: 'rewarded', id: m.id, ok: adFree.current || !a ? false : await a.showRewarded() }); break; }
+      case 'interstitial': if (!adFree.current) { setAdCover(true); if (!ads()?.showInterstitial(() => setAdCover(false))) setAdCover(false); } break;
+      case 'banner': setBanner(adFree.current ? 'off' : m.mode); break;
+      case 'rewarded': { const a = ads(); setAdCover(true); const ok = adFree.current || !a ? false : await a.showRewarded(); setAdCover(false); toGame({ t: 'rewarded', id: m.id, ok }); break; }
       case 'buyAdFree': { const b = billing(); const r = b ? await b.buyAdFree() : { ok: false, message: 'Purchases are not available right now.' }; if (r.ok) setAdFree(true); toGame({ t: 'purchase', ok: r.ok, message: r.message }); break; }
       case 'restore': { const b = billing(); const ok = b ? await b.restoreAdFree() : false; if (ok) setAdFree(true); toGame({ t: 'purchase', ok, message: ok ? undefined : 'No earlier purchase was found on this Google account.' }); break; }
       case 'openUrl': if (OPEN_OK.test(m.url)) Linking.openURL(m.url).catch(() => {}); break;
@@ -136,7 +137,7 @@ function App() {
           />
         )}
         {!boot && <View style={styles.root} />}
-        {banner && (() => { const B = bannerView()?.default; return B ? <B /> : null; })()}
+        {banner !== 'off' && (() => { const B = bannerView()?.default; return B ? <B adOn={banner === 'ad' && !adCover} /> : null; })()}
       </SafeAreaView>
     </SafeAreaProvider>
   );

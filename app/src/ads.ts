@@ -30,10 +30,12 @@ function loadInterstitial() {
 }
 
 /** Show the waiting interstitial if one is ready; otherwise skip quietly. */
-export function showInterstitial() {
-  if (!ready || !interstitial || !interstitialLoaded) return;
+export function showInterstitial(onDone?: () => void): boolean {
+  if (!ready || !interstitial || !interstitialLoaded) return false;
   interstitialLoaded = false;
-  interstitial.show().catch(() => loadInterstitial());
+  const ad = interstitial, off = ad.addAdEventListener(AdEventType.CLOSED, () => { off(); onDone?.(); });
+  ad.show().catch(() => { off(); onDone?.(); loadInterstitial(); });
+  return true;
 }
 
 /** Load and show a rewarded ad. Resolves true only if the child watched it to the reward. */

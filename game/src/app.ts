@@ -29,7 +29,7 @@ let root: HTMLElement;
 let frame: HTMLIFrameElement | null = null;
 let current: { lab: Lab; world: WorldId; pid: string } | null = null;
 const sessionStart = Date.now();
-let lastAd = 0, adsShown = 0, levelThisVisit = false, bannerOn = false, bannerTimer = 0;
+let lastAd = 0, adsShown = 0, levelThisVisit = false, bannerMode = 'off', bannerTimer = 0;
 let price = '₹99';
 let island: Island | null = null;
 const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -294,15 +294,17 @@ function maybeInterstitial(afterLevel = false) {
   lastAd = now; adsShown++; send({ t: 'interstitial' });
 }
 
-/** A small banner under the island hub only: never in a lab, never in the first minutes, never with Ad-free. */
+/** A small banner under the island hub and Parent Corner only: never in a lab, never in the first minutes, never with Ad-free.
+ * Its space is kept from the moment the hub shows, so nothing moves under a child's finger when the ad arrives. */
 function syncBanner(hubShown: boolean) {
   clearTimeout(bannerTimer);
-  const wait = RULES.ads.quietStartSec * 1000 - (Date.now() - sessionStart);
   const parentOpen = !$('#sheet').hidden && $('#sheet').dataset.kind === 'parent';
   const want = (hubShown || parentOpen) && !S.adFree && inApp;
-  if (want && wait > 0) { bannerTimer = window.setTimeout(() => syncBanner(!$('#islandHost').hidden), wait + 500); return; }
-  if (want === bannerOn) return;
-  bannerOn = want; send({ t: 'banner', show: want });
+  const wait = RULES.ads.quietStartSec * 1000 - (Date.now() - sessionStart);
+  const mode: 'off' | 'space' | 'ad' = !want ? 'off' : wait > 0 ? 'space' : 'ad';
+  if (want && wait > 0) bannerTimer = window.setTimeout(() => syncBanner(!$('#islandHost').hidden), wait + 500);
+  if (mode === bannerMode) return;
+  bannerMode = mode; send({ t: 'banner', mode });
 }
 
 function onBack() {
