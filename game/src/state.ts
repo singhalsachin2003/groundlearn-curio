@@ -49,9 +49,12 @@ export const RULES = {
   refillMin: 20,
   refillMinAdFree: 10,
   heartCost: 600,
-  adHeartsPerDay: 3,
+  adHeartsPerDay: 5,
+  /** Hints: a few free each day, then an optional rewarded ad (never needed: hints stay free once the ad cap is hit or ads are off). */
+  freeHintsPerDay: 3,
+  adHintsPerDay: 10,
   coins: { correct: 10, level: 20, star: 5, discovery: 15, daily: 10 },
-  ads: { quietStartSec: 180, gapSec: 270, levelGapSec: 150, maxPerSession: 8 },
+  ads: { quietStartSec: 180, gapSec: 180, levelGapSec: 150, maxPerSession: 8 },
 };
 
 const SHELL_KEY = 'gl:shell';

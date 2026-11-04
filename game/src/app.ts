@@ -10,7 +10,8 @@ import { EXAMPLES } from './examples';
 import { EXAMPLES_HI } from './examples_hi';
 import { saveParentEmail, validEmail } from './subscribe';
 import { LICENSES } from './licenses';
-import { markPlayed, streakOf, badgeFor, raiseBadge, badgesOf, BADGE_ICON, BADGE_COINS, STICKERS, STICKER_COST, stickersOf, addSticker, confetti, music } from './fun';
+import { HERO, FACTS, factOfDay } from './home';
+import { hintUse, hintCounts, markPlayed, streakOf, badgeFor, raiseBadge, badgesOf, BADGE_ICON, BADGE_COINS, STICKERS, STICKER_COST, stickersOf, addSticker, confetti, music } from './fun';
 import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
 export const PRIVACY_URL = 'https://groundlearn.com/curio/privacy';
@@ -86,6 +87,15 @@ export function start(el: HTMLElement) {
       if (Date.now() - lastOut > 60_000) { lastOut = Date.now(); outOfHearts(); } else toast(`${t('outTitle')} 💔`, 'bad');
       return false;
     },
+    /** A world asks before showing a hint. Free hints first; then an optional ad; hints never become unavailable. */
+    hint(open: () => void) {
+      const p = active();
+      if (!p || S.adFree || p.band === 'explorer' || !S.adsForHearts) { open(); return; }
+      const c = hintCounts(p);
+      if (c.free < RULES.freeHintsPerDay) { hintUse(p, 'free'); saveShell(); open(); if (c.free + 1 === RULES.freeHintsPerDay) toast(t('hintLastFree')); return; }
+      if (c.ads >= RULES.adHintsPerDay) { open(); return; }
+      hintAsk(p, open);
+    },
     answer(correct: boolean) {
       const p = active(); if (!p) return;
       if (correct) { addCoins(p, RULES.coins.correct); toast(`+${RULES.coins.correct} ${t('plusCoins')} · ${t('correct')}`); }
@@ -154,13 +164,22 @@ function players() {
   closeSheet(); showIsland(false);
   const list = S.profiles.map(p => `<button class="player" data-pid="${p.id}"><span class="av">${p.avatar}</span><b>${esc(p.name || '—')}</b><small>${t(p.band)}</small></button>`).join('');
   $('#screen').innerHTML = `
-    <section class="center">
+    <div class="floaters" aria-hidden="true">${['⚛️', '🧪', '🔭', '🧲', '🌱', '🎨', '📐', '💡'].map((e, i) => `<i style="--i:${i}">${e}</i>`).join('')}</div>
+    <section class="center home">
+      <div class="hero">${HERO}</div>
       <div class="logo"><b>Curio Island</b><small class="by">${t('byGl')}</small></div>
+      <p class="tagline">${t('homeTag')}</p>
+      <div class="subjects">${(['colour', 'chem', 'phy', 'math', 'bio'] as const).map(s => `<span class="subj s-${s}">${({ colour: '🎨', chem: '⚗️', phy: '⚡', math: '🔢', bio: '🌱' })[s]} ${t(('subj_' + s) as Key)}</span>`).join('')}</div>
       <h1>${t('whoPlaying')}</h1>
       <div class="players">${list}<button class="player add" id="pAdd"><span class="av">＋</span><b>${t('addPlayer')}</b></button></div>
-      <button class="link" id="pRules">ℹ️ ${t('rulesBtn')}</button>
-      <button class="link" id="pLang">${getLang() === 'en' ? 'हिंदी' : 'English'}</button>
+      <div class="fact card"><small>💡 ${t('didYouKnow')}</small><p id="factTx"></p><button class="link" id="factNext">${t('anotherFact')} →</button></div>
+      <p class="stats">${t('homeStats')}</p>
+      <div class="homefoot"><button class="link" id="pRules">ℹ️ ${t('rulesBtn')}</button><button class="link" id="pLang">${getLang() === 'en' ? 'हिंदी' : 'English'}</button></div>
+      <small class="copy">© 2026 GroundLearn</small>
     </section>`;
+  let fi = factOfDay();
+  const showFact = () => { $('#factTx').textContent = FACTS[fi][getLang()] || FACTS[fi].en; };
+  showFact(); $('#factNext').onclick = () => { fi = (fi + 1) % FACTS.length; showFact(); };
   document.querySelectorAll<HTMLElement>('[data-pid]').forEach(b => b.onclick = () => { S.active = b.dataset.pid!; saveShell(); hub(); });
   $('#pAdd').onclick = () => newPlayer();
   $('#pRules').onclick = () => rules();
@@ -385,6 +404,22 @@ function outOfHearts() {
       if (m.t !== 'rewarded' || m.id !== id) return;
       if (m.ok) { countAdHeart(p); gainHeart(p); toast(`+1 ❤️ ${t('thanksAd')}`); refreshPills(); closeSheet(); }
       else { toast(t('adFailed'), 'bad'); outOfHearts(); }
+    };
+    onNative(off as never); send({ t: 'rewarded', id });
+  };
+}
+
+/** Out of free hints today: offer a short ad, or keep trying. Opt-in only; closing the sheet changes nothing. */
+function hintAsk(p: Profile, open: () => void) {
+  sheet('hint', `<div class="big-ic">💡</div><h2>${t('hintTitle')}</h2><p>${t('hintBody').replace('{n}', String(RULES.freeHintsPerDay))}</p>
+    <div class="row-btns"><button class="btn" data-close>${t('hintNo')}</button><button class="btn primary" id="hiAd">▶ ${t('hintAd')}</button></div>`);
+  const b = $('#hiAd') as HTMLButtonElement;
+  b.onclick = () => {
+    const id = ++adId; b.disabled = true; b.textContent = t('adLoading');
+    const off = (m: { t: string; id?: number; ok?: boolean }) => {
+      if (m.t !== 'rewarded' || m.id !== id) return;
+      closeSheet();
+      if (m.ok) { hintUse(p, 'ad'); saveShell(); open(); toast(`💡 ${t('thanksAd')}`); } else toast(t('adFailed'), 'bad');
     };
     onNative(off as never); send({ t: 'rewarded', id });
   };

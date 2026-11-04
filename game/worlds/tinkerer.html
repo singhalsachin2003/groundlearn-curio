@@ -1254,7 +1254,8 @@ function renderMission() {
   $('mStars').innerHTML = m.stars || ''; $('mNav').hidden = !m.nav;
   if (m.nav) { $('mPrev').disabled = !m.prevOk; $('mNext').disabled = !m.nextOk; }
 }
-$('mHintBtn').onclick = () => { const h = $('mHint'); h.hidden = !h.hidden; $('mHintBtn').textContent = h.hidden ? 'Show hint' : 'Hide hint'; };
+// Curio: opening a hint goes through the shell (free hints, then an optional ad).
+$('mHintBtn').onclick = () => { const h = $('mHint'); const flip = () => { h.hidden = !h.hidden; $('mHintBtn').textContent = h.hidden ? 'Show hint' : 'Hide hint'; }; if (h.hidden && CURIO && CURIO.hint) CURIO.hint(flip); else flip(); };
 $('mPrev').onclick = () => { sfx.click(); games[P.tab].prev && games[P.tab].prev(); };
 $('mNext').onclick = () => { sfx.click(); games[P.tab].next && games[P.tab].next(); };
 function setTab(t) {

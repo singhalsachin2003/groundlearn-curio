@@ -29,6 +29,12 @@ export function raiseBadge(p: Profile, subject: string, level: number): number {
 }
 export const badgesOf = (p: Profile) => (p as Extra).badges || {};
 
+/* Hint counters per player per day. */
+type HintX = Profile & { hintDay?: string; hintFree?: number; hintAds?: number };
+function hintRow(p: Profile) { const x = p as HintX, d = today(); if (x.hintDay !== d) { x.hintDay = d; x.hintFree = 0; x.hintAds = 0; } return x; }
+export function hintUse(p: Profile, kind: 'free' | 'ad') { const x = hintRow(p); if (kind === 'free') x.hintFree = (x.hintFree || 0) + 1; else x.hintAds = (x.hintAds || 0) + 1; }
+export function hintCounts(p: Profile) { const x = hintRow(p); return { free: x.hintFree || 0, ads: x.hintAds || 0 }; }
+
 /** Stickers are chosen, never random, and bought only with coins earned in the game. */
 export const STICKERS = ['🦕', '🚀', '🔭', '🧲', '🌋', '🐙', '🦋', '🪐', '🌈', '🐝', '🦜', '🐢', '🌻', '🍄', '🦒', '🐳', '⚡', '🧊', '🌙', '☄️', '🦖', '🐬', '🌵', '💎'];
 export const STICKER_COST = 40;
