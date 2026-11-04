@@ -376,6 +376,20 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 stage.appendChild(renderer.domElement);
 window.__curioDispose = () => { try { renderer.forceContextLoss(); renderer.dispose(); } catch (e) {} };
 const CURIO = window.curio || null;
+// Tries: labs with no questions still have a goal. Each level gives a few free tries; each extra miss costs a heart.
+const TRIES = {};
+function resetTries(lab) { Object.keys(TRIES).forEach(k => { if (k.indexOf(lab + ':') === 0) delete TRIES[k]; }); }
+function miss(lab, lvl, free) {
+  if (!CURIO) return; const k = lab + ':' + lvl, n = TRIES[k] = (TRIES[k] || 0) + 1;
+  if (n <= free) { if (n === free) toast('That was your last free try. The next miss costs a heart.'); return; }
+  if (CURIO.canAnswer()) CURIO.answer(false, lab);
+}
+function budget(lab, lvl, free, every) {
+  if (!CURIO) return; const k = lab + ':b' + lvl, n = TRIES[k] = (TRIES[k] || 0) + 1;
+  if (n === free) toast('Try to finish soon. Too many moves will cost a heart.');
+  if (n > free && (n - free) % every === 0 && CURIO.canAnswer()) CURIO.answer(false, lab);
+}
+window.__tries = { miss, budget }; // test hook
 
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t; }
@@ -626,7 +640,7 @@ games.forge = (function () {
       if (prevComplete.has(s)) return;
       if (c.mol && !P.forgeFound.has(c.mol.id)) newly = newly || c;
       else if (c.mol) { toast(`${c.mol.name} again.`); sfx.ok(); }
-      else toast('Every bond is full. This molecule is not in the journal yet.');
+      else { toast('Every bond is full. This molecule is not in the journal yet.'); miss('forge', 0, 3); }
     });
     prevComplete = now;
     if (newly) discover(newly);
@@ -987,7 +1001,7 @@ games.react = (function () {
     tween(reduce ? 50 : 650, k => { splint.position.set(2.6 - k * 2.4, BY + BH + 0.35, 0.2); splint.rotation.z = 0.15; }, () => {
       if (g === 'h2') { sfx.thud(); sfx.pop(); flashL.intensity = 4; setTimeout(() => { flashL.intensity = 0; }, 140); burst(scene, new THREE.Vector3(0.2, BY + BH + 0.4, 0.2), [0xffe08a, 0xffffff], 18, 2.4, 0.5, 0.7); discover('test-h2', 500); }
       else if (g === 'o2') { sFlame.material.color.set(0xffe14a); tween(600, k => sFlame.scale.setScalar(1 + k * 1.8)); sfx.whoosh(); discover('test-o2', 700); }
-      else if (g === 'co2') { sFlame.visible = false; sfx.brk(); toast('The flame went out. Carbon dioxide does that, but so do other gases. Use the limewater test to be sure.'); }
+      else if (g === 'co2') { sFlame.visible = false; sfx.brk(); miss('react', 0, 3); toast('The flame went out. Carbon dioxide does that, but so do other gases. Use the limewater test to be sure.'); }
       else toast('No gas is coming off right now, so the splint just keeps burning.');
       checkMission();
       setTimeout(() => { tween(reduce ? 50 : 500, k => { splint.position.x = 0.2 + k * 2.4; }, () => { splint.visible = false; }); }, 1400);
@@ -998,7 +1012,7 @@ games.react = (function () {
     const g = gasOn() ? B.gas : null;
     setTimeout(() => {
       if (g === 'co2') { const from = tLiqMat.color.clone(); tween(1400, k => { tLiqMat.color.copy(from).lerp(new THREE.Color(0xf6f6f2), k); tLiqMat.opacity = 0.45 + 0.45 * k; }); discover('test-co2', 1300); }
-      else if (g) toast('The limewater stayed clear. This gas is not carbon dioxide.');
+      else if (g) { toast('The limewater stayed clear. This gas is not carbon dioxide.'); miss('react', 0, 3); }
       else toast('No gas is coming off right now. Make a gas first, then test it while it bubbles.');
       checkMission(); setTimeout(() => { pipe.visible = false; }, 2600);
     }, 500);
@@ -1323,7 +1337,7 @@ games.launch = (function () {
   const view = { w: 1, h: 1, top: 0, bottom: 0 };
 
   function setLevel(i) {
-    li = clamp(i, 0, LV.length - 1); lv = LV[li]; pl = PL[lv.planet]; P.launchLevel = li; persist();
+    li = clamp(i, 0, LV.length - 1); lv = LV[li]; pl = PL[lv.planet]; P.launchLevel = li; persist(); resetTries('launch');
     scene.background.set(pl.sky); groundMat.color.set(pl.ground);
     const far = lv.zone ? lv.zone[1] : lv.tx;
     frame = { x0: -4, x1: Math.max(far + 7, 26), y1: lv.ymax };
@@ -1417,11 +1431,12 @@ games.launch = (function () {
       msg = `Landed <b>${fmt(r.x)} m</b> away${end === 'top' ? ' on the ledge' : ''} · highest point <b>${fmt(r.maxH)} m</b> · <b>${fmt(t, 2)} s</b> in the air.`;
     }
     $('lRead').innerHTML = msg + (ok ? '' : ` <span style="color:var(--coral)">Shot ${shots}.</span>`);
+    const missed = !ok;
     if (ok && lv.twoAngles) {
       if (firstAngle === null) { firstAngle = ang; ok = false; sfx.ok(); toast(`${ang}° works. Now find a different angle that also lands there.`); renderMission(); }
       else if (Math.abs(ang - firstAngle) < 10) { ok = false; toast(`That is close to ${firstAngle}°. Find an angle at least 10° away from it.`); }
     }
-    if (ok) win(r, t);
+    if (ok) win(r, t); else if (missed) miss('launch', li, 3);
     renderUI();
   }
   function lesson(r) {
@@ -1543,7 +1558,7 @@ games.light = (function () {
   const Y = new THREE.Vector3(0, 1, 0);
   function clearWorld() { while (world.children.length) { const c = world.children.pop(); disposeTree(c); } }
   function setLevel(i) {
-    li = clamp(i, 0, LIGHT.length - 1); L = LIGHT[li]; P.lightLevel = li; persist();
+    li = clamp(i, 0, LIGHT.length - 1); L = LIGHT[li]; P.lightLevel = li; persist(); resetTries('light');
     clearWorld(); angs = L.mirrors.map(m => m.a); mirrors = []; crystals = []; sel = L.mirrors.findIndex(m => !m.lock); moves = 0; solvedNow = false;
     // fewest 15° turns that solve it
     const free = L.mirrors.map((m, k) => m.lock ? -1 : k).filter(k => k >= 0); par = Infinity;
@@ -1586,7 +1601,7 @@ games.light = (function () {
   }
   function turn(k, dd) {
     if (k < 0 || L.mirrors[k].lock || modalOpen) return;
-    angs[k] = ((angs[k] + dd) % 180 + 180) % 180; moves++; sfx.click();
+    angs[k] = ((angs[k] + dd) % 180 + 180) % 180; moves++; sfx.click(); if (!solvedNow) budget('light', li, (par || 6) + 8, 6);
     const g = mirrors[k], from = g.rotation.y, to = -rad(angs[k]);
     retrace();
     if (!reduce) { let d = to - from; while (d > Math.PI / 2) d -= Math.PI; while (d < -Math.PI / 2) d += Math.PI; g.rotation.y = from; tween(160, q => { g.rotation.y = from + d * q; }, () => { g.rotation.y = to; }); }
@@ -1695,15 +1710,15 @@ games.graph = (function () {
   }
   const onLine = ([x, y]) => Math.abs(m * x + c - y) < 1e-6;
   function setLevel(i) {
-    li = clamp(i, 0, GRAPH.length - 1); G = GRAPH[li]; P.graphLevel = li; persist();
+    li = clamp(i, 0, GRAPH.length - 1); G = GRAPH[li]; P.graphLevel = li; persist(); resetTries('graph');
     gems.splice(0).forEach(g => { scene.remove(g); g.geometry.dispose(); g.material.dispose(); });
     while (tri.children.length) disposeTree(tri.children.pop());
     G.gems.forEach(([x, y]) => { const g = new THREE.Mesh(new THREE.OctahedronGeometry(0.32), new THREE.MeshStandardMaterial({ color: 0x8a3fd1, roughness: 0.3, emissive: 0x000000 })); g.position.set(x, y, 0.25); scene.add(g); gems.push(g); });
     fixedLine.visible = !!G.fixed; if (G.fixed) placeLine(fixedLine, G.fixed.m, G.fixed.c, 0.08);
     m = 1; c = 0; solved = false; $('gmIn').value = m; $('gcIn').value = c; update0(); renderUI(); if (P.tab === 'graph') renderMission();
   }
-  function setM(v) { m = clamp(Math.round(v * 2) / 2, -3, 3); $('gmIn').value = m; update0(); }
-  function setC(v) { c = clamp(Math.round(v * 2) / 2, -4, 6); $('gcIn').value = c; update0(); }
+  function setM(v) { if (!solved) budget('graph', li, 14, 6); m = clamp(Math.round(v * 2) / 2, -3, 3); $('gmIn').value = m; update0(); }
+  function setC(v) { if (!solved) budget('graph', li, 14, 6); c = clamp(Math.round(v * 2) / 2, -4, 6); $('gcIn').value = c; update0(); }
   function update0() {
     placeLine(line, m, c, 0.15);
     gems.forEach((g, j) => { const on = onLine(G.gems[j]); g.material.color.set(on ? 0xffb423 : 0x8a3fd1); g.material.emissive.set(on ? 0x6a4500 : 0x000000); });
@@ -1839,7 +1854,7 @@ games.circuit = (function () {
   const np = i => new THREE.Vector3((L.nodes[i][0] - center.x) * S, 0.02, (L.nodes[i][1] - center.z) * S);
   const isSlot = k => !!L.edges[k].slot;
   function setLevel(i) {
-    li = clamp(i, 0, CIRC.length - 1); L = CIRC[li]; P.circLevel = li; persist();
+    li = clamp(i, 0, CIRC.length - 1); L = CIRC[li]; P.circLevel = li; persist(); resetTries('circuit');
     const xs = L.nodes.map(n => n[0]), zs = L.nodes.map(n => n[1]);
     center.set((Math.min(...xs) + Math.max(...xs)) / 2, 0, (Math.min(...zs) + Math.max(...zs)) / 2);
     board.scale.set((Math.max(...xs) - Math.min(...xs)) * S + 2.4, 1, (Math.max(...zs) - Math.min(...zs)) * S + 2.4); board.position.set(0, -0.15, 0);
@@ -1933,7 +1948,7 @@ games.circuit = (function () {
       case 'indep': { const A = byLabel('A'), B = byLabel('B'); const main = comps[1] && PART[comps[1].t].R !== undefined && isFinite(PART[comps[1].t].R); if (A && B && main && !sol.short) { if (lit(A) && !lit(B)) seen.a = 1; if (!lit(A) && lit(B)) seen.b = 1; } ok = seen.a && seen.b; break; }
       case 'fix': ok = sol.bulbs.length && sol.bulbs.every(lit) && !sol.short; break;
     }
-    if (ok && !solved) { solved = true; win(); }
+    if (ok && !solved) { solved = true; win(); } else if (!ok && !solved) budget('circuit', li, 14, 6);
   }
   function win() {
     P.circDone[li] = true; persist(); sfx.tada();
@@ -2255,7 +2270,7 @@ games.eco = (function () {
   let li = 0, L = ECO[0], D0 = 20, T0 = 0, run = null, seasonShown = 0, result = null, cur = [80, 20, 0], solved = false;
   const view = { w: 1, h: 1, top: 0, bottom: 0 };
   function setLevel(i) {
-    li = clamp(i, 0, ECO.length - 1); L = ECO[li]; P.ecoLevel = li; persist();
+    li = clamp(i, 0, ECO.length - 1); L = ECO[li]; P.ecoLevel = li; persist(); resetTries('eco');
     D0 = L.D; T0 = L.T; run = null; result = null; seasonShown = 0; cur = [L.G, L.D, L.T]; solved = false;
     $('eDIn').value = D0; $('eTIn').value = T0; $('eDIn').disabled = !!L.lockD; $('eTIn').disabled = !!L.lockT;
     document.querySelectorAll('[data-estep]').forEach(b => { b.disabled = (b.dataset.estep === 'D' && L.lockD) || (b.dataset.estep === 'T' && L.lockT); });
@@ -2282,7 +2297,7 @@ games.eco = (function () {
     const msg = `After 30 seasons: grass ${Math.round(end[0])}, deer ${Math.round(end[1])}, tigers ${Math.round(end[2])}.`;
     if (ok) { if (!solved) { solved = true; win(); } }
     else {
-      sfx.brk();
+      sfx.brk(); miss('eco', li, 3);
       const why = end[1] === 0 && T0 > 0 ? 'The deer died out, so the tigers starved too.' : end[2] === 0 && T0 > 0 ? 'The tigers died out.' : L.goal === 'recover' ? (end[0] <= 50 ? 'The grass did not recover enough.' : '') : L.goal === 'starve' ? 'Start with 12 or more tigers.' : L.goal === 'overgraze' ? 'Start with some deer.' : '';
       toast(`${msg} ${why} Try different numbers.`);
     }
@@ -2391,7 +2406,7 @@ games.mach = (function () {
   const OPTS = { lever: Array.from({ length: 37 }, (_, i) => +(-1.8 + i * 0.1).toFixed(1)), seesaw: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2], ramp: [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5] };
   function opts() { return OPTS[Lv.type] || []; }
   function setLevel(i) {
-    li = clamp(i, 0, MACH.length - 1); Lv = MACH[li]; P.machLevel = li; persist(); busy = false; solved = false;
+    li = clamp(i, 0, MACH.length - 1); Lv = MACH[li]; P.machLevel = li; persist(); resetTries('mach'); busy = false; solved = false;
     Object.entries(groups).forEach(([k, g]) => { g.visible = k === Lv.type; });
     const o = opts(); val = Lv.type === 'lever' ? o.indexOf(0) : Lv.type === 'seesaw' ? 0 : Lv.type === 'ramp' ? 0 : 0; n = 1; bucketY = 0.9;
     $('mcSlider').hidden = Lv.type === 'pulley'; $('mcPulley').hidden = Lv.type !== 'pulley';
@@ -2451,7 +2466,7 @@ games.mach = (function () {
   function setVal(i) { if (busy) return; val = clamp(i, 0, opts().length - 1); $('mcIn').value = val; layout(); renderUI(); }
   function attempt() {
     if (busy || modalOpen) return; const q = need(); busy = true; renderUI();
-    const done = ok => { busy = false; renderUI(); if (ok && !solved) { solved = true; win(q); } };
+    const done = ok => { busy = false; renderUI(); if (ok && !solved) { solved = true; win(q); } else if (!ok && !solved) miss('mach', li, 3); };
     const shake = (obj, prop) => { sfx.brk(); if (reduce) return done(false); const b0 = obj[prop]; tween(500, k => { obj[prop] = b0 + Math.sin(k * 40) * 0.02 * (1 - k); }, () => { obj[prop] = b0; done(false); }); };
     if (Lv.type === 'lever') {
       if (q.F <= Lv.F + 1e-9) { sfx.whoosh(); const ang = Math.min(0.22, 0.7 / (q.ea * U)); tween(reduce ? 10 : 900, k => { lPivot.rotation.z = -ang * k; }, () => done(true)); }
@@ -2768,7 +2783,7 @@ games.balance = (function () {
     });
   }
   function setLevel(i) {
-    bi = clamp(i, 0, LVB.length - 1); lvb = LVB[bi]; P.balLevel = bi; persist();
+    bi = clamp(i, 0, LVB.length - 1); lvb = LVB[bi]; P.balLevel = bi; persist(); resetTries('balance');
     cur = clone(lvb); hist = []; work = [{ c: clone(cur), note: '' }]; won = false;
     layout('L'); layout('R'); renderUI(); if (P.tab === 'balance') renderMission();
   }
@@ -2785,6 +2800,7 @@ games.balance = (function () {
     return '';
   }
   function afterChange(forcedNote) {
+    if (!won) budget('balance', bi, 14, 6);
     if (balanced()) {
       const last = work[work.length - 1].c;
       if (eqStr(last) !== eqStr(cur)) { work.push({ c: clone(cur), note: forcedNote || noteFrom(last, cur) }); if (!forcedNote) sfx.ok(); }

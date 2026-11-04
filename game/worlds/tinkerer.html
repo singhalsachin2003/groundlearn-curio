@@ -325,6 +325,20 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 stage.appendChild(renderer.domElement);
 window.__curioDispose = () => { try { renderer.forceContextLoss(); renderer.dispose(); } catch (e) {} };
 const CURIO = window.curio || null;
+// Tries: labs with no questions still have a goal. Each level gives a few free tries; each extra miss costs a heart.
+const TRIES = {};
+function resetTries(lab) { Object.keys(TRIES).forEach(k => { if (k.indexOf(lab + ':') === 0) delete TRIES[k]; }); }
+function miss(lab, lvl, free) {
+  if (!CURIO) return; const k = lab + ':' + lvl, n = TRIES[k] = (TRIES[k] || 0) + 1;
+  if (n <= free) { if (n === free) toast('That was your last free try. The next miss costs a heart.'); return; }
+  if (CURIO.canAnswer()) CURIO.answer(false, lab);
+}
+function budget(lab, lvl, free, every) {
+  if (!CURIO) return; const k = lab + ':b' + lvl, n = TRIES[k] = (TRIES[k] || 0) + 1;
+  if (n === free) toast('Try to finish soon. Too many moves will cost a heart.');
+  if (n > free && (n - free) % every === 0 && CURIO.canAnswer()) CURIO.answer(false, lab);
+}
+window.__tries = { miss, budget }; // test hook
 
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t; }
@@ -566,7 +580,7 @@ games.atom = (function () {
     if (sameCounts(c, tgt.need)) return win();
     const known = MOLS.find(m => sameCounts(c, m.need));
     toast(known ? `That is ${known.name}, ${known.f}. A real molecule! This puzzle wants ${tgt.f}.` : `All hands are full, but that is not ${tgt.f}. Try Undo.`);
-    sfx.ping();
+    sfx.ping(); miss('atom', li, 3);
   }
   function win() {
     won = true; P.atomDone[li] = true; persist(); sfx.tada();
@@ -579,7 +593,7 @@ games.atom = (function () {
     }), reduce ? 0 : 700);
   }
   function setLevel(i) {
-    li = clamp(i, 0, ATOM.length - 1); P.atomLevel = li; persist(); clearAll(); renderMission(); status();
+    li = clamp(i, 0, ATOM.length - 1); P.atomLevel = li; persist(); resetTries('atom'); clearAll(); renderMission(); status();
   }
   function update(dt, now) {
     nodes.forEach(n => { n.pos.lerp(n.tgt, reduce ? 1 : Math.min(1, dt * 12)); n.g.position.copy(n.pos); });
@@ -878,7 +892,7 @@ games.mirror = (function () {
     }), reduce ? 0 : 700);
   }
   function setLevel(i) {
-    li = clamp(i, 0, MIR.length - 1); L = MIR[li]; P.mirrorLevel = li; persist(); placed = new Map(); won = false; buildBoard(); retrace(); renderMission();
+    li = clamp(i, 0, MIR.length - 1); L = MIR[li]; P.mirrorLevel = li; persist(); resetTries('mirror'); placed = new Map(); won = false; buildBoard(); retrace(); renderMission();
   }
   function cell(x, y) {
     if (won || modalOpen) return; const k = key(x, y);
@@ -888,6 +902,7 @@ games.mirror = (function () {
     const cur = placed.get(k);
     if (!cur) { if (placed.size >= L.max) { toast('No mirrors left. Tap a mirror to take it back.'); sfx.no(); return; } placed.set(k, '/'); }
     else if (cur === '/') placed.set(k, '\\'); else placed.delete(k);
+    if (!won) budget('mirror', li, 14, 6);
     sfx.click(); retrace();
   }
   function tap(ray) {
@@ -1111,7 +1126,7 @@ games.pea = (function () {
     const ok = L.test(r, p1, p2);
     setTimeout(() => {
       busy = false; renderUI();
-      if (ok) win(); else { toast(r.white === 0 ? 'All four babies are purple. Is that what the puzzle wants?' : r.purple === 0 ? 'All four babies are white. Is that what the puzzle wants?' : `${r.purple} purple and ${r.white} white. Not quite. Try other parents.`); sfx.ping(); }
+      if (ok) win(); else { miss('pea', li, 3); toast(r.white === 0 ? 'All four babies are purple. Is that what the puzzle wants?' : r.purple === 0 ? 'All four babies are white. Is that what the puzzle wants?' : `${r.purple} purple and ${r.white} white. Not quite. Try other parents.`); sfx.ping(); }
     }, reduce ? 0 : 1300);
   }
   function win() {
@@ -1123,7 +1138,7 @@ games.pea = (function () {
       primary: last ? { label: 'Done' } : { label: 'Next cross', fn: () => setLevel(li + 1) }, secondary: last ? null : { label: 'Stay here', fn: () => {} }
     }), reduce ? 0 : 700);
   }
-  function setLevel(i) { li = clamp(i, 0, PEA.length - 1); L = PEA[li]; P.peaLevel = li; persist(); p1 = p2 = null; crossed = null; won = false; busy = false; draw(); renderUI(); renderMission(); }
+  function setLevel(i) { li = clamp(i, 0, PEA.length - 1); L = PEA[li]; P.peaLevel = li; persist(); resetTries('pea'); p1 = p2 = null; crossed = null; won = false; busy = false; draw(); renderUI(); renderMission(); }
   function update() {}
   function fit(w, h, top, bottom) {
     Object.assign(view, { w, h, top, bottom });
