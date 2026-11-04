@@ -1,16 +1,23 @@
 # Curio Island
 
-GroundLearn's 3D science and maths game for kids aged 4–13. The plan doc has the design, the content plan by age band and the rounds.
+GroundLearn's 3D science and maths game for kids aged 4–13+. The plan doc has the design, the content plan by age band and the rounds.
 
 ## How it is built
 
 ```
 game/   The game itself: TypeScript + three.js (r128), built by Vite into ONE html file.
   src/        The app shell: players, island hub, coins and hearts, Journal, parent gate, Parent Corner.
-  worlds/     The playable prototypes, unchanged except for small hooks:
-              colour.html (Colour Studio), inventor.html (the 12 Inventor labs, ages 10+) and
-              tinkerer.html (the 6 Tinkerer labs, ages 7-10: Atom Snap, Kitchen Reactions, Mirror Maze,
-              Coordinate Pictures, Pea Crosses, Food Chains).
+  worlds/     The playable worlds, one set of labs per age band (Explorer 4-7, Tinkerer 7-10, Inventor 10+).
+              Each band sees Colour Studio (which adapts to the band) plus its own labs only:
+              explorer.html     6 no-reading labs: Fizz Kitchen, See-saw Animals, Light the Bulb,
+                                Fruit Scales, Baby Animals, Pond Feeding (a voice reads each task; wrong answers cost nothing)
+              tinkerer.html     6 labs: Atom Snap, Kitchen Reactions, Mirror Maze, Coordinate Pictures, Pea Crosses, Food Chains
+              inventor.html     12 labs (molecules to ecosystems) and inventor2.html: States of Matter,
+                                Fractions and Ratio, Sound and Waves, Cells and Microbes
+              colour.html       Colour Studio (all bands)
+              Which lab belongs to which band: `only` and `labsFor()` in game/src/labs.ts and daily.ts.
+              Hindi: inventor.html through game/src/hi/translate.ts, tinkerer.html through game/src/hi/tinkerer.ts,
+              explorer.html and inventor2.html carry their own English/Hindi pairs; worked examples are in examples.ts / examples_hi.ts.
   tests/      Smoke test in headless Chromium (Playwright).
 app/    The Android app (Expo). A full-screen WebView runs the game; the native side keeps
         saves, shows AdMob ads, sells the Ad-free upgrade (RevenueCat) and handles Back.
@@ -63,3 +70,7 @@ The ad ids and RevenueCat's public SDK key are in `app/src/config.ts`. Developme
 | Upload the Play service-account JSON in RevenueCat (Curio Island → Apps → Play Store) | RevenueCat | The same JSON used for OTC Learn and Cornerstone works. |
 | Keep the privacy policy live at `https://groundlearn.com/curio/privacy` | groundlearn.com | Linked from Parent Corner and the Play listing. |
 | Target audience and content: ages 5 and under, 6–8, 9–12; Families Policy; Data safety form | Play Console | No accounts, no personal data; AdMob collects device data for ads. |
+
+## Parent email (optional)
+
+When a grown-up buys Ad-free (behind the parent gate) the app asks, optionally, for an email address (`game/src/subscribe.ts`). It is never kept on the device; it is posted to the Supabase table `public.curio_parents` (insert-only for the app, see `supabase/curio_parents.sql`). **The table is not created yet.** Until you run that SQL in the chosen Supabase project, saving fails quietly and the purchase still works. The Play Data safety form and the privacy page must say that an optional email address is collected.

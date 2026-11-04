@@ -36,15 +36,24 @@ const ASK: Record<string, { en: string; hi: string }> = {
   coord: { en: 'Can you join the dots for a new picture?', hi: 'क्या तुम एक नया चित्र बिंदुओं से बना सकते हो?' },
   pea: { en: 'Can you cross two plants for a new flower mix?', hi: 'क्या तुम दो पौधों का मेल कराकर नए फूल पा सकते हो?' },
   chain: { en: 'Can you build a new food chain?', hi: 'क्या तुम एक नई खाद्य शृंखला बना सकते हो?' },
+  fizz: { en: 'Can you make something fizz?', hi: 'क्या तुम कुछ झाग वाला बना सकते हो?' },
+  seesaw: { en: 'Can you make the see-saw level?', hi: 'क्या तुम सी-सॉ को बराबर कर सकते हो?' },
+  bulb: { en: 'Can you light up the bulb?', hi: 'क्या तुम बल्ब जला सकते हो?' },
+  scales: { en: 'Can you make the scales equal?', hi: 'क्या तुम तराज़ू बराबर कर सकते हो?' },
+  baby: { en: 'Can you find a baby animal\'s mum?', hi: 'क्या तुम किसी बच्चे की माँ ढूँढ सकते हो?' },
+  pond: { en: 'Can you feed the pond animals?', hi: 'क्या तुम तालाब के जानवरों को खाना खिला सकते हो?' },
+  matter: { en: 'Can you melt, boil or freeze something new?', hi: 'क्या तुम कुछ नया पिघला, उबाल या जमा सकते हो?' },
+  fraction: { en: 'Can you solve a new slice or mix puzzle?', hi: 'क्या तुम टुकड़ों या मिश्रण की नई पहेली हल कर सकते हो?' },
+  sound: { en: 'Can you tune a new sound?', hi: 'क्या तुम एक नई आवाज़ ठीक कर सकते हो?' },
+  cell: { en: 'Can you finish a new cell or germ puzzle?', hi: 'क्या तुम कोशिका या जीवाणु की नई पहेली पूरी कर सकते हो?' },
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
 function hash(s: string) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 
 export function labsFor(band: Band): Lab[] {
-  if (band === 'explorer') return LABS.filter(l => l.id === 'colour');
-  if (band === 'tinkerer') return LABS.filter(l => l.id === 'colour' || l.only === 'tinkerer');
-  return LABS.filter(l => !l.only || l.only === band);
+  if (band === 'inventor') return LABS.filter(l => !l.only);
+  return LABS.filter(l => l.id === 'colour' || l.only === band);
 }
 
 /** Today's ask for this player, chosen once per day from labs they have not finished. */

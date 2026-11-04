@@ -82,14 +82,14 @@ export function addProfile(name: string, avatar: string, band: Band): Profile {
 }
 /** Wipe a player's progress (levels, stars, discoveries, coins) and refill hearts. Name, avatar and age band stay. */
 export function resetProgress(p: Profile) {
-  (['colour', 'inventor', 'tinkerer'] as WorldId[]).forEach(w => writeRaw(slotKey(p.id, w), null));
+  (['colour', 'inventor', 'tinkerer', 'explorer', 'inventor2'] as WorldId[]).forEach(w => writeRaw(slotKey(p.id, w), null));
   p.coins = 0; p.levels = {}; p.disc = []; p.hearts = RULES.maxHearts; p.heartTs = Date.now(); p.adDay = ''; p.adCount = 0;
   delete (p as { daily?: unknown }).daily; delete (p as { ex?: unknown }).ex;
   saveShell();
 }
 export function removeProfile(id: string) {
   S.profiles = S.profiles.filter(p => p.id !== id);
-  (['colour', 'inventor', 'tinkerer'] as WorldId[]).forEach(w => writeRaw(slotKey(id, w), null));
+  (['colour', 'inventor', 'tinkerer', 'explorer', 'inventor2'] as WorldId[]).forEach(w => writeRaw(slotKey(id, w), null));
   if (S.active === id) S.active = S.profiles[0]?.id ?? null;
   saveShell();
 }

@@ -2,7 +2,7 @@
 // world's save. Level counts must match the arrays inside the world files.
 export type Band = 'explorer' | 'tinkerer' | 'inventor';
 export type Subject = 'colour' | 'chem' | 'phy' | 'math' | 'bio';
-export type WorldId = 'colour' | 'inventor' | 'tinkerer';
+export type WorldId = 'colour' | 'inventor' | 'tinkerer' | 'explorer' | 'inventor2';
 
 export interface Lab {
   id: string;
@@ -38,41 +38,44 @@ export const LABS: Lab[] = [
   { id: 'coord', world: 'tinkerer', only: 'tinkerer', subject: 'math', icon: '🗺️', name: { en: 'Coordinate Pictures', hi: 'निर्देशांक चित्र' }, blurb: { en: 'Join the dots in order', hi: 'बिंदुओं को क्रम से जोड़ो' }, progress: { field: 'coordDone', total: 6, kind: 'levels' } },
   { id: 'pea', world: 'tinkerer', only: 'tinkerer', subject: 'bio', icon: '🌱', name: { en: 'Pea Crosses', hi: 'मटर के मेल' }, blurb: { en: 'Cross plants, predict the flowers', hi: 'पौधों का मेल, फूलों का अनुमान' }, progress: { field: 'peaDone', total: 6, kind: 'levels' } },
   { id: 'chain', world: 'tinkerer', only: 'tinkerer', subject: 'bio', icon: '🐟', name: { en: 'Food Chains', hi: 'खाद्य शृंखला' }, blurb: { en: 'Who eats whom?', hi: 'कौन किसे खाता है?' }, progress: { field: 'chainDone', total: 6, kind: 'levels' } },
+  // Round 3: the Explorer labs (ages 4-7). No reading needed.
+  { id: 'fizz', world: 'explorer', only: 'explorer', subject: 'chem', icon: '🧼', name: { en: 'Fizz Kitchen', hi: 'झाग वाली रसोई' }, blurb: { en: 'Mix and watch it fizz', hi: 'मिलाओ और झाग देखो' }, progress: { field: 'fizzDone', total: 6, kind: 'levels' } },
+  { id: 'seesaw', world: 'explorer', only: 'explorer', subject: 'phy', icon: '🐘', name: { en: 'See-saw Animals', hi: 'सी-सॉ के जानवर' }, blurb: { en: 'Make the see-saw level', hi: 'सी-सॉ को बराबर करो' }, progress: { field: 'seesawDone', total: 6, kind: 'levels' } },
+  { id: 'bulb', world: 'explorer', only: 'explorer', subject: 'phy', icon: '💡', name: { en: 'Light the Bulb', hi: 'बल्ब जलाओ' }, blurb: { en: 'Which things light it up?', hi: 'किससे बल्ब जलेगा?' }, progress: { field: 'bulbDone', total: 6, kind: 'levels' } },
+  { id: 'scales', world: 'explorer', only: 'explorer', subject: 'math', icon: '🍎', name: { en: 'Fruit Scales', hi: 'फलों का तराज़ू' }, blurb: { en: 'Count to make it equal', hi: 'गिनकर बराबर करो' }, progress: { field: 'scalesDone', total: 6, kind: 'levels' } },
+  { id: 'baby', world: 'explorer', only: 'explorer', subject: 'bio', icon: '🐣', name: { en: 'Baby Animals', hi: 'जानवरों के बच्चे' }, blurb: { en: 'Find each baby', hi: 'हर बच्चे को ढूँढो' }, progress: { field: 'babyDone', total: 6, kind: 'levels' } },
+  { id: 'pond', world: 'explorer', only: 'explorer', subject: 'bio', icon: '🐸', name: { en: 'Pond Feeding', hi: 'तालाब का खाना' }, blurb: { en: 'Who eats what?', hi: 'कौन क्या खाता है?' }, progress: { field: 'pondDone', total: 6, kind: 'levels' } },
+  // Round 3: four more Inventor labs (ages 10+).
+  { id: 'matter', world: 'inventor2', subject: 'chem', icon: '❄️', name: { en: 'States of Matter', hi: 'पदार्थ की अवस्थाएँ' }, blurb: { en: 'Heat and cool the particles', hi: 'कणों को गरम और ठंडा करो' }, progress: { field: 'matterDone', total: 5, kind: 'levels' } },
+  { id: 'fraction', world: 'inventor2', subject: 'math', icon: '🍕', name: { en: 'Fractions and Ratio', hi: 'भिन्न और अनुपात' }, blurb: { en: 'Slice, share and mix', hi: 'काटो, बाँटो, मिलाओ' }, progress: { field: 'fractionDone', total: 6, kind: 'levels' } },
+  { id: 'sound', world: 'inventor2', subject: 'phy', icon: '🔊', name: { en: 'Sound and Waves', hi: 'ध्वनि और तरंगें' }, blurb: { en: 'Tune pitch and loudness', hi: 'सुर और आवाज़ ठीक करो' }, progress: { field: 'soundDone', total: 5, kind: 'levels' } },
+  { id: 'cell', world: 'inventor2', subject: 'bio', icon: '🦠', name: { en: 'Cells and Microbes', hi: 'कोशिकाएँ और सूक्ष्मजीव' }, blurb: { en: 'Build a cell, watch germs grow', hi: 'कोशिका बनाओ, जीवाणु बढ़ते देखो' }, progress: { field: 'cellDone', total: 5, kind: 'levels' } },
 ];
 
 
-/** Planned games shown as "coming soon" so younger bands can see what is on the way. */
+/** Planned games (none right now) shown as "coming soon" so younger bands can see what is on the way. */
 export const COMING: Record<Band, { icon: string; en: string; hi: string; subject: Subject }[]> = {
-  explorer: [
-    { icon: '🧼', en: 'Fizz Kitchen', hi: 'झाग वाली रसोई', subject: 'chem' },
-    { icon: '🐘', en: 'See-saw Animals', hi: 'सी-सॉ के जानवर', subject: 'phy' },
-    { icon: '💡', en: 'Light the Bulb', hi: 'बल्ब जलाओ', subject: 'phy' },
-    { icon: '🍎', en: 'Fruit Scales', hi: 'फलों का तराज़ू', subject: 'math' },
-    { icon: '🐣', en: 'Baby Animals', hi: 'जानवरों के बच्चे', subject: 'bio' },
-    { icon: '🐸', en: 'Pond Feeding', hi: 'तालाब का खाना', subject: 'bio' },
-  ],
+  explorer: [],
   tinkerer: [],
-  inventor: [
-    { icon: '❄️', en: 'States of Matter', hi: 'पदार्थ की अवस्थाएँ', subject: 'chem' },
-    { icon: '🍕', en: 'Fractions and Ratio', hi: 'भिन्न और अनुपात', subject: 'math' },
-    { icon: '🔊', en: 'Sound and Waves', hi: 'ध्वनि और तरंगें', subject: 'phy' },
-    { icon: '🦠', en: 'Cells and Microbes', hi: 'कोशिकाएँ और सूक्ष्मजीव', subject: 'bio' },
-  ],
+  inventor: [],
 };
 
-export const WORLD_SAVE_KEY: Record<WorldId, string> = { colour: 'curio-colour-v1', inventor: 'curio-inventor-v1', tinkerer: 'curio-tinkerer-v1' };
+export const WORLD_SAVE_KEY: Record<WorldId, string> = { colour: 'curio-colour-v1', inventor: 'curio-inventor-v1', tinkerer: 'curio-tinkerer-v1', explorer: 'curio-explorer-v1', inventor2: 'curio-inventor2-v1' };
 
 /** How a world save reports finished levels (field → lab id). Values are true or a star count. */
 export const LEVEL_FIELDS: Record<string, string> = {
   launchStars: 'launch', lightStars: 'light', graphStars: 'graph', bodyDone: 'body', balSolved: 'balance',
   geneDone: 'genes', circDone: 'circuit', ecoDone: 'eco', machDone: 'mach', netsDone: 'nets',
-  atomDone: 'atom', mirrorStars: 'mirror', coordDone: 'coord', peaDone: 'pea', chainDone: 'chain',
+  atomDone: 'atom', fizzDone: 'fizz', seesawDone: 'seesaw', bulbDone: 'bulb', scalesDone: 'scales', babyDone: 'baby', pondDone: 'pond',
+  matterDone: 'matter', fractionDone: 'fraction', soundDone: 'sound', cellDone: 'cell', mirrorStars: 'mirror', coordDone: 'coord', peaDone: 'pea', chainDone: 'chain',
 };
 /** Collections in a world save where each new item is a discovery (field → lab id). */
 export const FOUND_FIELDS: Record<WorldId, Record<string, string>> = {
   inventor: { forgeFound: 'forge', rxFound: 'react', netsFound: 'nets' },
   colour: { found: 'colour' },
   tinkerer: { kitchenFound: 'kitchen' },
+  explorer: {},
+  inventor2: {},
 };
 
 export function labProgress(lab: Lab, save: Record<string, unknown> | null): number {

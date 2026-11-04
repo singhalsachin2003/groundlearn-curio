@@ -6,16 +6,20 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import colourSrc from '../worlds/colour.html?raw';
 import inventorSrc from '../worlds/inventor.html?raw';
 import tinkererSrc from '../worlds/tinkerer.html?raw';
+import explorerSrc from '../worlds/explorer.html?raw';
+import inventor2Src from '../worlds/inventor2.html?raw';
 import type { WorldId } from './labs';
 import { installFonts } from './fonts';
 import { makeTranslator } from './hi/translate';
+import { makeTinkererTranslator } from './hi/tinkerer';
 
-const SRC: Record<WorldId, string> = { colour: colourSrc, inventor: inventorSrc, tinkerer: tinkererSrc };
+const SRC: Record<WorldId, string> = { colour: colourSrc, inventor: inventorSrc, tinkerer: tinkererSrc, explorer: explorerSrc, inventor2: inventor2Src };
 
 // The prototypes expect a global THREE with OrbitControls attached, as the CDN build had.
 (window as unknown as Record<string, unknown>).curioTHREE = Object.assign({}, THREE_NS, { OrbitControls });
 (window as unknown as Record<string, unknown>).curioInstallFonts = installFonts;
 (window as unknown as Record<string, unknown>).curioMakeTR = makeTranslator;
+(window as unknown as Record<string, unknown>).curioMakeTK = makeTinkererTranslator;
 /** Language for the next world: Hindi turns on the Inventor Lab translator. */
 export function setWorldLang(l: string) { (window as unknown as Record<string, unknown>).curioLang = l; }
 
@@ -23,12 +27,14 @@ export function setWorldLang(l: string) { (window as unknown as Record<string, u
 const HIDE: Record<WorldId, string> = {
   inventor: '.top-row>*{display:none!important}.top-row{min-height:46px}',
   tinkerer: '.top-row>*{display:none!important}.top-row{min-height:46px}',
+  explorer: '',
+  inventor2: '',
   colour: '.hud-top .row>*{display:none!important}.hud-top .row{min-height:46px}',
 };
 
 const BOOT = `(function(){var P=window.parent;window.THREE=P.curioTHREE;window.curio=P.curioWorld;
 var ready=Promise.race([P.curioInstallFonts(document,FontFace),new Promise(function(r){setTimeout(r,2500)})]);
-document.addEventListener('DOMContentLoaded',function(){ready.then(function(){if(P.curioLang==='hi'&&document.getElementById('mMeta')&&!document.getElementById('noTR')){window.curioTR=P.curioMakeTR();window.curioTR.observe(document);}var s=document.getElementById('curio-main');var n=document.createElement('script');n.textContent=s.textContent;document.body.appendChild(n);if(P.curioWorldReady)P.curioWorldReady();});});})();`;
+document.addEventListener('DOMContentLoaded',function(){ready.then(function(){if(P.curioLang==='hi'&&document.getElementById('mMeta')){var nt=document.getElementById('noTR');var mk=!nt?P.curioMakeTR:(nt.getAttribute('data-tk')?P.curioMakeTK:null);if(mk){window.curioTR=mk();window.curioTR.observe(document);}}var s=document.getElementById('curio-main');var n=document.createElement('script');n.textContent=s.textContent;document.body.appendChild(n);if(P.curioWorldReady)P.curioWorldReady();});});})();`;
 
 export function worldDoc(id: WorldId): string {
   let src = SRC[id]
@@ -45,7 +51,7 @@ export interface WorldWindow extends Window { __curioDispose?: () => void; __cur
 export function mountWorld(host: HTMLElement, id: WorldId): HTMLIFrameElement {
   const f = document.createElement('iframe');
   f.className = 'world-frame';
-  f.title = id === 'colour' ? 'Colour Studio' : id === 'tinkerer' ? 'Tinkerer Lab' : 'Inventor Lab';
+  f.title = ({ colour: 'Colour Studio', tinkerer: 'Tinkerer Lab', explorer: 'Explorer Lab', inventor2: 'Inventor Lab 2', inventor: 'Inventor Lab' } as Record<string, string>)[id];
   f.setAttribute('allow', 'autoplay');
   f.srcdoc = worldDoc(id);
   host.appendChild(f);

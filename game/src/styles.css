@@ -171,3 +171,4 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 
 .rulelist{display:grid;gap:10px;text-align:left}.rulelist p{margin:0;font-size:15px;line-height:1.45}.rulelist .coin{display:inline-block;vertical-align:-3px;margin-right:2px}
 .exsteps{text-align:left;margin:8px 0;padding-left:22px;display:grid;gap:8px;font-size:15px;line-height:1.45}.hubfoot,.topbar{pointer-events:none}.hubfoot>*,.topbar>*{pointer-events:auto}.hrules{flex:1 1 100%;text-align:center;font-size:13px;padding:2px}
+.moveup{background:#fff4cf;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;margin:4px 0 8px;display:flex;gap:8px;align-items:center;justify-content:space-between;font-weight:600;font-size:14px}

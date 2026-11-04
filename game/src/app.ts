@@ -7,11 +7,13 @@ import { send, onNative, inApp } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
 import { createIsland, ZONE_OF, type Island, type ZoneId, type ZoneState } from './island';
 import { EXAMPLES } from './examples';
+import { EXAMPLES_HI } from './examples_hi';
 import { saveParentEmail, validEmail } from './subscribe';
 import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
 export const PRIVACY_URL = 'https://groundlearn.com/curio/privacy';
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🦉', '🐬', '🐘', '🦋'];
+const NEXT: Partial<Record<Band, Band>> = { explorer: 'tinkerer', tinkerer: 'inventor' };
 const BANDS: { id: Band; name: Key; ages: Key; icon: string }[] = [
   { id: 'explorer', name: 'explorer', ages: 'ages46', icon: '🎈' },
   { id: 'tinkerer', name: 'tinkerer', ages: 'ages79', icon: '🔧' },
@@ -76,13 +78,13 @@ export function start(el: HTMLElement) {
   (window as unknown as Record<string, unknown>).curioWorld = {
     canAnswer(): boolean {
       const p = active(); if (!p) return true; regen(p);
-      if (p.hearts > 0) return true;
+      if (p.hearts > 0 || p.band === 'explorer') return true;
       outOfHearts(); return false;
     },
     answer(correct: boolean) {
       const p = active(); if (!p) return;
       if (correct) { addCoins(p, RULES.coins.correct); toast(`+${RULES.coins.correct} ${t('plusCoins')} · ${t('correct')}`); }
-      else { loseHeart(p); toast(`−1 ❤️ ${t('lostHeart')}`, 'bad'); }
+      else if (p.band !== 'explorer') { loseHeart(p); toast(`−1 ❤️ ${t('lostHeart')}`, 'bad'); }
       refreshPills();
     },
   };
@@ -216,25 +218,19 @@ function zoneStates(p: Profile): ZoneState[] {
   return (Object.keys(ZONE_SUBJECT) as ZoneId[]).map(z => {
     const labs = zoneLabs(p, z);
     const done = labs.reduce((s, l) => s + labProgress(l, readSlot(p.id, l.world)), 0), tot = labs.reduce((s, l) => s + l.progress.total, 0);
-    const challenge = p.band === 'tinkerer' && z !== 'studio' && labs.length > 0 && labs.every(l => l.world === 'inventor');
-    return { id: z, label: t(z), progress: tot ? done / tot : 0, locked: !labs.length, badge: !labs.length ? t('soonBadge') : challenge ? t('bigKids') : undefined };
+    return { id: z, label: t(z), progress: tot ? done / tot : 0, locked: !labs.length, badge: !labs.length ? t('soonBadge') : undefined };
   });
 }
 function zoneSheet(z: ZoneId) {
   const p = active(); if (!p) return;
   const labs = zoneLabs(p, z), soon = COMING[p.band].filter(c => ZONE_OF[c.subject] === z);
-  const own = labs.filter(l => l.world !== 'inventor' || p.band !== 'tinkerer' || z === 'studio'), big = labs.filter(l => !own.includes(l));
-  const note = big.length ? `<p class="muted center-t">${t('challengeNote')}</p>` : '';
-  sheet('zone', `<h2>${t(z)}</h2><div class="labs in-sheet">${own.map(l => labCard(l, p)).join('')}${soon.map(soonCard).join('')}</div>${note}${big.length ? `<div class="labs in-sheet">${big.map(l => labCard(l, p)).join('')}</div>` : ''}
+  sheet('zone', `<h2>${t(z)}</h2><div class="labs in-sheet">${labs.map(l => labCard(l, p)).join('')}${soon.map(soonCard).join('')}</div>
     <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(LABS.find(l => l.id === b.dataset.lab)!); });
 }
 function allWorkshops() {
   const p = active(); if (!p) return;
-  const colour = LABS.find(l => l.id === 'colour')!, inv = LABS.filter(l => l.world === 'inventor');
-  let body = '';
-  if (p.band === 'inventor') body = `<div class="labs in-sheet">${inv.map(l => labCard(l, p)).join('')}${labCard(colour, p)}${COMING.inventor.map(soonCard).join('')}</div>`;
-  else body = `<div class="labs in-sheet">${labCard(colour, p)}${LABS.filter(l => l.only === p.band).map(l => labCard(l, p)).join('')}${COMING[p.band].map(soonCard).join('')}</div>`;
+  const body = `<div class="labs in-sheet">${labsFor(p.band).map(l => labCard(l, p)).join('')}${COMING[p.band].map(soonCard).join('')}</div>`;
   sheet('all', `<h2>${t('allWorkshops')}</h2>${body}<div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(LABS.find(l => l.id === b.dataset.lab)!); });
 }
@@ -270,7 +266,7 @@ function enterWorld(lab: Lab) {
 
 /** A worked example for the lab, shown the first time a player opens it and from the "?" button. */
 function example(lab: Lab) {
-  const ex = EXAMPLES[lab.id]; if (!ex) return;
+  const ex = (S.lang === 'hi' && EXAMPLES_HI[lab.id]) || EXAMPLES[lab.id]; if (!ex) return;
   sheet('example', `<div class="big-ic">${lab.icon}</div><h2>${t('example')}: ${esc(ex.title)}</h2>
     <ol class="exsteps">${ex.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>${ex.tip ? `<p class="muted">💡 ${esc(ex.tip)}</p>` : ''}
     <div class="row-btns"><button class="btn primary" data-close>${t('gotIt')}</button></div>`);
@@ -418,9 +414,11 @@ function parentCorner() {
   const plist = S.profiles.map(p => {
     const found = LABS.reduce((s, l) => s + (l.progress.kind === 'found' ? labProgress(l, readSlot(p.id, l.world)) : 0), 0);
     const lv = Object.keys(p.levels).length;
-    return `<div class="prow"><span class="av">${p.avatar}</span><span class="pt"><b>${esc(p.name || t(p.band))}</b><small>${t('discovered')}: ${found} · ${lv} ${t('levelsDone')} · ${p.coins} ${t('plusCoins')}</small></span>
+    const nxt = NEXT[p.band], mine = labsFor(p.band), done = mine.filter(l => labProgress(l, readSlot(p.id, l.world)) >= l.progress.total).length;
+    const up = nxt && mine.length && done / mine.length >= 0.75 ? `<div class="moveup">🎉 ${t('moveUp')} <button class="btn small" data-up="${p.id}">${t('moveUpGo')}</button></div>` : '';
+    return `${up ? '' : ''}<div class="prow"><span class="av">${p.avatar}</span><span class="pt"><b>${esc(p.name || t(p.band))}</b><small>${t('discovered')}: ${found} · ${lv} ${t('levelsDone')} · ${p.coins} ${t('plusCoins')}</small></span>
       <select data-band-of="${p.id}" aria-label="${t('ageBand')}">${BANDS.map(b => `<option value="${b.id}" ${b.id === p.band ? 'selected' : ''}>${t(b.ages)}</option>`).join('')}</select>
-      <button class="btn small" data-rm="${p.id}">${t('remove')}</button></div>`;
+      <button class="btn small" data-rm="${p.id}">${t('remove')}</button></div>${up}`;
   }).join('');
   sheet('parent', `<h2>${t('parentCorner')}</h2>
     <div class="pc">
@@ -440,6 +438,7 @@ function parentCorner() {
   $('#pcSound').onclick = () => { S.sound = !S.sound; saveShell(); parentCorner(); };
   document.querySelectorAll<HTMLElement>('[data-lang]').forEach(b => b.onclick = () => { S.lang = b.dataset.lang as 'en' | 'hi'; setLang(S.lang); saveShell(); hub(); parentCorner(); });
   document.querySelectorAll<HTMLSelectElement>('[data-band-of]').forEach(s => s.onchange = () => { const p = S.profiles.find(x => x.id === s.dataset.bandOf); if (p) { p.band = s.value as Band; saveShell(); hub(); parentCorner(); } });
+  document.querySelectorAll<HTMLElement>('[data-up]').forEach(b => b.onclick = () => { const p = S.profiles.find(x => x.id === b.dataset.up); if (p && NEXT[p.band]) { p.band = NEXT[p.band]!; saveShell(); hub(); parentCorner(); } });
   document.querySelectorAll<HTMLElement>('[data-rm]').forEach(b => b.onclick = () => { if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = t('removeConfirm'); b.classList.add('danger'); return; } removeProfile(b.dataset.rm!); if (active()) { hub(); parentCorner(); } else players(); });
   $('#pcRules').onclick = () => rules();
   $('#pcPrivacy').onclick = () => send({ t: 'openUrl', url: PRIVACY_URL });

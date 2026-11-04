@@ -192,7 +192,7 @@ sub{font-size:.7em}
 </style>
 
 <div id="stage" aria-label="3D lab bench"></div>
-<i id="noTR" hidden></i>
+<i id="noTR" data-tk="1" hidden></i>
 
 <div class="hud hud-top" id="hudTop">
   <div class="top-row">
@@ -1234,8 +1234,8 @@ function renderMission() {
   const m = games[P.tab].mission();
   if (window.curioTR) { m.meta = curioTR.meta(m.meta); m.text = curioTR.text(m.text); if (m.hint) m.hint = curioTR.text(m.hint); }
   $('mMeta').textContent = m.meta; $('mText').innerHTML = m.text;
-  const keep = !$('mHint').hidden && $('mHint').textContent === (m.hint || '');
-  $('mHint').textContent = m.hint || ''; $('mHint').hidden = !keep; $('mHintBtn').hidden = !m.hint; $('mHintBtn').textContent = keep ? 'Hide hint' : 'Show hint';
+  const keep = !$('mHint').hidden && $('mHint').dataset.src === (m.hint || '');
+  $('mHint').dataset.src = m.hint || ''; $('mHint').textContent = m.hint || ''; $('mHint').hidden = !keep; $('mHintBtn').hidden = !m.hint; $('mHintBtn').textContent = keep ? 'Hide hint' : 'Show hint';
   $('mStars').innerHTML = m.stars || ''; $('mNav').hidden = !m.nav;
   if (m.nav) { $('mPrev').disabled = !m.prevOk; $('mNext').disabled = !m.nextOk; }
 }

@@ -70,21 +70,40 @@ async def run_vp(b, name, w, h):
     # Second player in the Explorer band sees Colour Studio only.
     await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tara'); await pg.click('[data-band="explorer"]'); await pg.click('#npGo')
     await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800); await shot('7-hub-explorer')
-    await pg.click('#hAll'); n_labs = await pg.locator('.sheet [data-lab]').count(); check(n_labs == 1, f'explorer sees {n_labs} playable lab'); await shot('7b-all-explorer')
+    await pg.click('#hAll'); n_labs = await pg.locator('.sheet [data-lab]').count(); check(n_labs == 7, f'explorer sees {n_labs} playable labs (Colour Studio and six of their own)'); check(await pg.locator('.sheet [data-lab="forge"]').count() == 0, 'explorer does not see Inventor labs'); await shot('7b-all-explorer')
     await pg.click('.sheet [data-lab="colour"]'); await pg.wait_for_timeout(3000); check(await dismiss(pg), 'worked example shows on first visit'); await shot('8-colour')
     await pg.click('#wBack'); await pg.wait_for_selector('.hub3d')
+    # Explorer labs: six rounds each, solved through the world's hook; wrong answers never cost hearts.
+    WJ = "document.querySelector('.world-frame').contentWindow.__curio"
+    for lab in ('fizz', 'seesaw', 'bulb', 'scales', 'baby', 'pond'):
+        await pg.click('#hAll'); await pg.click(f'.sheet [data-lab="{lab}"]'); await pg.wait_for_timeout(1800); await dismiss(pg)
+        if lab == 'fizz': await shot('7c-fizz')
+        for i in range(6):
+            await pg.evaluate(f"{WJ}.solve()"); await pg.wait_for_timeout(2200); await pg.evaluate(f"{WJ}.next()"); await pg.wait_for_timeout(300)
+        await pg.click('#wBack'); await pg.wait_for_selector('.hub3d')
+        await pg.click('#hAll'); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith('6/6'), f'explorer {lab} finished 6/6'); await pg.click('[data-close]')
     # Players keep separate saves.
     await pg.click('#hWho'); await pg.click('.player >> text=Manan'); await pg.wait_for_selector('.hub3d')
     await pg.click('#hAll'); prog = await pg.inner_text('.sheet [data-lab="nets"] .cnt'); check(prog.startswith('1/6'), 'Manan keeps his own progress')
     await pg.click('.sheet [data-lab="circuit"]'); await pg.wait_for_timeout(2500); check(await dismiss(pg), 'worked example shows on first visit'); await shot('9-circuit')
     await pg.click('#wBack')
+    # The four newer Inventor labs: solve each level, answer the bonus question (first option is right).
+    for lab, n in (('matter', 5), ('fraction', 6), ('sound', 5), ('cell', 5)):
+        await pg.click('#hAll'); await pg.click(f'.sheet [data-lab="{lab}"]'); await pg.wait_for_timeout(1800); await dismiss(pg)
+        if lab in ('matter', 'cell'): await shot(f'9b-{lab}')
+        for i in range(n):
+            await pg.evaluate(f"{WJ}.solve()"); await pg.wait_for_timeout(1700)
+            await pg.evaluate("document.querySelector('.world-frame').contentDocument.querySelector('#modal .qopt').click()"); await pg.wait_for_timeout(200)
+            await pg.evaluate(f"{WJ}.next()"); await pg.wait_for_timeout(300)
+        await pg.click('#wBack'); await pg.wait_for_selector('.hub3d')
+        await pg.click('#hAll'); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(f'{n}/{n}'), f'inventor {lab} finished {n}/{n}'); await pg.click('[data-close]')
     # Tinkerer band: its own labs, driven through the world's test hooks; rewards come from diffing the saves.
     await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tia'); await pg.click('[data-band="tinkerer"]'); await pg.click('#npGo')
     await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800)
     await pg.click('#hAll'); await pg.wait_for_selector('.sheet [data-lab="atom"]')
     for lab in ('atom', 'kitchen', 'mirror'): check(await pg.locator(f'.sheet [data-lab="{lab}"]').count() == 1, f'tinkerer sees {lab}')
+    check(await pg.locator('.sheet [data-lab="forge"]').count() == 0, 'tinkerer does not see Inventor labs')
     await shot('10-all-tinkerer')
-    WJ = "document.querySelector('.world-frame').contentWindow.__curio"
     await pg.click('.sheet [data-lab="atom"]'); await pg.wait_for_timeout(2500); check(await dismiss(pg), 'worked example shows on first visit'); await shot('11-atom')
     for e in ('H', 'H'): await pg.evaluate(f"{WJ}.atom._add('{e}')"); await pg.wait_for_timeout(250)
     await pg.wait_for_timeout(1200); st = await pg.evaluate(f"{WJ}.atom._state()"); check(st['won'] and st['formula'] == 'H₂', 'atom snap level 1 solved'); await shot('12-atom-won')
@@ -129,6 +148,14 @@ async def run_vp(b, name, w, h):
     await pg.fill('#gIn', str(a * W[b_txt])); await pg.click('#gOk'); await pg.wait_for_selector('#rsGo'); await shot('19-reset-ask'); await pg.click('#rsGo'); await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(400)
     coins = await pg.inner_text('#hCoins'); check(coins.strip() == '0', 'start fresh: coins back to 0')
     await pg.click('#hAll'); prog = await pg.inner_text('.sheet [data-lab="atom"] .cnt'); check(prog.startswith('0/8'), f'start fresh: atom progress {prog}'); await pg.click('.sheet [data-close]')
+    # Hindi: the Tinkerer, Explorer and newer Inventor labs show their text in Hindi.
+    dev = re.compile('[\u0900-\u097F]')
+    await pg.click('#hWho'); await pg.click('#pLang'); await pg.wait_for_timeout(300)
+    for who, lab, sel in (('Tia', 'atom', 'mText'), ('Tara', 'fizz', 'gt'), ('Manan', 'matter', 'mText')):
+        await pg.click(f'.player >> text={who}'); await pg.wait_for_selector('.hub3d'); await pg.click('#hAll'); await pg.click(f'.sheet [data-lab="{lab}"]'); await pg.wait_for_timeout(2500); await dismiss(pg)
+        txt = await pg.evaluate(f"document.querySelector('.world-frame').contentDocument.getElementById('{sel}').textContent"); check(bool(dev.search(txt)), f'{lab} text is in Hindi')
+        if lab == 'atom': await shot('20-atom-hi')
+        await pg.click('#wBack'); await pg.wait_for_selector('.hub3d'); await pg.click('#hWho')
     real = [e for e in errs if 'net::' not in e]
     check(not real, 'no page errors' + ('' if not real else ': ' + ' | '.join(real[:5])))
     await pg.close()

@@ -1,0 +1,309 @@
+<style>
+/* Inventor Lab 2 (ages 10+): States of Matter, Fractions and Ratio, Sound and Waves, Cells and Microbes. Same cream-card, night-lab look as the other labs. */
+:root{--night:#141c35;--ink:#121528;--card:#fbf8f1;--marigold:#ffb423;--coral:#e2553f;--mint:#1f9d74;--muted:#5d6079;--soft:#efe9da;--blue:#3b82f6;
+  --f-body:"Lexend",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--f-mono:ui-monospace,Menlo,monospace;color-scheme:dark}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(120% 90% at 50% 0%,#26346a 0%,#141c35 70%);color:var(--ink);font-family:var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;color:var(--ink);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid #6f9bff;outline-offset:2px}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 66px) max(12px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 12px)}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 rgba(0,0,0,.5)}
+#mission{padding:10px 14px;max-width:640px;width:100%;box-sizing:border-box;align-self:center}
+.meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--coral)}
+.nav button{background:var(--soft);border:2px solid var(--ink);border-radius:10px;width:34px;height:30px;font-size:18px;font-weight:800;margin-left:6px}
+#mText{margin:4px 0 0;font-size:17px;font-weight:600;line-height:1.3}
+#stage{flex:1;min-height:0;width:100%;max-width:640px;align-self:center;display:flex;align-items:center;justify-content:center;position:relative}
+#ctrl{max-width:640px;width:100%;box-sizing:border-box;align-self:center;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+canvas{display:block;border-radius:14px;background:#0e1430;width:100%;max-width:560px}
+label.sl{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:14px}
+label.sl span.v{font-family:var(--f-mono);font-weight:700;color:var(--coral)}
+input[type=range]{width:100%;height:36px;accent-color:var(--coral)}
+.btn{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:10px 14px;font-weight:700;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.4);min-height:44px}
+.btn.primary{background:var(--marigold)}
+.btn.sel{background:var(--marigold)}
+.btn:disabled{opacity:.45}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.note{font-size:14px;font-weight:600;color:var(--muted)}
+.state{font-weight:800;font-size:18px}
+svg.pizza{width:min(100%,300px);height:auto}
+svg.pizza path{cursor:pointer;stroke:#7a3b13;stroke-width:2;transition:fill .15s}
+.jugs{display:flex;gap:18px;align-items:flex-end;justify-content:center}
+.jug{display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:800}
+.jug .bar{width:56px;height:110px;border:3px solid var(--card);border-radius:8px 8px 14px 14px;background:rgba(255,255,255,.08);display:flex;flex-direction:column-reverse;overflow:hidden}
+.jug .bar i{display:block;width:100%}
+.mixbar{height:26px;width:240px;border-radius:13px;border:3px solid var(--card);overflow:hidden;display:flex}
+.num{font-size:34px;font-weight:800;color:var(--card);font-family:var(--f-mono)}
+.cellbox{width:min(92%,380px);min-height:170px;border:4px solid #7bd88f;border-radius:50% / 42%;background:rgba(123,216,143,.12);display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:18px}
+.cellbox.wall{border-radius:16px;border-color:#a3e635;border-width:8px}
+.chip{background:var(--card);border-radius:999px;padding:5px 11px;font-weight:700;font-size:13px;border:2px solid var(--ink)}
+.germs{width:100%;max-width:560px;display:flex;flex-wrap:wrap;gap:2px;font-size:16px;justify-content:center;color:var(--card);max-height:200px;overflow:hidden}
+.targets{display:flex;flex-direction:column;gap:8px;width:100%}
+.targets button{text-align:left}
+.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+#overlay{position:fixed;inset:0;background:rgba(10,14,30,.72);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+#modal{background:var(--card);border:2px solid var(--ink);border-radius:20px;box-shadow:0 6px 0 rgba(0,0,0,.5);padding:18px;max-width:440px;width:100%;max-height:92vh;overflow:auto}
+#modal h2{margin:0 0 6px;font-size:24px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mint)}
+.qopts{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.qopt.right{background:#c8f3df;border-color:var(--mint)}
+.qopt.wrong{background:#ffd7cf;border-color:var(--coral)}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.fb{font-weight:700;margin:6px 0}
+.did{font-size:14px;background:var(--soft);border-radius:10px;padding:8px 10px;margin-top:8px}
+</style>
+
+<i id="noTR" hidden></i>
+<div id="app">
+  <section class="card" id="mission" aria-live="polite">
+    <div class="meta"><span id="mMeta"></span><span class="nav"><button id="mPrev" aria-label="Previous level">‹</button><button id="mNext" aria-label="Next level">›</button></span></div>
+    <p id="mText"></p>
+  </section>
+  <div id="stage"></div>
+  <section class="card" id="ctrl"></section>
+</div>
+<div id="overlay" hidden><div id="modal" role="dialog" aria-modal="true"></div></div>
+
+<script>
+(function () {
+'use strict';
+var par = window.parent || window, CUR = window.curio || null, HI = par && par.curioLang === 'hi';
+var KEY = 'curio-inventor2-v1', save = {};
+try { save = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { save = {}; }
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+function T(a) { return HI ? a[1] : a[0]; }
+var $ = function (id) { return document.getElementById(id); };
+function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+var AC = null, acted = false; document.addEventListener('pointerdown', function () { acted = true; }, true);
+function ac() { if (!acted) return null; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} return AC; }
+function blip(f0, f1, d, g) { if (save.sound === false) return; var a = ac(); if (!a) return; try { var t = a.currentTime, o = a.createOscillator(), n = a.createGain(); o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + d); n.gain.setValueAtTime(.0001, t); n.gain.exponentialRampToValueAtTime(g || .08, t + .015); n.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(n); n.connect(a.destination); o.start(t); o.stop(t + d + .05); } catch (e) {} }
+var sfx = { pop: function () { blip(420, 800, .09); }, no: function () { blip(300, 150, .16, .05); }, tada: function () { [523, 659, 784, 1047].forEach(function (f, i) { setTimeout(function () { blip(f, f * 1.01, .25, .09); }, i * 90); }); } };
+
+/* ---------------- level content: [english, hindi] pairs ---------------- */
+function Q(q, opts, c, why) { return { q: q, opts: opts, c: c, why: why }; }
+var LABS = {
+  matter: { field: 'matterDone', name: ['States of Matter', 'पदार्थ की अवस्थाएँ'], levels: [
+    { t: ['Freeze it. Slide the temperature until the water is solid ice.', 'इसे जमाओ। तापमान तब तक खिसकाओ जब तक पानी ठोस बर्फ़ न बन जाए।'], goal: 'solid',
+      q: Q(['What do the particles in ice do?', 'बर्फ़ में कण क्या करते हैं?'], [['They jiggle in place', 'अपनी जगह पर काँपते हैं'], ['They fly around fast', 'तेज़ी से उड़ते हैं'], ['They disappear', 'ग़ायब हो जाते हैं']], 0, ['In a solid the particles are locked in a pattern and can only jiggle.', 'ठोस में कण एक ढाँचे में बँधे रहते हैं और सिर्फ़ काँपते हैं।']) },
+    { t: ['Melt it into liquid water.', 'इसे पिघलाकर तरल पानी बनाओ।'], goal: 'liquid',
+      q: Q(['In liquid water the particles…', 'तरल पानी में कण…'], [['slide past each other', 'एक-दूसरे के पास से फिसलते हैं'], ['stay locked in a grid', 'ढाँचे में बँधे रहते हैं'], ['are far apart and free', 'दूर-दूर और आज़ाद होते हैं']], 0, ['Liquid particles touch but can slide, so a liquid pours.', 'तरल के कण छूते हैं पर फिसल सकते हैं, इसलिए तरल बहता है।']) },
+    { t: ['Boil it. Make the water turn into steam.', 'इसे उबालो। पानी को भाप बनाओ।'], goal: 'gas',
+      q: Q(['Water boils at what temperature (at sea level)?', 'समुद्र तल पर पानी किस तापमान पर उबलता है?'], [['100 °C', '100 °C'], ['37 °C', '37 °C'], ['0 °C', '0 °C']], 0, ['Pure water boils at 100 °C at sea level.', 'शुद्ध पानी समुद्र तल पर 100 °C पर उबलता है।']) },
+    { t: ['Find the melting point: set the temperature where ice just starts to melt.', 'गलनांक ढूँढो: वह तापमान लगाओ जहाँ बर्फ़ पिघलना शुरू होती है।'], goal: 'melt',
+      q: Q(['What happens to particles when you heat a solid?', 'ठोस को गरम करने पर कणों का क्या होता है?'], [['They move faster and break free', 'तेज़ चलते हैं और छूट जाते हैं'], ['They stop moving', 'चलना बंद कर देते हैं'], ['They get smaller', 'छोटे हो जाते हैं']], 0, ['Heat gives particles energy, so they jiggle harder until they slip out of their places.', 'गरमी से कणों को ऊर्जा मिलती है, वे ज़्यादा काँपते हैं और अपनी जगह से छूट जाते हैं।']) },
+    { t: ['Make steam, then cool it until it turns back into water drops.', 'भाप बनाओ, फिर ठंडा करके वापस पानी की बूँदें बनाओ।'], goal: 'cond',
+      q: Q(['Steam turning back into water is called…', 'भाप का वापस पानी बनना कहलाता है…'], [['condensation', 'संघनन'], ['evaporation', 'वाष्पीकरण'], ['melting', 'पिघलना']], 0, ['Cooling steam slows its particles so they cling together again: condensation.', 'ठंडी होने पर भाप के कण धीमे होकर फिर जुड़ जाते हैं: संघनन।']) }
+  ] },
+  fraction: { field: 'fractionDone', name: ['Fractions and Ratio', 'भिन्न और अनुपात'], levels: [
+    { t: ['Colour 3/8 of the pizza. Tap the slices.', 'पिज़्ज़ा का 3/8 भाग रंगो। टुकड़ों पर टैप करो।'], kind: 'slices', n: 8, k: 3,
+      q: Q(['3/8 means 3 out of how many equal parts?', '3/8 का मतलब कुल कितने बराबर भागों में से 3?'], [['8', '8'], ['3', '3'], ['11', '11']], 0, ['The bottom number is how many equal parts make the whole.', 'नीचे की संख्या बताती है कि पूरा कितने बराबर भागों का है।']) },
+    { t: ['Colour half of the pizza (8 slices).', 'आधा पिज़्ज़ा रंगो (8 टुकड़े)।'], kind: 'slices', n: 8, k: 4,
+      q: Q(['Which fraction equals 1/2?', 'कौन सी भिन्न 1/2 के बराबर है?'], [['4/8', '4/8'], ['3/8', '3/8'], ['5/8', '5/8']], 0, ['4 of 8 is half, so 4/8 = 1/2.', '8 में से 4 आधा है, इसलिए 4/8 = 1/2।']) },
+    { t: ['Colour 3/4 of this 12-slice pizza.', 'इस 12 टुकड़ों वाले पिज़्ज़ा का 3/4 भाग रंगो।'], kind: 'slices', n: 12, k: 9,
+      q: Q(['What is 3/4 of 12?', '12 का 3/4 कितना होता है?'], [['9', '9'], ['3', '3'], ['8', '8']], 0, ['12 ÷ 4 = 3 in each quarter, and 3 quarters = 9.', '12 ÷ 4 = 3 प्रति चौथाई, और 3 चौथाई = 9।']) },
+    { t: ['Colour 2/3 of this 6-slice pizza.', 'इस 6 टुकड़ों वाले पिज़्ज़ा का 2/3 भाग रंगो।'], kind: 'slices', n: 6, k: 4,
+      q: Q(['2/3 and 4/6 are called…', '2/3 और 4/6 कहलाते हैं…'], [['equivalent fractions', 'समतुल्य भिन्न'], ['unlike numbers', 'असमान संख्याएँ'], ['whole numbers', 'पूर्ण संख्याएँ']], 0, ['They name the same amount, just cut into different numbers of pieces.', 'वे एक ही मात्रा हैं, बस टुकड़ों की संख्या अलग है।']) },
+    { t: ['Mix red and blue paint in the ratio 2 : 3.', 'लाल और नीले रंग को 2 : 3 के अनुपात में मिलाओ।'], kind: 'ratio',
+      q: Q(['A 2 : 3 mix has how many blue for every 2 red?', '2 : 3 के मिश्रण में हर 2 लाल पर कितने नीले?'], [['3', '3'], ['2', '2'], ['5', '5']], 0, ['In 2 : 3 the second number is the blue for every 2 red. 4 : 6 is the same mix.', '2 : 3 में दूसरी संख्या हर 2 लाल पर नीले की मात्रा है। 4 : 6 वही मिश्रण है।']) },
+    { t: ['2 cups of flour make 4 rotis. How many cups for 10 rotis?', '2 कप आटे से 4 रोटियाँ बनती हैं। 10 रोटियों के लिए कितने कप?'], kind: 'scale',
+      q: Q(['4 rotis need 2 cups. How many cups for 8 rotis?', '4 रोटियों को 2 कप चाहिए। 8 रोटियों को कितने कप?'], [['4', '4'], ['8', '8'], ['6', '6']], 0, ['Double the rotis, double the flour: 2 × 2 = 4 cups.', 'रोटियाँ दुगनी तो आटा भी दुगना: 2 × 2 = 4 कप।']) }
+  ] },
+  sound: { field: 'soundDone', name: ['Sound and Waves', 'ध्वनि और तरंगें'], levels: [
+    { t: ['Make a HIGH sound: set the pitch above 600 Hz.', 'ऊँची आवाज़ बनाओ: सुर 600 Hz से ऊपर करो।'], ok: function (f, v) { return f >= 600; },
+      q: Q(['A higher pitch means a higher…', 'ऊँचे सुर का मतलब ऊँची…'], [['frequency', 'आवृत्ति'], ['amplitude', 'आयाम'], ['wavelength', 'तरंगदैर्घ्य']], 0, ['Pitch is how many waves pass each second: the frequency.', 'सुर यानी हर सेकंड कितनी तरंगें गुज़रती हैं: आवृत्ति।']) },
+    { t: ['Make a QUIET sound: turn the volume below 30%.', 'धीमी आवाज़ बनाओ: आवाज़ 30% से कम करो।'], ok: function (f, v) { return v <= .3; },
+      q: Q(['A louder sound has a bigger…', 'ज़्यादा तेज़ आवाज़ का बड़ा…'], [['amplitude', 'आयाम'], ['frequency', 'आवृत्ति'], ['speed', 'चाल']], 0, ['Amplitude is the height of the wave. Taller waves carry more energy and sound louder.', 'आयाम तरंग की ऊँचाई है। ऊँची तरंग ज़्यादा ऊर्जा लाती है और तेज़ सुनाई देती है।']) },
+    { t: ['Match the grey target wave: a low note of about 260 Hz.', 'स्लेटी लक्ष्य तरंग से मिलाओ: लगभग 260 Hz का नीचा सुर।'], target: 260, ok: function (f, v) { return Math.abs(f - 260) <= 10; },
+      q: Q(['Frequency is measured in…', 'आवृत्ति किसमें नापी जाती है…'], [['hertz (Hz)', 'हर्ट्ज़ (Hz)'], ['metres', 'मीटर'], ['watts', 'वाट']], 0, ['1 hertz is one wave per second.', '1 हर्ट्ज़ यानी प्रति सेकंड एक तरंग।']) },
+    { t: ['Loud and deep: volume above 70% and pitch below 200 Hz.', 'तेज़ और गहरी: आवाज़ 70% से ऊपर और सुर 200 Hz से नीचे।'], ok: function (f, v) { return v >= .7 && f <= 200; },
+      q: Q(['Which makes the lowest sound?', 'सबसे नीची आवाज़ कौन देता है?'], [['a big drum', 'बड़ा ढोल'], ['a tiny whistle', 'छोटी सीटी'], ['a mosquito', 'मच्छर']], 0, ['Big, slow-vibrating things make low sounds.', 'बड़ी और धीमी काँपने वाली चीज़ें नीची आवाज़ देती हैं।']) },
+    { t: ['Sound travels at about 340 m/s. Tune the pitch so one wave is 0.5 m long.', 'ध्वनि लगभग 340 m/s की चाल से चलती है। सुर ऐसा रखो कि एक तरंग 0.5 m लंबी हो।'], ok: function (f, v) { return Math.abs(340 / f - 0.5) < 0.012; },
+      q: Q(['If the frequency goes up, the wavelength gets…', 'आवृत्ति बढ़ने पर तरंगदैर्घ्य…'], [['shorter', 'छोटा होता है'], ['longer', 'लंबा होता है'], ['the same', 'वही रहता है']], 0, ['wavelength = speed ÷ frequency, so more waves per second means shorter waves.', 'तरंगदैर्घ्य = चाल ÷ आवृत्ति, इसलिए ज़्यादा तरंगें तो छोटी तरंगें।']) }
+  ] },
+  cell: { field: 'cellDone', name: ['Cells and Microbes', 'कोशिकाएँ और सूक्ष्मजीव'], levels: [
+    { t: ['Build an animal cell. Pick a part, then tap the job it does.', 'जंतु कोशिका बनाओ। एक भाग चुनो, फिर उसका काम चुनो।'], kind: 'pair', cell: 1,
+      items: [['nu', ['Nucleus', 'केंद्रक']], ['mi', ['Mitochondria', 'माइटोकॉन्ड्रिया']], ['me', ['Cell membrane', 'कोशिका झिल्ली']], ['wa', ['Cell wall', 'कोशिका भित्ति']]],
+      targets: [['nu', ['Control centre', 'नियंत्रण केंद्र']], ['mi', ['Makes energy', 'ऊर्जा बनाता है']], ['me', ['Thin skin: lets things in and out', 'पतली त्वचा: चीज़ें अंदर-बाहर आने देती है']]],
+      q: Q(['Which part controls the cell?', 'कोशिका को कौन नियंत्रित करता है?'], [['nucleus', 'केंद्रक'], ['membrane', 'झिल्ली'], ['cytoplasm', 'कोशिकाद्रव्य']], 0, ['The nucleus holds the instructions (DNA).', 'केंद्रक में निर्देश (DNA) होते हैं।']) },
+    { t: ['Build a plant cell. It has three extra parts.', 'पादप कोशिका बनाओ। इसमें तीन अतिरिक्त भाग होते हैं।'], kind: 'pair', cell: 2,
+      items: [['nu', ['Nucleus', 'केंद्रक']], ['mi', ['Mitochondria', 'माइटोकॉन्ड्रिया']], ['wa', ['Cell wall', 'कोशिका भित्ति']], ['ch', ['Chloroplast', 'हरितलवक']], ['va', ['Vacuole', 'रिक्तिका']]],
+      targets: [['wa', ['Stiff outer box', 'कड़ा बाहरी डिब्बा']], ['ch', ['Makes food from sunlight', 'धूप से भोजन बनाता है']], ['va', ['Big water store', 'पानी का बड़ा भंडार']], ['nu', ['Control centre', 'नियंत्रण केंद्र']], ['mi', ['Makes energy', 'ऊर्जा बनाता है']]],
+      q: Q(['Which part makes food using sunlight?', 'धूप से भोजन कौन बनाता है?'], [['chloroplast', 'हरितलवक'], ['mitochondria', 'माइटोकॉन्ड्रिया'], ['nucleus', 'केंद्रक']], 0, ['Chloroplasts hold chlorophyll and make sugar by photosynthesis.', 'हरितलवक में क्लोरोफ़िल होता है और वह प्रकाश-संश्लेषण से शर्करा बनाता है।']) },
+    { t: ['Sort the microbes. Pick one, then tap Helpful or Harmful.', 'सूक्ष्मजीवों को छाँटो। एक चुनो, फिर "उपयोगी" या "हानिकारक" दबाओ।'], kind: 'pair', multi: true,
+      items: [['g1', ['🥛 Curd bacteria', '🥛 दही के जीवाणु']], ['g2', ['🍞 Yeast in dough', '🍞 आटे का यीस्ट']], ['b1', ['🤢 Germs on dirty hands', '🤢 गंदे हाथों के कीटाणु']], ['b2', ['🍄 Mould on old bread', '🍄 पुरानी रोटी की फफूँद']]],
+      targets: [['g', ['Helpful', 'उपयोगी']], ['b', ['Harmful', 'हानिकारक']]],
+      q: Q(['Are all microbes harmful?', 'क्या सारे सूक्ष्मजीव हानिकारक होते हैं?'], [['No, many are helpful', 'नहीं, कई उपयोगी हैं'], ['Yes, all of them', 'हाँ, सभी'], ['Only the big ones', 'सिर्फ़ बड़े वाले']], 0, ['Microbes make curd and bread rise, and help digest food. A few cause illness.', 'सूक्ष्मजीव दही जमाते हैं, रोटी फुलाते हैं और पाचन में मदद करते हैं। कुछ ही बीमार करते हैं।']) },
+    { t: ['One bacterium doubles every hour (in this game). Find the hour when there are more than 50.', 'इस खेल में एक जीवाणु हर घंटे दुगना होता है। वह घंटा ढूँढो जब 50 से ज़्यादा हों।'], kind: 'grow',
+      q: Q(['One bacterium doubles each hour. How many after 3 hours?', 'एक जीवाणु हर घंटे दुगना होता है। 3 घंटे बाद कितने?'], [['8', '8'], ['6', '6'], ['3', '3']], 0, ['1 → 2 → 4 → 8. Doubling grows very fast.', '1 → 2 → 4 → 8। दुगना होना बहुत तेज़ बढ़ना है।']) },
+    { t: ['Wash the germs away: get below 10 germs in 10 scrubs or fewer.', 'कीटाणु धो डालो: 10 या उससे कम रगड़ में 10 से कम कीटाणु बचें।'], kind: 'scrub',
+      q: Q(['Why is soap better than water alone?', 'अकेले पानी से साबुन बेहतर क्यों है?'], [['It lifts germs and grease off so water can rinse them away', 'यह कीटाणु और चिकनाई उठा देता है ताकि पानी उन्हें बहा दे'], ['It kills every germ at once', 'यह सब कीटाणु एक साथ मार देता है'], ['It makes hands warm', 'यह हाथ गरम करता है']], 0, ['Soap breaks up grease that holds germs. Scrub for about 20 seconds.', 'साबुन चिकनाई तोड़ता है जिसमें कीटाणु चिपके होते हैं। लगभग 20 सेकंड रगड़ो।']) }
+  ] }
+};
+var tab = LABS[save.tab] ? save.tab : 'matter', L = LABS[tab], levels = L.levels;
+var done = (save[L.field] && typeof save[L.field] === 'object') ? save[L.field] : {}; save[L.field] = done;
+var cur = 0; for (var i0 = 0; i0 < levels.length; i0++) { if (!done[i0]) { cur = i0; break; } }
+var teardown = null, solver = null, finished = false;
+
+/* ---------------- shell ---------------- */
+function setLevel(i) {
+  if (teardown) { try { teardown(); } catch (e) {} teardown = null; }
+  cur = Math.max(0, Math.min(levels.length - 1, i)); finished = false; solver = null;
+  $('mMeta').textContent = T(L.name) + ' · ' + (HI ? 'स्तर ' : 'Level ') + (cur + 1) + ' / ' + levels.length + (done[cur] ? ' ✓' : '');
+  $('mText').textContent = T(levels[cur].t); $('stage').innerHTML = ''; $('ctrl').innerHTML = '';
+  var f = MOUNT[tab]; if (f) f(levels[cur]);
+}
+$('mPrev').onclick = function () { setLevel(cur - 1); }; $('mNext').onclick = function () { setLevel(cur + 1); };
+function solved() {
+  if (finished) return; finished = true; done[cur] = true; persist(); sfx.tada();
+  $('mMeta').textContent = T(L.name) + ' · ' + (HI ? 'स्तर ' : 'Level ') + (cur + 1) + ' / ' + levels.length + ' ✓';
+  var lv = levels[cur], q = lv.q, last = cur === levels.length - 1;
+  var m = $('modal');
+  m.innerHTML = '<div class="eyebrow">' + (HI ? 'स्तर पूरा' : 'Level complete') + '</div><h2>' + (HI ? 'शाबाश!' : 'Well done!') + '</h2><p><b>' + esc(T(q.q)) + '</b></p><div class="qopts">' +
+    q.opts.map(function (o, i) { return '<button class="btn qopt" data-i="' + i + '">' + esc(T(o)) + '</button>'; }).join('') + '</div><div class="fb" id="fb" hidden></div><div class="mbtns"><button class="btn primary" id="mdNext">' + (last ? (HI ? 'फिर से खेलो' : 'Play again') : (HI ? 'अगला स्तर' : 'Next level')) + '</button></div>';
+  $('overlay').hidden = false; var answered = false;
+  document.querySelectorAll('#modal .qopt').forEach(function (b) {
+    b.onclick = function () {
+      if (answered) return; if (CUR && !CUR.canAnswer()) return; answered = true;
+      var i = +b.dataset.i, ok = i === q.c; if (CUR) CUR.answer(ok, tab);
+      document.querySelectorAll('#modal .qopt').forEach(function (x) { x.disabled = true; if (+x.dataset.i === q.c) x.classList.add('right'); }); if (!ok) b.classList.add('wrong');
+      var fb = $('fb'); fb.hidden = false; fb.textContent = (ok ? (HI ? 'हाँ! ' : 'Yes! ') : '') + T(q.why); ok ? sfx.pop() : sfx.no();
+    };
+  });
+  $('mdNext').onclick = function () { $('overlay').hidden = true; setLevel(last ? 0 : cur + 1); };
+}
+function range(id, label, min, max, step, val, fmt, on) {
+  return '<label class="sl"><span>' + label + ' <span class="v" id="' + id + 'V"></span></span><input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + val + '"></label>';
+}
+function wire(id, fmt, on) { var el = $(id); function go() { $(id + 'V').textContent = fmt(+el.value); on(+el.value); } el.addEventListener('input', go); go(); return { set: function (v) { el.value = v; go(); } }; }
+
+var MOUNT = {};
+/* ---------------- States of Matter ---------------- */
+MOUNT.matter = function (lv) {
+  var W = 340, H = 200, N = 40;
+  $('stage').innerHTML = '<canvas id="cv" width="' + W + '" height="' + H + '"></canvas>'; var cv = $('cv'), g = cv.getContext('2d');
+  $('ctrl').innerHTML = range('tmp', HI ? 'तापमान' : 'Temperature', -20, 120, 1, -10) + '<div class="row"><span class="state" id="st"></span><span class="note" id="nt"></span></div>';
+  var ps = [], sawGas = false, running = true, state = 'solid', t = -10, touched = false;
+  $('tmp').addEventListener('input', function () { touched = true; });
+  for (var i = 0; i < N; i++) { var c = i % 8, r = (i / 8) | 0; ps.push({ hx: 40 + c * 36, hy: 70 + r * 30, x: 40 + c * 36, y: 70 + r * 30, vx: Math.random() - .5, vy: Math.random() - .5 }); }
+  function stateOf(v) { return v < 0 ? 'solid' : v < 100 ? 'liquid' : 'gas'; }
+  var NAMES = { solid: ['Solid (ice)', 'ठोस (बर्फ़)'], liquid: ['Liquid (water)', 'तरल (पानी)'], gas: ['Gas (steam)', 'गैस (भाप)'] };
+  var ctl = wire('tmp', function (v) { return v + ' °C'; }, function (v) {
+    t = v; state = stateOf(v); $('st').textContent = T(NAMES[state]);
+    $('nt').textContent = v === 0 ? T(['Ice starts to melt here.', 'यहाँ बर्फ़ पिघलना शुरू होती है।']) : v === 100 ? T(['Water starts to boil here.', 'यहाँ पानी उबलना शुरू होता है।']) : '';
+    if (state === 'gas') sawGas = true;
+    var ok = lv.goal === 'solid' ? state === 'solid' && t < 0 : lv.goal === 'liquid' ? state === 'liquid' : lv.goal === 'gas' ? state === 'gas' : lv.goal === 'melt' ? (t === 0 || t === 1) : (sawGas && state === 'liquid');
+    if (ok && touched) setTimeout(solved, 450);
+  });
+  function frame() {
+    if (!running) return; g.fillStyle = '#0e1430'; g.fillRect(0, 0, W, H);
+    var top = state === 'liquid' ? H * .42 : 6, spd = state === 'liquid' ? 1.1 : state === 'gas' ? 3 : 0;
+    ps.forEach(function (p) {
+      if (state === 'solid') { var j = Math.max(.3, (t + 20) / 20 * .6); p.vx += (p.hx - p.x) * .08 + (Math.random() - .5) * j; p.vy += (p.hy - p.y) * .08 + (Math.random() - .5) * j; p.vx *= .8; p.vy *= .8; }
+      else {
+        var m = Math.sqrt(p.vx * p.vx + p.vy * p.vy) || 1; p.vx += (p.vx / m * spd - p.vx) * .08 + (Math.random() - .5) * .3; p.vy += (p.vy / m * spd - p.vy) * .08 + (Math.random() - .5) * .3; if (state === 'liquid') p.vy += .05;
+        if (p.y < top && state === 'liquid') p.vy += .25;
+      }
+      p.x += p.vx; p.y += p.vy; if (p.x < 8) { p.x = 8; p.vx = Math.abs(p.vx); } if (p.x > W - 8) { p.x = W - 8; p.vx = -Math.abs(p.vx); } if (p.y < 8) { p.y = 8; p.vy = Math.abs(p.vy); } if (p.y > H - 8) { p.y = H - 8; p.vy = -Math.abs(p.vy); }
+      g.beginPath(); g.arc(p.x, p.y, 7, 0, 7); g.fillStyle = state === 'solid' ? '#9bd7ff' : state === 'liquid' ? '#4aa3ff' : '#e8f1ff'; g.fill();
+    });
+    requestAnimationFrame(frame);
+  }
+  frame(); teardown = function () { running = false; };
+  solver = function () { touched = true; ctl.set(lv.goal === 'solid' ? -5 : lv.goal === 'liquid' ? 25 : lv.goal === 'gas' ? 110 : lv.goal === 'melt' ? 0 : 110); if (lv.goal === 'cond') setTimeout(function () { ctl.set(50); }, 20); };
+};
+
+/* ---------------- Fractions and Ratio ---------------- */
+MOUNT.fraction = function (lv) {
+  if (lv.kind === 'slices') {
+    var n = lv.n, k = lv.k, on = {};
+    var svg = '<svg class="pizza" viewBox="-110 -110 220 220" role="group" aria-label="pizza">';
+    for (var i = 0; i < n; i++) { var a0 = i / n * 2 * Math.PI - Math.PI / 2, a1 = (i + 1) / n * 2 * Math.PI - Math.PI / 2; svg += '<path data-i="' + i + '" d="M0 0 L' + (100 * Math.cos(a0)).toFixed(1) + ' ' + (100 * Math.sin(a0)).toFixed(1) + ' A100 100 0 0 1 ' + (100 * Math.cos(a1)).toFixed(1) + ' ' + (100 * Math.sin(a1)).toFixed(1) + ' Z" fill="#f6d9a0" tabindex="0" role="button" aria-label="slice ' + (i + 1) + '"/>'; }
+    $('stage').innerHTML = svg + '</svg>';
+    $('ctrl').innerHTML = '<div class="row"><span class="state" id="fr"></span><span class="note">' + T(['Tap a slice to colour it. Tap again to clear.', 'टुकड़े को रंगने के लिए टैप करो। फिर टैप करने पर रंग हटेगा।']) + '</span></div>';
+    function count() { return Object.keys(on).filter(function (x) { return on[x]; }).length; }
+    function upd() { var c = count(); $('fr').textContent = c + ' / ' + n; if (c === k) setTimeout(function () { if (count() === k) solved(); }, 350); }
+    function tog(p) { var i = p.dataset.i; on[i] = !on[i]; p.setAttribute('fill', on[i] ? '#e2553f' : '#f6d9a0'); sfx.pop(); upd(); }
+    document.querySelectorAll('.pizza path').forEach(function (p) { p.onclick = function () { tog(p); }; p.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(p); } }; });
+    upd(); solver = function () { var ps = document.querySelectorAll('.pizza path'); for (var j = 0; j < k; j++) tog(ps[j]); };
+  } else if (lv.kind === 'ratio') {
+    var r = 0, b = 0;
+    $('stage').innerHTML = '<div class="jugs"><div class="jug" style="color:#ff8a7a">🔴<div class="bar" id="rb"></div><span class="num" id="rn">0</span></div><div class="jug" style="color:#7ab0ff">🔵<div class="bar" id="bb"></div><span class="num" id="bn">0</span></div></div>';
+    $('ctrl').innerHTML = '<div class="mixbar" id="mx"></div><div class="row"><button class="btn" id="rp">+ red</button><button class="btn" id="rm">− red</button><button class="btn" id="bp">+ blue</button><button class="btn" id="bm">− blue</button></div><span class="note" id="rt"></span>';
+    function draw() {
+      $('rn').textContent = r; $('bn').textContent = b; $('rb').innerHTML = '<i style="height:' + r * 10 + '%;background:#e2553f"></i>'; $('bb').innerHTML = '<i style="height:' + b * 10 + '%;background:#3b82f6"></i>';
+      var tot = r + b; $('mx').innerHTML = tot ? '<i style="width:' + r / tot * 100 + '%;background:#e2553f"></i><i style="width:' + b / tot * 100 + '%;background:#3b82f6"></i>' : '';
+      $('rt').textContent = (HI ? 'अनुपात ' : 'Ratio ') + r + ' : ' + b; if (r > 0 && b > 0 && r * 3 === b * 2) setTimeout(function () { if (r * 3 === b * 2) solved(); }, 400);
+    }
+    function step(which, d) { if (which === 'r') r = Math.max(0, Math.min(10, r + d)); else b = Math.max(0, Math.min(10, b + d)); sfx.pop(); draw(); }
+    $('rp').onclick = function () { step('r', 1); }; $('rm').onclick = function () { step('r', -1); }; $('bp').onclick = function () { step('b', 1); }; $('bm').onclick = function () { step('b', -1); };
+    draw(); solver = function () { step('r', 1); step('r', 1); step('b', 1); step('b', 1); step('b', 1); };
+  } else {
+    var c = 0;
+    $('stage').innerHTML = '<div class="jugs"><div class="jug" style="color:var(--card)"><span style="font-size:60px">🫓</span><span class="note" style="color:var(--card)">' + T(['2 cups → 4 rotis', '2 कप → 4 रोटियाँ']) + '</span><span class="note" style="color:var(--card)">' + T(['? cups → 10 rotis', '? कप → 10 रोटियाँ']) + '</span></div><div class="jug"><div class="bar" id="fb2"></div><span class="num" id="fn">0</span></div></div>';
+    $('ctrl').innerHTML = '<div class="row"><button class="btn" id="cp">+ cup</button><button class="btn" id="cm">− cup</button></div><span class="note">' + T(['Rotis per cup: 4 ÷ 2 = 2.', 'प्रति कप रोटियाँ: 4 ÷ 2 = 2।']) + '</span>';
+    function d2() { $('fn').textContent = c; $('fb2').innerHTML = '<i style="height:' + c * 8 + '%;background:#f6d9a0"></i>'; if (c === 5) setTimeout(function () { if (c === 5) solved(); }, 400); }
+    $('cp').onclick = function () { c = Math.min(12, c + 1); sfx.pop(); d2(); }; $('cm').onclick = function () { c = Math.max(0, c - 1); sfx.pop(); d2(); };
+    d2(); solver = function () { while (c < 5) $('cp').click(); };
+  }
+};
+
+/* ---------------- Sound and Waves ---------------- */
+MOUNT.sound = function (lv) {
+  var W = 340, H = 180, f = 440, v = .6, osc = null, gain = null, playing = false, running = true;
+  $('stage').innerHTML = '<canvas id="cv" width="' + W + '" height="' + H + '"></canvas>'; var cv = $('cv'), g = cv.getContext('2d');
+  $('ctrl').innerHTML = range('fq', HI ? 'सुर (आवृत्ति)' : 'Pitch (frequency)', 100, 1000, 10, 440) + range('vo', HI ? 'आवाज़ (आयाम)' : 'Volume (amplitude)', 0, 100, 5, 60) +
+    '<div class="row"><button class="btn primary" id="pl">▶ ' + T(['Play the sound', 'आवाज़ सुनो']) + '</button><span class="note" id="wl"></span></div>';
+  function stop() { try { if (osc) { osc.stop(); } } catch (e) {} osc = null; playing = false; if ($('pl')) $('pl').textContent = '▶ ' + T(['Play the sound', 'आवाज़ सुनो']); }
+  function start() { var a = ac(); if (!a || save.sound === false) return; try { osc = a.createOscillator(); gain = a.createGain(); osc.frequency.value = f; gain.gain.value = v * .25; osc.connect(gain); gain.connect(a.destination); osc.start(); playing = true; $('pl').textContent = '■ ' + T(['Stop', 'रोको']); } catch (e) {} }
+  $('pl').onclick = function () { playing ? stop() : start(); };
+  var chk = function () { if (lv.ok(f, v)) setTimeout(function () { if (lv.ok(f, v)) solved(); }, 500); };
+  var cf = wire('fq', function (x) { return x + ' Hz'; }, function (x) { f = x; if (osc) osc.frequency.value = x; $('wl').textContent = (HI ? 'तरंगदैर्घ्य = 340 ÷ ' : 'Wavelength = 340 ÷ ') + x + ' = ' + (340 / x).toFixed(2) + ' m'; if (running) chk(); });
+  var cvv = wire('vo', function (x) { return x + '%'; }, function (x) { v = x / 100; if (gain) gain.gain.value = v * .25; if (running) chk(); });
+  function wave(freq, amp, col, dash) { g.beginPath(); g.setLineDash(dash ? [5, 5] : []); g.strokeStyle = col; g.lineWidth = 3; for (var x = 0; x <= W; x++) { var y = H / 2 - Math.sin(x / W * 2 * Math.PI * freq * .01) * amp * (H / 2 - 12); x ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); g.setLineDash([]); }
+  (function frame() { if (!running) return; g.fillStyle = '#0e1430'; g.fillRect(0, 0, W, H); if (lv.target) wave(lv.target, .6, '#8a8fb0', true); wave(f, v, '#ffb423'); requestAnimationFrame(frame); })();
+  teardown = function () { running = false; stop(); };
+  solver = function () { var sol = [[700, 60], [440, 20], [260, 60], [150, 90], [680, 60]][cur]; cf.set(sol[0]); cvv.set(sol[1]); };
+};
+
+/* ---------------- Cells and Microbes ---------------- */
+MOUNT.cell = function (lv) {
+  if (lv.kind === 'pair') {
+    var sel = null, placed = {}, need = lv.multi ? lv.items.length : lv.targets.length, got = 0;
+    var partName = {}; lv.items.forEach(function (it) { partName[it[0]] = T(it[1]); });
+    $('stage').innerHTML = lv.multi ? '<div class="cellbox" style="border-radius:20px;border-color:#6f9bff" id="cb"></div>' : '<div class="cellbox' + (lv.cell === 2 ? ' wall' : '') + '" id="cb"><span class="note" style="color:#cfe">' + T(['Your cell', 'तुम्हारी कोशिका']) + '</span></div>';
+    $('ctrl').innerHTML = '<div class="row" id="items">' + lv.items.map(function (it) { return '<button class="btn" data-id="' + it[0] + '">' + esc(T(it[1])) + '</button>'; }).join('') + '</div><div class="targets" id="tg">' + lv.targets.map(function (tt) { return '<button class="btn" data-w="' + tt[0] + '">' + esc(T(tt[1])) + '</button>'; }).join('') + '</div>';
+    document.querySelectorAll('#items .btn').forEach(function (b) { b.onclick = function () { sel = b.dataset.id; document.querySelectorAll('#items .btn').forEach(function (x) { x.classList.toggle('sel', x === b); }); sfx.pop(); }; });
+    function place(w, id) {
+      var okk = lv.multi ? id.charAt(0) === w : id === w;
+      if (!okk) { sfx.no(); var tb = document.querySelector('#tg [data-w="' + w + '"]'); if (tb) { tb.classList.add('shake'); setTimeout(function () { tb.classList.remove('shake'); }, 400); } return; }
+      sfx.pop(); var btn = document.querySelector('#items [data-id="' + id + '"]'); if (btn) { btn.disabled = true; btn.classList.remove('sel'); }
+      $('cb').insertAdjacentHTML('beforeend', '<span class="chip">' + esc(partName[id]) + '</span>'); sel = null;
+      if (!lv.multi) { var t2 = document.querySelector('#tg [data-w="' + w + '"]'); if (t2) { t2.disabled = true; t2.textContent = '✓ ' + t2.textContent; } }
+      got++; if (got >= need) setTimeout(solved, 500);
+    }
+    document.querySelectorAll('#tg .btn').forEach(function (b) { b.onclick = function () { if (sel) place(b.dataset.w, sel); }; });
+    solver = function () { lv.items.forEach(function (it) { var w = lv.multi ? it[0].charAt(0) : it[0]; if (lv.multi || lv.targets.some(function (tt) { return tt[0] === w; })) place(w, it[0]); }); };
+  } else if (lv.kind === 'grow') {
+    var h = 0;
+    $('stage').innerHTML = '<div class="germs" id="gm"></div>';
+    $('ctrl').innerHTML = range('hr', HI ? 'घंटे' : 'Hours', 0, 7, 1, 0) + '<div class="row"><span class="state" id="gc"></span></div>';
+    var ctl = wire('hr', function (x) { return x + ' h'; }, function (x) { h = x; var n = Math.pow(2, x); $('gc').textContent = (HI ? 'जीवाणु: ' : 'Bacteria: ') + n; $('gm').textContent = new Array(Math.min(n, 128) + 1).join('🦠'); if (n > 50) setTimeout(function () { if (Math.pow(2, h) > 50) solved(); }, 500); });
+    solver = function () { ctl.set(6); };
+  } else {
+    var germs = 100, scrubs = 0, soap = true;
+    $('stage').innerHTML = '<div style="text-align:center"><div style="font-size:70px">🤲</div><div class="num" id="gn"></div><div class="germs" id="gm"></div></div>';
+    $('ctrl').innerHTML = '<div class="row"><button class="btn sel" id="sp" aria-pressed="true">🧼 ' + T(['Soap on', 'साबुन लगा है']) + '</button><button class="btn primary" id="sc">🫧 ' + T(['Scrub', 'रगड़ो']) + '</button><button class="btn" id="rs">↺</button></div><span class="note" id="sn"></span>';
+    function draw() { $('gn').textContent = Math.round(germs) + ' 🦠'; $('gm').textContent = new Array(Math.min(Math.round(germs), 100) + 1).join('🦠'); $('sn').textContent = (HI ? 'रगड़: ' : 'Scrubs: ') + scrubs + ' / 10'; $('sp').textContent = '🧼 ' + (soap ? T(['Soap on', 'साबुन लगा है']) : T(['Soap off', 'साबुन नहीं'])); $('sp').classList.toggle('sel', soap); }
+    $('sp').onclick = function () { soap = !soap; sfx.pop(); draw(); };
+    $('sc').onclick = function () { if (finished) return; scrubs++; germs *= soap ? .7 : .9; sfx.pop(); draw(); if (germs < 10 && scrubs <= 10) setTimeout(solved, 400); else if (scrubs >= 10) { $('sn').textContent = T(['Out of scrubs. Try again with soap on!', 'रगड़ ख़त्म। साबुन लगाकर फिर कोशिश करो!']); } };
+    $('rs').onclick = function () { germs = 100; scrubs = 0; draw(); };
+    draw(); solver = function () { soap = true; for (var i = 0; i < 8; i++) $('sc').click(); };
+  }
+};
+
+window.__curio = { tab: tab, level: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { var b = $('mdNext'); if (!$('overlay').hidden && b) b.click(); } };
+window.__curioDispose = function () { try { if (teardown) teardown(); } catch (e) {} };
+setLevel(cur);
+})();
+</script>

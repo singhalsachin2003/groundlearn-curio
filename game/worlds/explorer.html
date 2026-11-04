@@ -1,0 +1,268 @@
+<style>
+/* Explorer Lab (ages 4-7): no reading needed. Big pictures, big buttons, a voice reads each task, nothing can go wrong. */
+:root{--night:#141c35;--ink:#121528;--card:#fbf8f1;--marigold:#ffb423;--coral:#e2553f;--mint:#1f9d74;--soft:#efe9da;
+  --f-body:"Lexend",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(120% 90% at 50% 0%,#2b3a73 0%,#141c35 70%);color:var(--card);font-family:var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button{font-family:inherit;cursor:pointer;border:0;color:var(--ink)}
+button:focus-visible{outline:4px solid #6f9bff;outline-offset:3px}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 66px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
+#top{display:flex;align-items:center;gap:12px;width:100%;max-width:560px;justify-content:space-between;min-height:52px}
+#dots{display:flex;gap:9px}
+#dots i{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.18);border:3px solid transparent;box-sizing:border-box}
+#dots i.on{background:var(--marigold)}
+#dots i.cur{border-color:var(--card)}
+#say{width:60px;height:60px;border-radius:50%;background:var(--card);font-size:30px;box-shadow:0 4px 0 rgba(0,0,0,.45)}
+#goal{margin:6px 0 0;display:flex;align-items:center;gap:12px;background:var(--card);color:var(--ink);border-radius:20px;padding:10px 18px;font-weight:700;font-size:clamp(20px,5.2vw,28px);box-shadow:0 4px 0 rgba(0,0,0,.45);max-width:560px;box-sizing:border-box}
+#goal b{font-size:clamp(34px,9vw,48px);line-height:1}
+#scene{flex:1;width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:0;position:relative}
+#tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:560px;padding-bottom:6px}
+.big{width:clamp(76px,22vw,104px);height:clamp(76px,22vw,104px);border-radius:24px;background:var(--card);font-size:clamp(40px,12vw,56px);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 5px 0 rgba(0,0,0,.45);line-height:1;touch-action:manipulation}
+.big small{font-size:12px;font-weight:700;margin-top:3px;color:var(--ink);text-align:center;line-height:1.1}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.45)}
+.big.used{opacity:.35}
+.huge{font-size:clamp(70px,24vw,120px);line-height:1;transition:transform .35s}
+.row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.pop{animation:pop .5s ease}
+.shake{animation:shake .4s}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes rise{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.bowl{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bowl .in{font-size:clamp(36px,11vw,52px);min-height:1.2em;display:flex;gap:8px}
+.bowl .res{font-size:clamp(36px,11vw,56px);animation:rise .5s}
+.plank{width:min(86vw,420px);height:16px;background:#c98b4a;border-radius:8px;position:relative;transition:transform .5s cubic-bezier(.3,1.4,.5,1);transform-origin:50% 50%;margin-top:92px}
+.plank .side{position:absolute;bottom:14px;display:flex;flex-wrap:wrap;justify-content:center;width:44%;font-size:clamp(28px,9vw,40px);line-height:1}
+.plank .side.l{left:2%}.plank .side.r{right:2%}
+.fulcrum{font-size:44px;line-height:1;margin-top:-8px}
+.pan{min-height:92px;width:44%;border-bottom:8px solid #c98b4a;display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-content:flex-end;font-size:clamp(26px,8vw,36px);line-height:1;padding-bottom:4px}
+.num{font-size:clamp(30px,9vw,46px);font-weight:800}
+.wire{display:flex;align-items:center;gap:2px;font-size:clamp(40px,12vw,60px)}
+.gap{width:clamp(70px,20vw,96px);height:clamp(70px,20vw,96px);border:4px dashed rgba(255,255,255,.55);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:clamp(40px,12vw,56px)}
+.glow{filter:drop-shadow(0 0 18px #ffd84d) drop-shadow(0 0 40px #ffd84d);animation:pop .6s}
+.dim{filter:grayscale(1) brightness(.6)}
+#win{position:fixed;inset:0;background:rgba(10,14,30,.78);display:flex;align-items:center;justify-content:center;z-index:9}
+#win .card{background:var(--card);color:var(--ink);border-radius:28px;padding:22px 26px;text-align:center;box-shadow:0 8px 0 rgba(0,0,0,.45);animation:pop .5s;max-width:86vw}
+#win .st{font-size:70px;line-height:1}
+#win p{font-size:26px;font-weight:800;margin:8px 0 14px}
+#win button{background:var(--mint);color:#fff;font-size:34px;border-radius:999px;width:96px;height:72px;box-shadow:0 5px 0 rgba(0,0,0,.4)}
+.conf{position:fixed;top:-40px;font-size:28px;z-index:10;pointer-events:none;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.8}}
+@media (prefers-reduced-motion:reduce){.conf{display:none}.pop,.shake{animation:none}}
+</style>
+
+<div id="app">
+  <div id="top"><div id="dots" aria-hidden="true"></div><button id="say" aria-label="Listen again">🔊</button></div>
+  <div id="goal"><b id="gi"></b><span id="gt"></span></div>
+  <div id="scene"></div>
+  <div id="tray"></div>
+</div>
+<div id="win" hidden><div class="card"><div class="st" id="wst">🌟</div><p id="wtx"></p><button id="wgo" aria-label="Next">▶</button></div></div>
+
+<script>
+(function () {
+'use strict';
+var par = window.parent || window, CUR = window.curio || null;
+var HI = par && par.curioLang === 'hi';
+var KEY = 'curio-explorer-v1';
+var save = {}; try { save = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { save = {}; }
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+function T(a) { return HI ? a[1] : a[0]; }
+var $ = function (id) { return document.getElementById(id); };
+function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+
+/* ---------- sound and voice ---------- */
+var AC = null, acted = false;
+document.addEventListener('pointerdown', function () { acted = true; }, true);
+function tone(f0, f1, dur, type, gain, delay) {
+  if (save.sound === false || !acted) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
+    var t = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain || .1, t + .015); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + .05);
+  } catch (e) {}
+}
+var sfx = {
+  pop: function () { tone(420, 800, .09, 'sine', .1); },
+  no: function () { tone(330, 220, .18, 'triangle', .07); },
+  tada: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, f * 1.01, .28, 'triangle', .1, i * .09); }); }
+};
+function say(pair) {
+  try {
+    if (save.sound === false || !window.speechSynthesis) return;
+    speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(T(pair)); u.lang = HI ? 'hi-IN' : 'en-IN'; u.rate = .85; u.pitch = 1.15; speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+/* ---------- content ---------- */
+var ITEM = {
+  soap: ['🧼', ['soap', 'साबुन']], water: ['💧', ['water', 'पानी']], soda: ['🥄', ['baking soda', 'बेकिंग सोडा']], vinegar: ['🍶', ['vinegar', 'सिरका']],
+  oil: ['🫒', ['oil', 'तेल']], salt: ['🧂', ['salt', 'नमक']], ice: ['🧊', ['ice', 'बर्फ़']], warm: ['♨️', ['warm water', 'गरम पानी']], drop: ['🔴', ['red drop', 'लाल बूँद']]
+};
+var FIZZ = [
+  { goal: ['Make bubbles!', 'बुलबुले बनाओ!'], ico: '🫧', pair: ['soap', 'water'], opts: ['soap', 'salt', 'water', 'soda'], res: '🫧🫧🫧', rt: ['Bubbles!', 'बुलबुले!'] },
+  { goal: ['Make it fizz!', 'झाग बनाओ!'], ico: '⚡', pair: ['soda', 'vinegar'], opts: ['soda', 'water', 'vinegar', 'salt'], res: '🌋💨', rt: ['Fizz! Gas bubbles!', 'फ़ूँऽ! गैस के बुलबुले!'] },
+  { goal: ['Which two stay apart?', 'कौन से दो अलग रहते हैं?'], ico: '🥛', pair: ['oil', 'water'], opts: ['oil', 'vinegar', 'water', 'salt'], res: '🟡 / 🔵', rt: ['Oil floats on water!', 'तेल पानी पर तैरता है!'] },
+  { goal: ['Make the salt vanish!', 'नमक गायब करो!'], ico: '✨', pair: ['salt', 'water'], opts: ['oil', 'salt', 'soda', 'water'], res: '💧✨', rt: ['The salt dissolved!', 'नमक घुल गया!'] },
+  { goal: ['Melt the ice!', 'बर्फ़ पिघलाओ!'], ico: '🫠', pair: ['ice', 'warm'], opts: ['ice', 'oil', 'warm', 'salt'], res: '🧊➜💧', rt: ['Warm water melts ice!', 'गरम पानी से बर्फ़ पिघलती है!'] },
+  { goal: ['Colour the water!', 'पानी को रंगो!'], ico: '🌈', pair: ['drop', 'water'], opts: ['soda', 'drop', 'salt', 'water'], res: '🟥🌊', rt: ['Red water!', 'लाल पानी!'] }
+];
+var WT = { elephant: ['🐘', 4, ['elephant', 'हाथी']], bear: ['🐻', 3, ['bear', 'भालू']], dog: ['🐕', 2, ['dog', 'कुत्ता']], cat: ['🐱', 1, ['cat', 'बिल्ली']] };
+var SEESAW = [['elephant'], ['bear'], ['elephant', 'cat'], ['elephant', 'dog'], ['elephant', 'bear'], ['elephant', 'elephant']];
+var BULB = [
+  { opts: [['🔑', 1, ['key', 'चाबी']], ['🪵', 0, ['wood', 'लकड़ी']], ['🧦', 0, ['sock', 'मोज़ा']]] },
+  { opts: [['📄', 0, ['paper', 'काग़ज़']], ['🪙', 1, ['coin', 'सिक्का']], ['🧽', 0, ['sponge', 'स्पंज']]] },
+  { opts: [['🧸', 0, ['toy bear', 'खिलौना']], ['🪵', 0, ['wood', 'लकड़ी']], ['🍴', 1, ['fork', 'काँटा']]] },
+  { opts: [['🧶', 0, ['wool', 'ऊन']], ['📎', 1, ['paper clip', 'क्लिप']], ['🛍️', 0, ['plastic bag', 'थैली']]] },
+  { opts: [['🔩', 1, ['metal nut', 'नट']], ['🧴', 0, ['plastic bottle', 'बोतल']], ['🧻', 0, ['tissue', 'टिश्यू']]] },
+  { opts: [['🎈', 0, ['balloon', 'ग़ुब्बारा']], ['🧻', 0, ['tissue', 'टिश्यू']], ['🔔', 1, ['metal bell', 'घंटी']]] }
+];
+var FRUIT = [['🍎', 2, '🍌'], ['🍎', 3, '🍇'], ['🍎', 5, '🍊'], ['🍎', 4, '🍓'], ['🍎', 7, '🍒'], ['🍎', 9, '🥭']];
+var BABY = [
+  { baby: ['🐥', ['chick', 'चूज़ा']], mum: ['🐔', ['hen', 'मुर्गी']], other: [['🐕', ['dog', 'कुत्ता']], ['🐈', ['cat', 'बिल्ली']]] },
+  { baby: ['🐶', ['puppy', 'पिल्ला']], mum: ['🐕', ['dog', 'कुत्ता']], other: [['🐔', ['hen', 'मुर्गी']], ['🐄', ['cow', 'गाय']]] },
+  { baby: ['🐱', ['kitten', 'बिल्ली का बच्चा']], mum: ['🐈', ['cat', 'बिल्ली']], other: [['🐕', ['dog', 'कुत्ता']], ['🐖', ['pig', 'सूअर']]] },
+  { baby: ['🐮', ['calf', 'बछड़ा']], mum: ['🐄', ['cow', 'गाय']], other: [['🐔', ['hen', 'मुर्गी']], ['🐈', ['cat', 'बिल्ली']]] },
+  { baby: ['🐷', ['piglet', 'सूअर का बच्चा']], mum: ['🐖', ['pig', 'सूअर']], other: [['🐄', ['cow', 'गाय']], ['🐕', ['dog', 'कुत्ता']]] },
+  { baby: ['🐰', ['bunny', 'खरगोश का बच्चा']], mum: ['🐇', ['rabbit', 'खरगोश']], other: [['🐈', ['cat', 'बिल्ली']], ['🐔', ['hen', 'मुर्गी']]] }
+];
+var POND = [
+  { who: ['🐸', ['frog', 'मेंढक']], food: ['🪰', ['fly', 'मक्खी']], other: [['🍕', ['pizza', 'पिज़्ज़ा']], ['🧦', ['sock', 'मोज़ा']]] },
+  { who: ['🐟', ['fish', 'मछली']], food: ['🪱', ['worm', 'केंचुआ']], other: [['🍰', ['cake', 'केक']], ['🦴', ['bone', 'हड्डी']]] },
+  { who: ['🦆', ['duck', 'बत्तख']], food: ['🌱', ['pond weed', 'जलीय पौधा']], other: [['🦴', ['bone', 'हड्डी']], ['🍔', ['burger', 'बर्गर']]] },
+  { who: ['🐢', ['turtle', 'कछुआ']], food: ['🥬', ['leaves', 'पत्ते']], other: [['🍕', ['pizza', 'पिज़्ज़ा']], ['🧱', ['brick', 'ईंट']]] },
+  { who: ['🐊', ['crocodile', 'मगरमच्छ']], food: ['🐟', ['fish', 'मछली']], other: [['🍰', ['cake', 'केक']], ['🥬', ['leaves', 'पत्ते']]] },
+  { who: ['🦩', ['flamingo', 'राजहंस']], food: ['🦐', ['shrimp', 'झींगा']], other: [['🍔', ['burger', 'बर्गर']], ['🧱', ['brick', 'ईंट']]] }
+];
+
+/* ---------- games ---------- */
+var GAMES = {
+  fizz: { field: 'fizzDone', n: FIZZ.length, run: runFizz }, seesaw: { field: 'seesawDone', n: SEESAW.length, run: runSeesaw },
+  bulb: { field: 'bulbDone', n: BULB.length, run: runBulb }, scales: { field: 'scalesDone', n: FRUIT.length, run: runScales },
+  baby: { field: 'babyDone', n: BABY.length, run: runBaby }, pond: { field: 'pondDone', n: POND.length, run: runPond }
+};
+var tab = GAMES[save.tab] ? save.tab : 'fizz', G = GAMES[tab], done = (save[G.field] && typeof save[G.field] === 'object') ? save[G.field] : {}, cur = 0, solver = null, busy = false;
+save[G.field] = done;
+function firstOpen() { for (var i = 0; i < G.n; i++) if (!done[i]) return i; return -1; }
+function dots() { var h = ''; for (var i = 0; i < G.n; i++) h += '<i class="' + (done[i] ? 'on ' : '') + (i === cur ? 'cur' : '') + '"></i>'; $('dots').innerHTML = h; }
+function goal(ico, pair) { $('gi').textContent = ico; $('gt').textContent = T(pair); $('say').onclick = function () { say(pair); }; say(pair); }
+function later(ms, fn) { busy = true; setTimeout(function () { busy = false; fn(); }, ms); }
+function confetti() { for (var i = 0; i < 18; i++) { var c = document.createElement('div'); c.className = 'conf'; c.textContent = ['⭐', '🎉', '✨', '🌟'][i % 4]; c.style.left = (Math.random() * 96) + 'vw'; c.style.animationDelay = (Math.random() * .5) + 's'; document.body.appendChild(c); setTimeout(function (n) { n.remove(); }.bind(null, c), 2600); } }
+
+function win(msg) {
+  var wasOpen = !done[cur]; done[cur] = true; persist(); dots(); sfx.tada(); confetti();
+  var all = wasOpen && firstOpen() < 0;
+  $('wst').textContent = all ? '🏆' : '🌟';
+  $('wtx').textContent = all ? T(['All done! You are a star!', 'सब पूरा! तुम सितारे हो!']) : T(msg || ['Well done!', 'शाबाश!']);
+  say(all ? ['All done! You are a star!', 'सब पूरा! तुम सितारे हो!'] : (msg || ['Well done!', 'शाबाश!']));
+  $('win').hidden = false;
+  $('wgo').onclick = function () { $('win').hidden = true; var nx = firstOpen(); if (nx < 0) nx = (cur + 1) % G.n; start(nx); };
+  $('wgo').focus();
+}
+function start(i) { cur = i; busy = false; dots(); $('scene').innerHTML = ''; $('tray').innerHTML = ''; G.run(i); }
+
+function runFizz(i) {
+  var r = FIZZ[i], sel = [];
+  goal(r.ico, r.goal);
+  $('scene').innerHTML = '<div class="bowl"><div class="in" id="fin"></div><div class="huge" id="bowl">🥣</div><div class="res" id="fres"></div></div>';
+  $('tray').innerHTML = r.opts.map(function (k) { return '<button class="big" data-k="' + k + '" aria-label="' + esc(T(ITEM[k][1])) + '">' + ITEM[k][0] + '<small>' + esc(T(ITEM[k][1])) + '</small></button>'; }).join('');
+  function tap(k) {
+    if (busy || sel.indexOf(k) >= 0) return; sel.push(k); sfx.pop();
+    $('fin').innerHTML = sel.map(function (s) { return '<span class="pop">' + ITEM[s][0] + '</span>'; }).join('');
+    document.querySelector('[data-k="' + k + '"]').classList.add('used');
+    if (sel.length < 2) return;
+    var ok = sel.indexOf(r.pair[0]) >= 0 && sel.indexOf(r.pair[1]) >= 0;
+    if (ok) { $('fres').textContent = r.res; busy = true; later(900, function () { win(r.rt); }); say(r.rt); }
+    else { $('bowl').classList.add('shake'); sfx.no(); $('fres').textContent = '🤔'; say(['Hmm, nothing special. Try again!', 'हम्म, कुछ ख़ास नहीं हुआ। फिर से करो!']);
+      later(1300, function () { sel = []; $('fin').innerHTML = ''; $('fres').textContent = ''; $('bowl').classList.remove('shake'); document.querySelectorAll('.big').forEach(function (b) { b.classList.remove('used'); }); }); }
+  }
+  document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(b.dataset.k); }; });
+  solver = function () { tap(r.pair[0]); tap(r.pair[1]); };
+}
+
+function runSeesaw(i) {
+  var L = SEESAW[i], R = [], lw = L.reduce(function (s, k) { return s + WT[k][1]; }, 0);
+  goal('⚖️', ['Make the see-saw level!', 'सी-सॉ को बराबर करो!']);
+  $('scene').innerHTML = '<div class="plank" id="plank"><div class="side l">' + L.map(function (k) { return '<span>' + WT[k][0] + '</span>'; }).join('') + '</div><div class="side r" id="rs"></div></div><div class="fulcrum">🔺</div><div class="num" id="nums"></div>';
+  $('tray').innerHTML = Object.keys(WT).map(function (k) { return '<button class="big" data-k="' + k + '" aria-label="' + esc(T(WT[k][2])) + '">' + WT[k][0] + '<small>' + '●'.repeat(WT[k][1]) + '</small></button>'; }).join('');
+  function draw() {
+    var rw = R.reduce(function (s, k) { return s + WT[k][1]; }, 0), d = Math.max(-14, Math.min(14, (lw - rw) * 4));
+    $('plank').style.transform = 'rotate(' + (-d) + 'deg)'; $('rs').innerHTML = R.map(function (k, j) { return '<span data-j="' + j + '">' + WT[k][0] + '</span>'; }).join('');
+    $('nums').textContent = lw + '  ' + (lw === rw ? '=' : lw > rw ? '>' : '<') + '  ' + rw;
+    $('rs').querySelectorAll('span').forEach(function (s) { s.onclick = function () { if (busy) return; R.splice(+s.dataset.j, 1); sfx.pop(); draw(); }; });
+    if (rw === lw && R.length) { sfx.pop(); later(1000, function () { win(['Level! Both sides are equal.', 'बराबर! दोनों तरफ़ बराबर वज़न।']); }); }
+  }
+  function add(k) { if (busy || R.length >= 8) return; R.push(k); sfx.pop(); draw(); }
+  document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { add(b.dataset.k); }; });
+  solver = function () { var need = lw, ks = Object.keys(WT).sort(function (a, b) { return WT[b][1] - WT[a][1]; }); ks.forEach(function (k) { while (need >= WT[k][1]) { add(k); need -= WT[k][1]; } }); };
+  draw();
+}
+
+function runBulb(i) {
+  var r = BULB[i], placed = -1;
+  goal('💡', ['Which one lights the bulb?', 'किससे बल्ब जलेगा?']);
+  $('scene').innerHTML = '<div class="wire"><span>🔋</span><span>➖</span><div class="gap" id="gap">❔</div><span>➖</span><span id="bulb" class="dim">💡</span></div>';
+  $('tray').innerHTML = r.opts.map(function (o, j) { return '<button class="big" data-j="' + j + '" aria-label="' + esc(T(o[2])) + '">' + o[0] + '<small>' + esc(T(o[2])) + '</small></button>'; }).join('');
+  function tap(j) {
+    if (busy) return; var o = r.opts[j]; $('gap').textContent = o[0]; sfx.pop();
+    if (o[1]) { $('bulb').className = 'glow'; busy = true; say(['It lights up! Metal lets electricity flow.', 'जल गया! धातु से बिजली बहती है।']); later(1200, function () { win(['Metal carries electricity!', 'धातु से बिजली बहती है!']); }); }
+    else { $('bulb').className = 'dim'; sfx.no(); $('gap').classList.add('shake'); say(['The bulb stays dark. Try another.', 'बल्ब नहीं जला। दूसरा आज़माओ।']); later(900, function () { $('gap').classList.remove('shake'); $('gap').textContent = '❔'; }); }
+  }
+  document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.j); }; });
+  solver = function () { for (var j = 0; j < r.opts.length; j++) if (r.opts[j][1]) { tap(j); return; } };
+}
+
+function runScales(i) {
+  var f = FRUIT[i], n = f[1], m = 0;
+  goal('⚖️', ['Put as many on this side as on that side.', 'इस तरफ़ भी उतने ही रखो जितने उस तरफ़ हैं।']);
+  $('scene').innerHTML = '<div class="row" style="align-items:flex-end;width:100%"><div style="flex:1;text-align:center"><div class="pan" id="lp"></div><div class="num">' + n + '</div></div><div style="font-size:44px">⚖️</div><div style="flex:1;text-align:center"><div class="pan" id="rp"></div><div class="num" id="rn">0</div></div></div>';
+  $('lp').innerHTML = new Array(n + 1).join(f[0]);
+  $('tray').innerHTML = '<button class="big" id="add" aria-label="Add">' + f[2] + '<small>+1</small></button><button class="big" id="sub" aria-label="Take away">↩️<small>−1</small></button>';
+  function draw() {
+    $('rp').innerHTML = new Array(m + 1).join(f[2]); $('rn').textContent = m;
+    if (m === n) { busy = true; say(['Equal! ' + n + ' and ' + n, 'बराबर! ' + n + ' और ' + n]); later(1000, function () { win(['Equal! Same number on both sides.', 'बराबर! दोनों तरफ़ बराबर गिनती।']); }); }
+  }
+  function add() { if (busy || m >= 10) return; m++; sfx.pop(); draw(); }
+  $('add').onclick = add; $('sub').onclick = function () { if (busy || m < 1) return; m--; sfx.pop(); draw(); };
+  solver = function () { while (m < n) add(); };
+}
+
+function runBaby(i) {
+  var r = BABY[i], opts = [[r.mum[0], r.mum[1], 1]].concat(r.other.map(function (o) { return [o[0], o[1], 0]; }));
+  opts.sort(function (a, b) { return (a[0] < b[0]) ? ((i % 2) ? 1 : -1) : ((i % 2) ? -1 : 1); });
+  goal(r.baby[0], [r.baby[1][0] + ': who is its mum?', r.baby[1][1] + ': इसकी माँ कौन है?']);
+  $('scene').innerHTML = '<div class="huge pop">' + r.baby[0] + '</div><div style="font-size:30px;font-weight:700">' + esc(T(r.baby[1])) + '</div>';
+  $('tray').innerHTML = opts.map(function (o, j) { return '<button class="big" data-j="' + j + '" aria-label="' + esc(T(o[1])) + '">' + o[0] + '<small>' + esc(T(o[1])) + '</small></button>'; }).join('');
+  function tap(j) {
+    if (busy) return; var o = opts[j]; sfx.pop();
+    if (o[2]) { $('scene').innerHTML = '<div class="huge pop">' + o[0] + r.baby[0] + '</div><div style="font-size:30px;font-weight:700">❤️</div>'; busy = true; var m = [T(r.baby[1]) + ' and ' + T(r.mum[1]) + '!', r.baby[1][1] + ' और ' + r.mum[1][1] + '!']; say(m); later(1200, function () { win(m); }); }
+    else { sfx.no(); var b = document.querySelector('[data-j="' + j + '"]'); b.classList.add('shake'); say(['Not this one. Try again!', 'यह नहीं। फिर से देखो!']); later(500, function () { b.classList.remove('shake'); }); }
+  }
+  document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.j); }; });
+  solver = function () { for (var j = 0; j < opts.length; j++) if (opts[j][2]) { tap(j); return; } };
+}
+
+function runPond(i) {
+  var r = POND[i], opts = [[r.food[0], r.food[1], 1]].concat(r.other.map(function (o) { return [o[0], o[1], 0]; }));
+  opts.sort(function (a, b) { return (a[0] < b[0]) ? ((i % 2) ? -1 : 1) : ((i % 2) ? 1 : -1); });
+  goal(r.who[0], ['The ' + r.who[1][0] + ' is hungry. What does it eat?', r.who[1][1] + ' को भूख लगी है। यह क्या खाता है?']);
+  $('scene').innerHTML = '<div class="huge pop" id="who">' + r.who[0] + '</div><div style="font-size:30px;font-weight:700" id="eat"></div>';
+  $('tray').innerHTML = opts.map(function (o, j) { return '<button class="big" data-j="' + j + '" aria-label="' + esc(T(o[1])) + '">' + o[0] + '<small>' + esc(T(o[1])) + '</small></button>'; }).join('');
+  function tap(j) {
+    if (busy) return; var o = opts[j]; sfx.pop();
+    if (o[2]) { $('eat').textContent = o[0] + ' ➜ 😋'; busy = true; var m = [T(r.who[1]) + ' eats ' + T(r.food[1]) + '!', r.who[1][1] + ' ' + r.food[1][1] + ' खाता है!']; say(m); later(1300, function () { win(m); }); }
+    else { sfx.no(); $('eat').textContent = o[0] + ' ➜ 🙅'; $('who').classList.add('shake'); say(['No thank you! Try again.', 'नहीं, धन्यवाद! फिर से देखो।']); later(900, function () { $('who').classList.remove('shake'); $('eat').textContent = ''; }); }
+  }
+  document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.j); }; });
+  solver = function () { for (var j = 0; j < opts.length; j++) if (opts[j][2]) { tap(j); return; } };
+}
+
+/* test hooks used by the app's smoke test */
+window.__curio = { tab: tab, round: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { if (!$('win').hidden) $('wgo').click(); } };
+window.__curioDispose = function () { try { speechSynthesis.cancel(); } catch (e) {} };
+var go = firstOpen(); start(go < 0 ? 0 : go);
+})();
+</script>

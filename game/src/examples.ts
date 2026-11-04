@@ -1,5 +1,5 @@
 // A short worked example for every lab, shown the first time a player opens it and from the "?" button.
-// English only for now; the Hindi pass is still to do (the shell falls back to English).
+// English here; Hindi is in examples_hi.ts.
 export interface Example { title: string; steps: string[]; tip?: string }
 
 export const EXAMPLES: Record<string, Example> = {
@@ -22,4 +22,14 @@ export const EXAMPLES: Record<string, Example> = {
   coord: { title: 'Plot the first dots of the house', steps: ['The first dot is (2, 1). Go 2 across, then 1 up.', 'Tap that spot on the grid and press Place dot.', 'The next dot is (2, 5): still 2 across, now 5 up. A line joins them.'], tip: 'Across first, then up. The first number is always across.' },
   pea: { title: 'Purple × white', steps: ['Pick PP for Parent 1 and pp for Parent 2, then press Cross.', 'Every baby gets one P and one p: all four are Pp.', 'P is dominant, so all four babies have purple flowers.'] },
   chain: { title: 'Build a meadow food chain', steps: ['Start with the one that makes its own food from sunlight: the grass.', 'Who eats the grass? The rabbit.', 'Who eats the rabbit? The fox. The energy goes along the arrows: Sun → grass → rabbit → fox.'] },
+  fizz: { title: 'Make bubbles', steps: ['The picture at the top says what to make.', 'Tap two things to drop into the bowl. Soap and water make bubbles.', 'If nothing happens, the bowl clears and you try again. You cannot lose.'] },
+  seesaw: { title: 'Make it level', steps: ['The elephant is on the left. Count its dots: 4.', 'Tap animals to put them on the right. A dog is 2 dots, so two dogs are 4.', 'When both sides match, the see-saw goes level.'] },
+  bulb: { title: 'Light the bulb', steps: ['The bulb is off because there is a gap in the wire.', 'Tap a thing to put it in the gap.', 'Metal lets electricity through, so the bulb lights. Wood and cloth do not.'] },
+  scales: { title: 'Count to match', steps: ['Look at the number on the left side.', 'Tap the fruit button to add one fruit to the right side.', 'Stop when both numbers are the same.'] },
+  baby: { title: 'Find the mum', steps: ['A baby animal is shown with its name.', 'Tap the grown-up animal that is its mum.', 'Wrong guesses just shake. Try another.'] },
+  pond: { title: 'Feed the frog', steps: ['The pond animal is hungry.', 'Tap the food it really eats. A frog eats flies.', 'The right food gets eaten. Silly food is refused.'] },
+  matter: { title: 'Melt and boil water', steps: ['Slide the temperature up from -10 °C. Ice particles jiggle in place.', 'Past 0 °C they slide past each other: liquid water.', 'At 100 °C they fly apart: steam. Slide back down and it condenses.'] },
+  fraction: { title: 'Three eighths', steps: ['The pizza is cut into 8 equal slices.', '3/8 means 3 slices out of 8, so tap 3 slices.', 'For a ratio such as 2 : 3, keep 2 parts red for every 3 parts blue. 4 : 6 works too.'] },
+  sound: { title: 'Tune a note', steps: ['Pitch is the frequency in hertz: waves per second. More waves means a higher note.', 'Volume is the amplitude: how tall the wave is.', 'Wavelength = 340 ÷ frequency, so 680 Hz gives 0.5 m.'], tip: 'Press Play to hear it. Turn your phone volume down first.' },
+  cell: { title: 'Build an animal cell', steps: ['Pick a part, such as Nucleus.', 'Tap its job, such as Control centre. A right match joins your cell.', 'Plant cells also have a cell wall, chloroplasts and a big vacuole.'] },
 };
