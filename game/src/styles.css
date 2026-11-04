@@ -178,3 +178,17 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .logo small.by{margin-top:6px;font-size:13px}
 .about{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)}.about p{font-size:12px;line-height:1.45;margin:6px 0}
 .lic{white-space:pre-wrap;font-size:10px;line-height:1.4;opacity:.8;max-height:none;margin:4px 0 12px;font-family:var(--f-mono)}
+
+.pill .streak{color:#ffb423;font-weight:800;font-size:13px;margin-left:4px}
+.streakline{font-weight:800;color:#ffb423;margin:2px 0 8px}
+.badges{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:6px 0 12px}
+.bdg{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:64px}
+.bdg b{font-size:30px;line-height:1}.bdg small{font-size:11px;color:var(--muted)}.bdg.off b{filter:grayscale(1);opacity:.35}
+.stickers{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px;margin:6px 0 14px}
+.stk{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:64px;border-radius:14px;background:rgba(255,255,255,.06);border:2px dashed rgba(255,255,255,.18);color:inherit;font:inherit}
+.stk b{font-size:24px;filter:grayscale(1);opacity:.45}.stk small{font-size:11px;font-family:var(--f-mono);display:flex;align-items:center;gap:3px}
+.stk.got{font-size:32px;border-style:solid;border-color:#ffb423;background:rgba(255,180,35,.12)}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:cf linear forwards}
+@keyframes cf{to{transform:translate(var(--dx),105vh) rotate(var(--r));opacity:.9}}
+@media (max-width:440px){ .hub3d .topbar{flex-wrap:nowrap;gap:5px} .hub3d .topbar .pill{padding:6px 8px;font-size:13px;gap:4px} .hub3d .topbar .pill .nm{max-width:4.5em} .hub3d .topbar .grow{flex:1 1 0;min-width:0} }

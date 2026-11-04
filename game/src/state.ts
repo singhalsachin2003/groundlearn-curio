@@ -34,6 +34,8 @@ export interface Shell {
   sound: boolean;
   /** Read-aloud voice in the Explorer labs. Missing means on. */
   voice?: boolean;
+  /** Gentle music on the island hub. Missing means on. */
+  music?: boolean;
   adsForHearts: boolean;
   adFree: boolean;
   seenRules?: boolean;
@@ -86,6 +88,7 @@ export function addProfile(name: string, avatar: string, band: Band): Profile {
 export function resetProgress(p: Profile) {
   (['colour', 'inventor', 'tinkerer', 'explorer', 'inventor2'] as WorldId[]).forEach(w => writeRaw(slotKey(p.id, w), null));
   p.coins = 0; p.levels = {}; p.disc = []; p.hearts = RULES.maxHearts; p.heartTs = Date.now(); p.adDay = ''; p.adCount = 0;
+  delete (p as { badges?: unknown }).badges; delete (p as { stickers?: unknown }).stickers;
   delete (p as { daily?: unknown }).daily; delete (p as { ex?: unknown }).ex;
   saveShell();
 }

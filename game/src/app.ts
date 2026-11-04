@@ -10,6 +10,7 @@ import { EXAMPLES } from './examples';
 import { EXAMPLES_HI } from './examples_hi';
 import { saveParentEmail, validEmail } from './subscribe';
 import { LICENSES } from './licenses';
+import { markPlayed, streakOf, badgeFor, raiseBadge, badgesOf, BADGE_ICON, BADGE_COINS, STICKERS, STICKER_COST, stickersOf, addSticker, confetti, music } from './fun';
 import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
 export const PRIVACY_URL = 'https://groundlearn.com/curio/privacy';
@@ -124,9 +125,28 @@ function rewardDiff(world: WorldId, oldRaw: string | null, newRaw: string | null
       if (!was.has(item) && !p.disc.includes(key)) { p.disc.push(key); gained += RULES.coins.discovery; notes.push(t('newDiscovery')); moved.add(lab); }
     }
   }
-  if (gained > 0) { addCoins(p, gained); toast(`+${gained} ${t('plusCoins')} · ${notes[0]}`); }
+  if (gained > 0) { addCoins(p, gained); toast(`+${gained} ${t('plusCoins')} · ${notes[0]}`); played(p); }
+  if (notes.includes(t('levelDone'))) confetti(reduceMotion);
   if (dailyProgress(p, moved)) setTimeout(() => toast(`+${RULES.coins.daily} ${t('plusCoins')} · ${t('curioDay')} ✓`), 700);
   refreshPills();
+}
+
+
+/** A day counts toward the streak once the player earns something. */
+function played(p: Profile) {
+  const n = markPlayed(p); saveShell();
+  if (n > 1) setTimeout(() => toast(`🔥 ${n} ${t('streakDays')}`), 900);
+}
+/** Bronze, silver and gold per island zone, for a quarter, 60% and all of it. */
+function checkBadges() {
+  const p = active(); if (!p) return;
+  let delay = 1200;
+  zoneStates(p).forEach(z => {
+    if (z.locked) return;
+    const up = raiseBadge(p, z.id, badgeFor(z.progress)); if (!up) return;
+    addCoins(p, BADGE_COINS[up]); saveShell();
+    setTimeout(() => { toast(`${BADGE_ICON[up]} ${z.label} · +${BADGE_COINS[up]} ${t('plusCoins')}`); confetti(reduceMotion); refreshPills(); }, delay); delay += 1600;
+  });
 }
 
 /* =================================================================== screens */
@@ -188,7 +208,7 @@ function hub() {
   $('#screen').innerHTML = `
     <div class="hub3d">
       <header class="topbar">
-        <button class="pill who" id="hWho" aria-label="${t('switchPlayer')}"><span class="av">${p.avatar}</span><span class="nm">${esc(p.name || t(p.band))}</span></button>
+        <button class="pill who" id="hWho" aria-label="${t('switchPlayer')}"><span class="av">${p.avatar}</span><span class="nm">${esc(p.name || t(p.band))}</span>${streakOf(p) ? `<span class="streak" aria-label="${streakOf(p)} ${t('streakDays')}">🔥${streakOf(p)}</span>` : ''}</button>
         <span class="grow"></span>
         <button class="pill coins" id="hCoins"></button>
         <button class="pill hearts" id="hHearts"></button>
@@ -241,7 +261,7 @@ function allWorkshops() {
 function showIsland(on: boolean) {
   const host = $('#islandHost');
   if (on && !island) island = createIsland(host, z => zoneSheet(z), reduceMotion);
-  host.hidden = !on; island?.pause(!on); syncBanner(on);
+  host.hidden = !on; island?.pause(!on); syncBanner(on); music(on && S.sound && S.music !== false);
   if (!on) $('#screen').classList.remove('over-island');
 }
 function fitIsland() {
@@ -281,7 +301,7 @@ function leaveWorld() {
   try { const raw = localStorage.getItem(WORLD_SAVE_KEY[current.world]); storeWorldSave(current.pid, current.world, raw); } catch { /* ignore */ }
   unmountWorld(frame); frame = null; current = null;
   $('#world').hidden = true; $('#screen').hidden = false;
-  hub();
+  hub(); checkBadges();
   const finished = levelThisVisit; levelThisVisit = false;
   maybeInterstitial(finished);
 }
@@ -376,8 +396,17 @@ function journal() {
   const labs = labsFor(p.band);
   const rows = labs.map(l => { const n = labProgress(l, readSlot(p.id, l.world)), tot = l.progress.total;
     return `<div class="jrow s-${l.subject}"><span class="ic">${l.icon}</span><span class="jt"><b>${esc(nm(l.name))}</b><span class="bar"><i style="width:${Math.round(100 * n / tot)}%"></i></span></span><span class="cnt">${n}/${tot}</span></div>`; }).join('');
-  sheet('journal', `<h2>${t('journalTitle')}</h2><div class="jlist">${rows}</div><div class="row-btns"><button class="btn" id="jRules">ℹ️ ${t('rulesBtn')}</button><button class="btn" id="jReset">↺ ${t('resetBtn')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
+  const bg = badgesOf(p), zs = zoneStates(p).filter(z => !z.locked);
+  const badges = `<div class="badges">${zs.map(z => `<span class="bdg ${bg[z.id] ? '' : 'off'}"><b>${bg[z.id] ? BADGE_ICON[bg[z.id]] : '🏅'}</b><small>${esc(z.label)}</small></span>`).join('')}</div>`;
+  const own = stickersOf(p);
+  const book = `<div class="stickers">${STICKERS.map(st => own.includes(st) ? `<span class="stk got">${st}</span>` : `<button class="stk" data-stk="${st}" aria-label="${t('stickerBuy')}"><b>${st}</b><small><i class="coin" aria-hidden="true"></i>${STICKER_COST}</small></button>`).join('')}</div>`;
+  const streak = streakOf(p);
+  sheet('journal', `<h2>${t('journalTitle')}</h2>${streak ? `<p class="streakline">🔥 ${streak} ${t('streakDays')}</p>` : ''}<h3>${t('badgesTitle')}</h3>${badges}<h3>${t('stickersTitle')} · ${own.length}/${STICKERS.length}</h3><p class="muted">${t('stickersNote').replace('{cost}', String(STICKER_COST))}</p>${book}<h3>${t('labsTitle')}</h3><div class="jlist">${rows}</div><div class="row-btns"><button class="btn" id="jRules">ℹ️ ${t('rulesBtn')}</button><button class="btn" id="jReset">↺ ${t('resetBtn')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('#jRules').onclick = () => rules();
+  document.querySelectorAll<HTMLElement>('[data-stk]').forEach(b => b.onclick = () => {
+    if (p.coins < STICKER_COST) { toast(t('stickerNeed').replace('{cost}', String(STICKER_COST)), 'bad'); return; }
+    addCoins(p, -STICKER_COST); addSticker(p, b.dataset.stk!); saveShell(); refreshPills(); confetti(reduceMotion); journal();
+  });
   $('#jReset').onclick = () => gate(() => resetAsk(p));
 }
 
@@ -417,10 +446,13 @@ function rules(first = false) {
 /* =================================================================== parents */
 const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
 const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+/** Hindi number words 0–88 (the gate never goes higher). */
+const HI_NUM = 'शून्य एक दो तीन चार पाँच छह सात आठ नौ दस ग्यारह बारह तेरह चौदह पंद्रह सोलह सत्रह अठारह उन्नीस बीस इक्कीस बाईस तेईस चौबीस पच्चीस छब्बीस सत्ताईस अट्ठाईस उनतीस तीस इकतीस बत्तीस तैंतीस चौंतीस पैंतीस छत्तीस सैंतीस अड़तीस उनतालीस चालीस इकतालीस बयालीस तैंतालीस चवालीस पैंतालीस छियालीस सैंतालीस अड़तालीस उनचास पचास इक्यावन बावन तिरपन चौवन पचपन छप्पन सत्तावन अट्ठावन उनसठ साठ इकसठ बासठ तिरसठ चौंसठ पैंसठ छियासठ सड़सठ अड़सठ उनहत्तर सत्तर इकहत्तर बहत्तर तिहत्तर चौहत्तर पचहत्तर छिहत्तर सतहत्तर अठहत्तर उनासी अस्सी इक्यासी बयासी तिरासी चौरासी पचासी छियासी सत्तासी अट्ठासी'.split(' ');
 function gate(then: () => void) {
   const a = 21 + Math.floor(Math.random() * 68), b = 3 + Math.floor(Math.random() * 7);
-  const aw = a % 10 ? `${TENS[Math.floor(a / 10)]}-${WORDS[a % 10]}` : TENS[a / 10];
-  sheet('gate', `<h2>${t('gateTitle')}</h2><p>${t('gateBody')}</p><p class="gate-q">${aw} × ${WORDS[b]} = ?</p>
+  const hi = getLang() === 'hi';
+  const aw = hi ? HI_NUM[a] : a % 10 ? `${TENS[Math.floor(a / 10)]}-${WORDS[a % 10]}` : TENS[a / 10];
+  sheet('gate', `<h2>${t('gateTitle')}</h2><p>${t('gateBody')}</p><p class="gate-q">${aw} × ${hi ? HI_NUM[b] : WORDS[b]} = ?</p>
     <input id="gIn" class="input num" inputmode="numeric" autocomplete="off" maxlength="4" aria-label="Answer">
     <p class="err" id="gErr" hidden>${t('gateWrong')}</p>
     <div class="row-btns"><button class="btn" data-close>${t('cancel')}</button><button class="btn primary" id="gOk">${t('ok')}</button></div>`);
@@ -447,6 +479,7 @@ function parentCorner() {
       <section class="kv"><span><b>${t('adHearts')}</b><small>${t('adHeartsNote')}</small></span>${toggle('pcAdH', S.adsForHearts)}</section>
       <section class="kv"><span><b>${t('sound')}</b></span>${toggle('pcSound', S.sound)}</section>
       <section class="kv"><span><b>${t('voice')}</b></span>${toggle('pcVoice', S.voice !== false)}</section>
+      <section class="kv"><span><b>${t('musicLbl')}</b></span>${toggle('pcMusic', S.music !== false)}</section>
       <section class="kv"><span><b>${t('language')}</b></span><span class="seg"><button data-lang="en" aria-pressed="${S.lang === 'en'}">English</button><button data-lang="hi" aria-pressed="${S.lang === 'hi'}">हिंदी</button></span></section>
       <section><h3>${t('players')}</h3>${plist}</section>
       <button class="link" id="pcRules">ℹ️ ${t('rulesBtn')}</button>
@@ -457,8 +490,9 @@ function parentCorner() {
   document.getElementById('pcBuy')?.addEventListener('click', () => emailAsk());
   $('#pcRestore').onclick = () => send({ t: 'restore' });
   $('#pcAdH').onclick = () => { S.adsForHearts = !S.adsForHearts; saveShell(); parentCorner(); };
-  $('#pcSound').onclick = () => { S.sound = !S.sound; saveShell(); parentCorner(); };
+  $('#pcSound').onclick = () => { S.sound = !S.sound; saveShell(); music(!$('#islandHost').hidden && S.sound && S.music !== false); parentCorner(); };
   $('#pcVoice').onclick = () => { S.voice = S.voice === false; saveShell(); parentCorner(); };
+  $('#pcMusic').onclick = () => { S.music = S.music === false; saveShell(); music(!$('#islandHost').hidden && S.sound && S.music !== false); parentCorner(); };
   document.querySelectorAll<HTMLElement>('[data-lang]').forEach(b => b.onclick = () => { S.lang = b.dataset.lang as 'en' | 'hi'; setLang(S.lang); saveShell(); hub(); parentCorner(); });
   document.querySelectorAll<HTMLSelectElement>('[data-band-of]').forEach(s => s.onchange = () => { const p = S.profiles.find(x => x.id === s.dataset.bandOf); if (p) { p.band = s.value as Band; saveShell(); hub(); parentCorner(); } });
   document.querySelectorAll<HTMLElement>('[data-up]').forEach(b => b.onclick = () => { const p = S.profiles.find(x => x.id === b.dataset.up); if (p && NEXT[p.band]) { p.band = NEXT[p.band]!; saveShell(); hub(); parentCorner(); } });
