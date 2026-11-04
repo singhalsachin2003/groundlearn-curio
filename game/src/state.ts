@@ -32,6 +32,8 @@ export interface Shell {
   active: string | null;
   lang: Lang;
   sound: boolean;
+  /** Read-aloud voice in the Explorer labs. Missing means on. */
+  voice?: boolean;
   adsForHearts: boolean;
   adFree: boolean;
   seenRules?: boolean;

@@ -51,6 +51,12 @@ const ASK: Record<string, { en: string; hi: string }> = {
   ladoo: { en: 'Can you take the right fraction of the ladoos?', hi: 'क्या तुम लड्डुओं का सही भिन्न भाग ले सकते हो?' },
   moon: { en: 'Can you set the Moon to a new phase?', hi: 'क्या तुम चाँद की एक नई कला बना सकते हो?' },
   area: { en: 'Can you build a shape with the right area and perimeter?', hi: 'क्या तुम सही क्षेत्रफल और परिमाप वाली आकृति बना सकते हो?' },
+  pattern: { en: 'Can you carry on a bead pattern?', hi: 'क्या तुम मोतियों का पैटर्न आगे बढ़ा सकते हो?' },
+  daynight: { en: 'Can you sort things into day and night?', hi: 'क्या तुम चीज़ों को दिन और रात में छाँट सकते हो?' },
+  symmetry: { en: 'Can you finish a mirror picture?', hi: 'क्या तुम दर्पण चित्र पूरा कर सकते हो?' },
+  water: { en: 'Can you put the water steps in order?', hi: 'क्या तुम पानी के चरणों को क्रम में लगा सकते हो?' },
+  decimal: { en: 'Can you shade the right decimal or percent?', hi: 'क्या तुम सही दशमलव या प्रतिशत रंग सकते हो?' },
+  pythag: { en: 'Can you build a right triangle that fits the squares?', hi: 'क्या तुम वर्गों से मेल खाता समकोण त्रिभुज बना सकते हो?' },
   cell: { en: 'Can you finish a new cell or germ puzzle?', hi: 'क्या तुम कोशिका या जीवाणु की नई पहेली पूरी कर सकते हो?' },
 };
 

@@ -14,6 +14,9 @@ button:focus-visible{outline:4px solid #6f9bff;outline-offset:3px}
 #dots i.on{background:var(--marigold)}
 #dots i.cur{border-color:var(--card)}
 #say{height:60px;min-width:60px;padding:0 18px;border-radius:30px;background:linear-gradient(#fffdf6,#f3e8cf);font-size:28px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 0 rgba(0,0,0,.45)}
+#vbtns{display:flex;gap:8px;align-items:center}
+#mute{width:60px;height:60px;border-radius:50%;background:linear-gradient(#fffdf6,#f3e8cf);font-size:28px;box-shadow:0 4px 0 rgba(0,0,0,.45)}
+#mute.off{background:#cfc7b4;opacity:.8}
 #say span{font-size:16px;font-weight:800;color:var(--ink)}
 #goal{margin:6px 0 0;display:flex;align-items:center;gap:12px;background:linear-gradient(#fffdf6,#f6ecd6);border:3px solid #fff;color:var(--ink);border-radius:20px;padding:10px 18px;font-weight:700;font-size:clamp(20px,5.2vw,28px);box-shadow:0 4px 0 rgba(0,0,0,.45);max-width:560px;box-sizing:border-box}
 #goal b{font-size:clamp(34px,9vw,48px);line-height:1}
@@ -29,6 +32,8 @@ button:focus-visible{outline:4px solid #6f9bff;outline-offset:3px}
 .plate .pl{display:flex;flex-wrap:wrap;justify-content:center;font-size:clamp(20px,6vw,28px);line-height:1.05;border-top:6px solid #c98b4a;padding-top:4px;width:86%;min-height:2.3em;align-content:flex-start}
 .plate:active{transform:translateY(3px)}
 .pile{font-size:clamp(26px,8vw,38px);line-height:1.1;min-height:1.2em;text-align:center;max-width:92%}
+.beads{gap:6px}.bead{font-size:clamp(34px,10vw,52px);line-height:1;width:1.35em;height:1.35em;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.1);border-radius:50%}.bead.q{border:4px dashed rgba(255,255,255,.55);background:transparent}
+body.nightbg{background:radial-gradient(120% 90% at 50% 0%,#0b0f24 0%,#04060f 70%)}
 .clockface{width:min(64vw,250px);height:auto;filter:drop-shadow(0 6px 0 rgba(0,0,0,.4))}
 .big.num2{font-size:clamp(40px,12vw,58px);font-weight:800;color:var(--ink)}
 .pop{animation:pop .5s ease}
@@ -60,7 +65,7 @@ button:focus-visible{outline:4px solid #6f9bff;outline-offset:3px}
 </style>
 
 <div id="app">
-  <div id="top"><div id="dots" aria-hidden="true"></div><button id="say" aria-label="Listen again">🔊<span id="sayT"></span></button></div>
+  <div id="top"><div id="dots" aria-hidden="true"></div><div id="vbtns"><button id="say" aria-label="Listen again">🔊<span id="sayT"></span></button><button id="mute" aria-label="Voice on or off" aria-pressed="false">🔊</button></div></div>
   <div id="goal"><b id="gi"></b><span id="gt"></span></div>
   <div id="scene"></div>
   <div id="tray"></div>
@@ -78,6 +83,7 @@ function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } ca
 function T(a) { return HI ? a[1] : a[0]; }
 var $ = function (id) { return document.getElementById(id); };
 $('sayT').textContent = T(['Listen', 'सुनो']);
+$('mute').onclick = function () { setVoice(!voiceOn); };
 function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
 
 /* ---------- sound and voice ---------- */
@@ -98,12 +104,18 @@ var sfx = {
   no: function () { tone(330, 220, .18, 'triangle', .07); },
   tada: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, f * 1.01, .28, 'triangle', .1, i * .09); }); }
 };
-var voice = null;
-function say(pair) {
+var voice = null, voiceOn = save.voice !== false;
+function setVoice(on) {
+  voiceOn = on; save.voice = on; persist(); $('mute').textContent = on ? '🔊' : '🔇'; $('mute').classList.toggle('off', !on); $('mute').setAttribute('aria-pressed', on ? 'false' : 'true');
+  $('mute').setAttribute('aria-label', on ? 'Mute the voice' : 'Turn the voice on');
+  if (!on) { try { if (voice) { voice.pause(); voice = null; } speechSynthesis.cancel(); } catch (e) {} }
+  try { if (par && par.curioSetVoice) par.curioSetVoice(on); } catch (e) {}
+}
+function say(pair, force) {
   var text = T(pair);
   try {
     if (window.__sayLog) window.__sayLog.push(text);
-    if (save.sound === false) return;
+    if (save.sound === false || (!voiceOn && !force)) return;
     if (voice) { voice.pause(); voice = null; }
     var vo = par && par.curioVO, src = vo && vo[(HI ? 'hi:' : 'en:') + text];
     if (src) { voice = new Audio(src); var pr = voice.play(); if (pr && pr.catch) pr.catch(function () {}); return; }
@@ -155,6 +167,15 @@ var POND = [
 
 var SHARE = [[2, 2], [4, 2], [6, 2], [8, 2], [6, 3], [9, 3]], FRIENDS = ['🐻', '🐰', '🐯'];
 var CLOCK = [3, 6, 9, 12, 2, 5];
+var PATTERN = [
+  { seq: ['🔴', '🔵', '🔴', '🔵'], ans: '🔴', opts: ['🔴', '🔵', '🟡'] },
+  { seq: ['🔴', '🔴', '🔵', '🔴', '🔴'], ans: '🔵', opts: ['🔴', '🔵', '🟢'] },
+  { seq: ['🍎', '🍌', '🍇', '🍎', '🍌'], ans: '🍇', opts: ['🍇', '🍎', '🍌'] },
+  { seq: ['🐶', '🐱', '🐶', '🐱', '🐶'], ans: '🐱', opts: ['🐶', '🐱', '🐰'] },
+  { seq: ['⭐', '⭐', '🌙', '⭐', '⭐'], ans: '🌙', opts: ['⭐', '🌙', '☀️'] },
+  { seq: ['🟦', '🟨', '🟥', '🟦', '🟨'], ans: '🟥', opts: ['🟨', '🟥', '🟦'] }
+];
+var DAYNIGHT = [['☀️', 'day'], ['🌙', 'night'], ['⭐', 'night'], ['☁️', 'day'], ['🦉', 'night'], ['🌈', 'day']];
 function clockSvg(h) {
   var a = h % 12 * 30, rad = function (d) { return (d - 90) * Math.PI / 180; }, svg = '<svg class="clockface" viewBox="-110 -110 220 220" role="img" aria-label="clock"><circle r="102" fill="#fbf8f1" stroke="#c98b4a" stroke-width="10"/>';
   for (var n = 1; n <= 12; n++) svg += '<text x="' + (78 * Math.cos(rad(n * 30))).toFixed(1) + '" y="' + (78 * Math.sin(rad(n * 30)) + 9).toFixed(1) + '" text-anchor="middle" font-size="26" font-weight="800" fill="#121528">' + n + '</text>';
@@ -168,13 +189,14 @@ var GAMES = {
   fizz: { field: 'fizzDone', n: FIZZ.length, run: runFizz }, seesaw: { field: 'seesawDone', n: SEESAW.length, run: runSeesaw },
   bulb: { field: 'bulbDone', n: BULB.length, run: runBulb }, scales: { field: 'scalesDone', n: FRUIT.length, run: runScales },
   baby: { field: 'babyDone', n: BABY.length, run: runBaby }, pond: { field: 'pondDone', n: POND.length, run: runPond },
+  pattern: { field: 'patternDone', n: PATTERN.length, run: runPattern }, daynight: { field: 'dayDone', n: DAYNIGHT.length, run: runDaynight },
   share: { field: 'shareDone', n: SHARE.length, run: runShare }, clock: { field: 'clockDone', n: CLOCK.length, run: runClock }
 };
 var tab = GAMES[save.tab] ? save.tab : 'fizz', G = GAMES[tab], done = (save[G.field] && typeof save[G.field] === 'object') ? save[G.field] : {}, cur = 0, solver = null, busy = false;
 save[G.field] = done;
 function firstOpen() { for (var i = 0; i < G.n; i++) if (!done[i]) return i; return -1; }
 function dots() { var h = ''; for (var i = 0; i < G.n; i++) h += '<i class="' + (done[i] ? 'on ' : '') + (i === cur ? 'cur' : '') + '"></i>'; $('dots').innerHTML = h; }
-function goal(ico, pair) { $('gi').textContent = ico; $('gt').textContent = T(pair); $('say').onclick = function () { say(pair); }; say(pair); }
+function goal(ico, pair) { $('gi').textContent = ico; $('gt').textContent = T(pair); $('say').onclick = function () { say(pair, true); }; say(pair); }
 function later(ms, fn) { busy = true; setTimeout(function () { busy = false; fn(); }, ms); }
 function confetti() { for (var i = 0; i < 18; i++) { var c = document.createElement('div'); c.className = 'conf'; c.textContent = ['⭐', '🎉', '✨', '🌟'][i % 4]; c.style.left = (Math.random() * 96) + 'vw'; c.style.animationDelay = (Math.random() * .5) + 's'; document.body.appendChild(c); setTimeout(function (n) { n.remove(); }.bind(null, c), 2600); } }
 
@@ -325,9 +347,38 @@ function runClock(i) {
   solver = function () { tap(h); };
 }
 
+function runPattern(i) {
+  var r = PATTERN[i];
+  goal('🔴', ['What comes next?', 'आगे क्या आएगा?']);
+  $('scene').innerHTML = '<div class="row beads" id="beads">' + r.seq.map(function (b) { return '<span class="bead">' + b + '</span>'; }).join('') + '<span class="bead q" id="bq">❔</span></div>';
+  $('tray').innerHTML = r.opts.map(function (o, j) { return '<button class="big" data-j="' + j + '" aria-label="choice ' + (j + 1) + '">' + o + '</button>'; }).join('');
+  function tap(j) {
+    if (busy) return; var o = r.opts[j]; sfx.pop();
+    if (o === r.ans) { $('bq').textContent = o; $('bq').classList.add('pop'); busy = true; var m = ['Yes! The pattern goes on.', 'हाँ! पैटर्न आगे चलता है।']; say(m); later(1400, function () { win(m); }); }
+    else { sfx.no(); var b = document.querySelector('[data-j="' + j + '"]'); b.classList.add('shake'); say(['Not this one. Try again!', 'यह नहीं। फिर से देखो!']); later(500, function () { b.classList.remove('shake'); }); }
+  }
+  document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.j); }; });
+  solver = function () { tap(r.opts.indexOf(r.ans)); };
+}
+
+function runDaynight(i) {
+  var r = DAYNIGHT[i];
+  goal('🌞', ['Day or night?', 'दिन या रात?']);
+  $('scene').innerHTML = '<div class="huge pop" id="dn">' + r[0] + '</div>';
+  $('tray').innerHTML = '<button class="big" data-k="day" aria-label="day">🌞<small>' + esc(T(['day', 'दिन'])) + '</small></button><button class="big" data-k="night" aria-label="night">🌙<small>' + esc(T(['night', 'रात'])) + '</small></button>';
+  function tap(k) {
+    if (busy) return; sfx.pop();
+    if (k === r[1]) { busy = true; document.body.classList.toggle('nightbg', k === 'night'); var m = k === 'day' ? ['Yes! It is a day thing.', 'हाँ! यह दिन की चीज़ है।'] : ['Yes! It is a night thing.', 'हाँ! यह रात की चीज़ है।']; say(m); later(1400, function () { document.body.classList.remove('nightbg'); win(m); }); }
+    else { sfx.no(); var b = document.querySelector('[data-k="' + k + '"]'); b.classList.add('shake'); say(['Not this one. Try again!', 'यह नहीं। फिर से देखो!']); later(500, function () { b.classList.remove('shake'); }); }
+  }
+  document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(b.dataset.k); }; });
+  solver = function () { tap(r[1]); };
+}
+
 /* test hooks used by the app's smoke test */
 window.__curio = { tab: tab, round: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { if (!$('win').hidden) $('wgo').click(); } };
 window.__curioDispose = function () { try { speechSynthesis.cancel(); if (voice) voice.pause(); } catch (e) {} };
+setVoice(voiceOn);
 var go = firstOpen(); start(go < 0 ? 0 : go);
 })();
 </script>

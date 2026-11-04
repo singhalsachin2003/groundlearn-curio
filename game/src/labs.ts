@@ -57,6 +57,13 @@ export const LABS: Lab[] = [
   { id: 'ladoo', world: 'inventor2', only: 'tinkerer', subject: 'math', icon: '🟠', name: { en: 'Ladoo Fractions', hi: 'लड्डू के भिन्न' }, blurb: { en: 'Take a fraction of the box', hi: 'डिब्बे का एक भिन्न भाग लो' }, progress: { field: 'ladooDone', total: 6, kind: 'levels' } },
   { id: 'moon', world: 'inventor2', subject: 'phy', icon: '🌙', name: { en: 'Moon Phases', hi: 'चाँद की कलाएँ' }, blurb: { en: 'Move the Moon round the Earth', hi: 'चाँद को पृथ्वी के चारों ओर घुमाओ' }, progress: { field: 'moonDone', total: 6, kind: 'levels' } },
   { id: 'area', world: 'inventor2', subject: 'math', icon: '📐', name: { en: 'Area and Perimeter', hi: 'क्षेत्रफल और परिमाप' }, blurb: { en: 'Build shapes on a grid', hi: 'ग्रिड पर आकृतियाँ बनाओ' }, progress: { field: 'areaDone', total: 6, kind: 'levels' } },
+  // Round 5: next batch.
+  { id: 'pattern', world: 'explorer', only: 'explorer', subject: 'math', icon: '🔴', name: { en: 'Pattern Beads', hi: 'मोतियों के पैटर्न' }, blurb: { en: 'What comes next?', hi: 'आगे क्या आएगा?' }, progress: { field: 'patternDone', total: 6, kind: 'levels' } },
+  { id: 'daynight', world: 'explorer', only: 'explorer', subject: 'phy', icon: '🌞', name: { en: 'Day and Night', hi: 'दिन और रात' }, blurb: { en: 'Is it a day or night thing?', hi: 'यह दिन की चीज़ है या रात की?' }, progress: { field: 'dayDone', total: 6, kind: 'levels' } },
+  { id: 'symmetry', world: 'inventor2', only: 'tinkerer', subject: 'math', icon: '🦋', name: { en: 'Mirror Pictures', hi: 'दर्पण चित्र' }, blurb: { en: 'Copy the other half', hi: 'दूसरा आधा हिस्सा बनाओ' }, progress: { field: 'symDone', total: 6, kind: 'levels' } },
+  { id: 'water', world: 'inventor2', only: 'tinkerer', subject: 'chem', icon: '🌧️', name: { en: 'Water Cycle', hi: 'जल चक्र' }, blurb: { en: 'Put the steps in order', hi: 'चरणों को क्रम में लगाओ' }, progress: { field: 'waterDone', total: 6, kind: 'levels' } },
+  { id: 'decimal', world: 'inventor2', subject: 'math', icon: '💯', name: { en: 'Decimals and Percent', hi: 'दशमलव और प्रतिशत' }, blurb: { en: 'Shade the hundred grid', hi: 'सौ वर्गों की ग्रिड रंगो' }, progress: { field: 'decDone', total: 6, kind: 'levels' } },
+  { id: 'pythag', world: 'inventor2', subject: 'math', icon: '📏', name: { en: 'Pythagoras Squares', hi: 'पाइथागोरस के वर्ग' }, blurb: { en: 'Squares on a right triangle', hi: 'समकोण त्रिभुज पर वर्ग' }, progress: { field: 'pythDone', total: 6, kind: 'levels' } },
 ];
 
 
@@ -74,7 +81,7 @@ export const LEVEL_FIELDS: Record<string, string> = {
   launchStars: 'launch', lightStars: 'light', graphStars: 'graph', bodyDone: 'body', balSolved: 'balance',
   geneDone: 'genes', circDone: 'circuit', ecoDone: 'eco', machDone: 'mach', netsDone: 'nets',
   atomDone: 'atom', fizzDone: 'fizz', seesawDone: 'seesaw', bulbDone: 'bulb', scalesDone: 'scales', babyDone: 'baby', pondDone: 'pond',
-  matterDone: 'matter', fractionDone: 'fraction', soundDone: 'sound', cellDone: 'cell', shareDone: 'share', clockDone: 'clock', groupsDone: 'groups', ladooDone: 'ladoo', moonDone: 'moon', areaDone: 'area', mirrorStars: 'mirror', coordDone: 'coord', peaDone: 'pea', chainDone: 'chain',
+  matterDone: 'matter', fractionDone: 'fraction', soundDone: 'sound', cellDone: 'cell', shareDone: 'share', clockDone: 'clock', groupsDone: 'groups', ladooDone: 'ladoo', moonDone: 'moon', areaDone: 'area', patternDone: 'pattern', dayDone: 'daynight', symDone: 'symmetry', waterDone: 'water', decDone: 'decimal', pythDone: 'pythag', mirrorStars: 'mirror', coordDone: 'coord', peaDone: 'pea', chainDone: 'chain',
 };
 /** Collections in a world save where each new item is a discovery (field → lab id). */
 export const FOUND_FIELDS: Record<WorldId, Record<string, string>> = {

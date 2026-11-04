@@ -38,4 +38,10 @@ export const EXAMPLES: Record<string, Example> = {
   ladoo: { title: 'A fraction of the box', steps: ['The box holds equal ladoos. 1/2 of 8 means split 8 into 2 equal parts and take 1 part.', 'Tap the ladoos you take.', 'Check: divide the box by the bottom number, then multiply by the top number.'] },
   moon: { title: 'Phases of the Moon', steps: ['The Sun always lights half of the Moon.', 'Slide the Moon round the Earth. From Earth you see more or less of the lit half.', 'Moon between Earth and Sun: new moon. Earth between: full moon.'] },
   area: { title: 'Area and perimeter', steps: ['Tap squares on the grid to colour them.', 'Area is how many squares you coloured. Perimeter is the length of the outside edge.', 'Same area can have different perimeters: a long thin shape has a longer edge.'] },
+  pattern: { title: 'Carry on the pattern', steps: ['Look at the beads from left to right.', 'Find what repeats: red, blue, red, blue.', 'Tap the picture that comes next.'] },
+  daynight: { title: 'Day or night?', steps: ['A picture shows up, such as the Sun.', 'Tap Day if you see it in the day sky, Night if you see it at night.', 'The Sun shines in the day. Owls and stars come out at night.'] },
+  symmetry: { title: 'Mirror pictures', steps: ['The dotted line is a mirror. The left side is already coloured.', 'Colour the right side so it looks like the left in a mirror.', 'Each coloured square on the left needs a partner the same distance from the line.'] },
+  water: { title: 'Water on a journey', steps: ['The cards are the steps of a story, but they are mixed up.', 'Tap the first step, then the next, and so on.', 'A wrong tap shakes the card. Try the next one.'] },
+  decimal: { title: 'Shade the grid', steps: ['The grid has 100 squares. Each square is 1 hundredth.', '0.5 means 50 squares, which is 50% or half.', 'Slide to shade the right number of squares.'] },
+  pythag: { title: 'Squares on a triangle', steps: ['Slide the two short sides, a and b.', 'The squares on them have areas a × a and b × b.', 'In a right triangle the two small squares add up to the big square: a² + b² = c².'] },
 };

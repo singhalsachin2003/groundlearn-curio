@@ -75,6 +75,7 @@ export function start(el: HTMLElement) {
     if (m.t === 'back') onBack();
   });
 
+  (window as unknown as Record<string, unknown>).curioSetVoice = (v: boolean) => { if ((S.voice !== false) !== v) { S.voice = v; saveShell(); } };
   (window as unknown as Record<string, unknown>).curioWorld = {
     canAnswer(): boolean {
       const p = active(); if (!p) return true; regen(p);
@@ -251,7 +252,7 @@ window.addEventListener('resize', () => requestAnimationFrame(fitIsland));
 function enterWorld(lab: Lab) {
   const p = active(); if (!p) return;
   const patch: Record<string, unknown> = lab.world !== 'colour'
-    ? { tab: lab.id, sound: S.sound }
+    ? { tab: lab.id, sound: S.sound, voice: S.voice !== false }
     : { mode: p.band, lang: S.lang, sound: S.sound };
   loadWorldSave(p.id, lab.world, patch);
   current = { lab, world: lab.world, pid: p.id };
@@ -426,6 +427,7 @@ function parentCorner() {
         <button class="link" id="pcRestore">${t('restore')}</button></section>
       <section class="kv"><span><b>${t('adHearts')}</b><small>${t('adHeartsNote')}</small></span>${toggle('pcAdH', S.adsForHearts)}</section>
       <section class="kv"><span><b>${t('sound')}</b></span>${toggle('pcSound', S.sound)}</section>
+      <section class="kv"><span><b>${t('voice')}</b></span>${toggle('pcVoice', S.voice !== false)}</section>
       <section class="kv"><span><b>${t('language')}</b></span><span class="seg"><button data-lang="en" aria-pressed="${S.lang === 'en'}">English</button><button data-lang="hi" aria-pressed="${S.lang === 'hi'}">हिंदी</button></span></section>
       <section><h3>${t('players')}</h3>${plist}</section>
       <button class="link" id="pcRules">ℹ️ ${t('rulesBtn')}</button>
@@ -436,6 +438,7 @@ function parentCorner() {
   $('#pcRestore').onclick = () => send({ t: 'restore' });
   $('#pcAdH').onclick = () => { S.adsForHearts = !S.adsForHearts; saveShell(); parentCorner(); };
   $('#pcSound').onclick = () => { S.sound = !S.sound; saveShell(); parentCorner(); };
+  $('#pcVoice').onclick = () => { S.voice = S.voice === false; saveShell(); parentCorner(); };
   document.querySelectorAll<HTMLElement>('[data-lang]').forEach(b => b.onclick = () => { S.lang = b.dataset.lang as 'en' | 'hi'; setLang(S.lang); saveShell(); hub(); parentCorner(); });
   document.querySelectorAll<HTMLSelectElement>('[data-band-of]').forEach(s => s.onchange = () => { const p = S.profiles.find(x => x.id === s.dataset.bandOf); if (p) { p.band = s.value as Band; saveShell(); hub(); parentCorner(); } });
   document.querySelectorAll<HTMLElement>('[data-up]').forEach(b => b.onclick = () => { const p = S.profiles.find(x => x.id === b.dataset.up); if (p && NEXT[p.band]) { p.band = NEXT[p.band]!; saveShell(); hub(); parentCorner(); } });

@@ -63,6 +63,14 @@ svg.pizza path{cursor:pointer;stroke:#7a3b13;stroke-width:2;transition:fill .15s
 .grid8{display:grid;gap:3px;width:min(92%,380px)}
 .cell{aspect-ratio:1;border:0;border-radius:6px;background:rgba(255,255,255,.14);min-height:30px}
 .cell.on{background:var(--marigold);box-shadow:inset 0 0 0 2px #7a3b13}
+
+.cell.fixed{cursor:default}.cell.fix{background:#7bd88f;box-shadow:inset 0 0 0 2px #1f6b4a}.cell.mid{margin-right:9px;position:relative}.cell.mid::after{content:'';position:absolute;right:-7px;top:-2px;bottom:-2px;border-right:3px dotted rgba(255,255,255,.7)}
+.wcards{display:flex;flex-direction:column;gap:8px;width:min(94%,420px)}
+.wcard{display:flex;align-items:center;gap:10px;text-align:left;background:linear-gradient(#fffdf6,#f6ecd6);border:2px solid var(--ink);border-radius:14px;padding:8px 12px;box-shadow:0 3px 0 rgba(0,0,0,.45);position:relative;min-height:48px}
+.wcard .wi{font-size:28px;line-height:1}.wcard .wt{font-weight:700;font-size:15px;flex:1}.wcard .wn{width:26px;height:26px;border-radius:50%;background:var(--mint);color:#fff;display:none;align-items:center;justify-content:center;font-size:14px}
+.wcard.done{background:#c8f3df;border-color:var(--mint)}.wcard.done .wn{display:flex}
+.g100{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;width:min(78vw,300px);aspect-ratio:1}
+.g100 i{background:rgba(255,255,255,.14);border-radius:3px}.g100 i.on{background:var(--marigold)}
 </style>
 
 <i id="noTR" hidden></i>
@@ -205,6 +213,62 @@ var LABS = {
       q: Q(['3 × 4 and 2 × 6 both have area 12. Which has the longer perimeter?', '3 × 4 और 2 × 6 दोनों का क्षेत्रफल 12 है। किसका परिमाप ज़्यादा है?'], [['2 × 6 (16)', '2 × 6 (16)'], ['3 × 4 (14)', '3 × 4 (14)'], ['They match', 'बराबर']], 0, ['Long thin shapes have more edge: 2 × (2 + 6) = 16 against 2 × (3 + 4) = 14.', 'लंबी पतली आकृतियों का किनारा ज़्यादा होता है: 2 × (2 + 6) = 16, जबकि 2 × (3 + 4) = 14।']) },
     { t: ['Make a square with area 16 and perimeter 16.', 'क्षेत्रफल 16 और परिमाप 16 वाला वर्ग बनाओ।'], A: 16, P: 16,
       q: Q(['With perimeter 16, a 4 × 4 square has area 16. A 2 × 6 rectangle has area…', 'परिमाप 16 पर 4 × 4 के वर्ग का क्षेत्रफल 16 है। 2 × 6 के आयत का क्षेत्रफल…'], [['12', '12'], ['16', '16'], ['8', '8']], 0, ['Same fence, different fields. The most square-like shape holds the most area.', 'बाड़ एक जैसी, खेत अलग। जो आकृति वर्ग के सबसे क़रीब हो उसमें सबसे ज़्यादा क्षेत्रफल आता है।']) }
+  ] },
+  symmetry: { field: 'symDone', name: ['Mirror Pictures', 'दर्पण चित्र'], levels: [
+    { t: ['The dotted line is a mirror. Colour the right side to match the left.', 'बिंदु वाली रेखा दर्पण है। दाएँ हिस्से को बाएँ जैसा रंगो।'], pat: ['....', '...#', '...#', '...#', '....'],
+      q: Q(['A line of symmetry splits a shape into…', 'समरूपता की रेखा आकृति को बाँटती है…'], [['two matching halves', 'दो एक जैसे हिस्सों में'], ['two different halves', 'दो अलग हिस्सों में'], ['three parts', 'तीन हिस्सों में']], 0, ['Fold along the line and the two halves fit exactly on top of each other.', 'रेखा पर मोड़ो तो दोनों हिस्से एक-दूसरे पर ठीक बैठते हैं।']) },
+    { t: ['Mirror the staircase.', 'सीढ़ियों का दर्पण-चित्र बनाओ।'], pat: ['#...', '##..', '###.', '##..', '#...'],
+      q: Q(['A square is 3 squares left of the mirror. Its partner is…', 'एक वर्ग दर्पण से 3 वर्ग बाईं ओर है। उसका जोड़ीदार…'], [['3 squares right', '3 वर्ग दाईं ओर'], ['1 square right', '1 वर्ग दाईं ओर'], ['6 squares right', '6 वर्ग दाईं ओर']], 0, ['A mirror image is the same distance on the other side of the line.', 'दर्पण-प्रतिबिंब रेखा के दूसरी ओर उतनी ही दूरी पर होता है।']) },
+    { t: ['Mirror the leaf.', 'पत्ते का दर्पण-चित्र बनाओ।'], pat: ['..#.', '.###', '####', '.###', '..#.'],
+      q: Q(['Which letter has a line of symmetry down the middle?', 'किस अक्षर में बीच से सीधी समरूपता रेखा है?'], [['A', 'A'], ['F', 'F'], ['G', 'G']], 0, ['A folds onto itself along a vertical line. F and G do not.', 'A एक खड़ी रेखा पर मोड़ने से ख़ुद पर बैठ जाता है। F और G नहीं।']) },
+    { t: ['Mirror the four corners and the bar.', 'चारों कोनों और पट्टी का दर्पण-चित्र बनाओ।'], pat: ['#..#', '....', '####', '....', '#..#'],
+      q: Q(['How many lines of symmetry does a square have?', 'वर्ग में समरूपता की कितनी रेखाएँ होती हैं?'], [['4', '4'], ['2', '2'], ['1', '1']], 0, ['Two through the middles of opposite sides and two corner to corner.', 'दो आमने-सामने की भुजाओं के बीच से और दो कोने से कोने तक।']) },
+    { t: ['Mirror the pattern carefully.', 'पैटर्न का ध्यान से दर्पण-चित्र बनाओ।'], pat: ['##..', '#.#.', '..##', '#.#.', '##..'],
+      q: Q(['How many lines of symmetry does a circle have?', 'वृत्त में समरूपता की कितनी रेखाएँ होती हैं?'], [['as many as you like', 'जितनी चाहो उतनी'], ['1', '1'], ['4', '4']], 0, ['Any line through the centre folds a circle onto itself.', 'केंद्र से गुज़रती कोई भी रेखा वृत्त को ख़ुद पर मोड़ देती है।']) },
+    { t: ['Mirror the slope. Take your time.', 'ढलान का दर्पण-चित्र बनाओ। आराम से।'], pat: ['...#', '..#.', '.#..', '#...', '####'],
+      q: Q(['Which of these has no line of symmetry?', 'इनमें से किसमें समरूपता रेखा नहीं है?'], [['the letter F', 'अक्षर F'], ['the letter H', 'अक्षर H'], ['a circle', 'वृत्त']], 0, ['Fold F any way and it will not match itself.', 'F को किसी भी तरह मोड़ो, वह ख़ुद से नहीं मिलेगा।']) }
+  ] },
+  water: { field: 'waterDone', name: ['Water Cycle', 'जल चक्र'], levels: [
+    { t: ['Put the water cycle in order. Tap the steps one by one.', 'जल चक्र को क्रम में लगाओ। चरणों को एक-एक करके छुओ।'], steps: [['☀️', ['The Sun heats the sea', 'सूरज समुद्र को गरम करता है']], ['💨', ['Water rises as vapour', 'पानी भाप बनकर ऊपर उठता है']], ['☁️', ['Vapour cools into clouds', 'भाप ठंडी होकर बादल बनती है']], ['🌧️', ['Rain falls', 'बारिश गिरती है']], ['🌊', ['Water flows back to the sea', 'पानी बहकर समुद्र में लौटता है']]],
+      q: Q(['Water turning into vapour is called…', 'पानी का भाप बनना कहलाता है…'], [['evaporation', 'वाष्पीकरण'], ['condensation', 'संघनन'], ['freezing', 'जमना']], 0, ['The Sun gives water energy to escape into the air as vapour.', 'सूरज पानी को ऊर्जा देता है और वह भाप बनकर हवा में चला जाता है।']) },
+    { t: ['What happens to kettle steam near a cold window?', 'ठंडी खिड़की के पास केतली की भाप का क्या होता है?'], steps: [['🫖', ['Water boils in a kettle', 'केतली में पानी उबलता है']], ['💨', ['Steam rises', 'भाप ऊपर उठती है']], ['🪟', ['Steam touches a cold window', 'भाप ठंडी खिड़की से टकराती है']], ['💧', ['Drops of water form', 'पानी की बूँदें बन जाती हैं']]],
+      q: Q(['Steam turning into drops on cold glass is…', 'ठंडे शीशे पर भाप का बूँदें बनना है…'], [['condensation', 'संघनन'], ['evaporation', 'वाष्पीकरण'], ['melting', 'पिघलना']], 0, ['Cooling makes vapour particles slow down and clump into drops.', 'ठंडक से भाप के कण धीमे होकर बूँदों में जुड़ जाते हैं।']) },
+    { t: ['How do wet clothes dry? Put the steps in order.', 'गीले कपड़े कैसे सूखते हैं? चरणों को क्रम में लगाओ।'], steps: [['👕', ['Wet clothes hang on a line', 'गीले कपड़े रस्सी पर टँगे हैं']], ['☀️', ['The Sun warms them', 'धूप उन्हें गरम करती है']], ['💨', ['Water evaporates into the air', 'पानी वाष्प बनकर हवा में चला जाता है']], ['👔', ['The clothes are dry', 'कपड़े सूख जाते हैं']]],
+      q: Q(['Why do the clothes get dry?', 'कपड़े सूखते क्यों हैं?'], [['the water evaporates', 'पानी वाष्प बन जाता है'], ['the water vanishes for ever', 'पानी हमेशा के लिए ग़ायब हो जाता है'], ['the cloth drinks it', 'कपड़ा उसे पी लेता है']], 0, ['The water is still there, as vapour in the air.', 'पानी अब भी है, हवा में भाप के रूप में।']) },
+    { t: ['Follow snow from cloud to river.', 'बादल से नदी तक बर्फ़ का पीछा करो।'], steps: [['☁️', ['Cold clouds make snow', 'ठंडे बादल बर्फ़ बनाते हैं']], ['❄️', ['Snow falls on the mountain', 'पहाड़ पर बर्फ़ गिरती है']], ['☀️', ['Spring sunshine melts it', 'वसंत की धूप उसे पिघलाती है']], ['🏞️', ['A river carries the water down', 'नदी पानी को नीचे ले जाती है']]],
+      q: Q(['Snow turning into water is…', 'बर्फ़ का पानी बनना है…'], [['melting', 'पिघलना'], ['boiling', 'उबलना'], ['condensation', 'संघनन']], 0, ['Heat makes the ice particles move more until they slide as liquid.', 'गरमी से बर्फ़ के कण ज़्यादा हिलते हैं और तरल बनकर फिसलने लगते हैं।']) },
+    { t: ['Where does a puddle go? Put the steps in order.', 'गड्ढे का पानी कहाँ जाता है? चरणों को क्रम में लगाओ।'], steps: [['🌧️', ['Rain makes a puddle', 'बारिश से गड्ढे में पानी भरता है']], ['☀️', ['The Sun comes out', 'धूप निकलती है']], ['💨', ['The puddle shrinks as water evaporates', 'पानी वाष्प बनने से गड्ढा सिकुड़ता है']], ['☁️', ['The vapour joins a cloud', 'वाष्प बादल में मिल जाती है']]],
+      q: Q(['Where does the puddle water go?', 'गड्ढे का पानी कहाँ जाता है?'], [['into the air as vapour', 'भाप बनकर हवा में'], ['it is destroyed', 'वह नष्ट हो जाता है'], ['it turns into salt', 'वह नमक बन जाता है']], 0, ['Water is never used up. It keeps travelling round the cycle.', 'पानी कभी ख़त्म नहीं होता। वह चक्र में घूमता रहता है।']) },
+    { t: ['Make salt from sea water. Put the steps in order.', 'समुद्र के पानी से नमक बनाओ। चरणों को क्रम में लगाओ।'], steps: [['🌊', ['Sea water in a shallow pan', 'उथली थाली में समुद्र का पानी']], ['☀️', ['The Sun heats it', 'धूप उसे गरम करती है']], ['💨', ['The water evaporates', 'पानी वाष्प बन जाता है']], ['🧂', ['Salt is left behind', 'नमक पीछे रह जाता है']]],
+      q: Q(['Why does the salt stay behind?', 'नमक पीछे क्यों रह जाता है?'], [['only the water evaporates', 'सिर्फ़ पानी वाष्प बनता है'], ['salt evaporates too', 'नमक भी वाष्प बनता है'], ['salt is lighter than air', 'नमक हवा से हल्का है']], 0, ['Salt does not evaporate at these temperatures, so it stays as crystals.', 'इस तापमान पर नमक वाष्प नहीं बनता, इसलिए क्रिस्टल बनकर रह जाता है।']) }
+  ] },
+  decimal: { field: 'decDone', name: ['Decimals and Percent', 'दशमलव और प्रतिशत'], levels: [
+    { t: ['Shade 0.5 of the grid.', 'ग्रिड का 0.5 भाग रंगो।'], n: 50,
+      q: Q(['Which is the same as 0.5?', 'कौन 0.5 के बराबर है?'], [['50%', '50%'], ['5%', '5%'], ['0.05', '0.05']], 0, ['0.5 = 50/100 = 50%.', '0.5 = 50/100 = 50%।']) },
+    { t: ['Shade 0.25 of the grid.', 'ग्रिड का 0.25 भाग रंगो।'], n: 25,
+      q: Q(['0.25 as a fraction is…', '0.25 भिन्न के रूप में…'], [['1/4', '1/4'], ['1/5', '1/5'], ['2/5', '2/5']], 0, ['25/100 simplifies to 1/4.', '25/100 सरल करने पर 1/4।']) },
+    { t: ['Shade 35% of the grid.', 'ग्रिड का 35% भाग रंगो।'], n: 35,
+      q: Q(['35% as a decimal is…', '35% दशमलव में…'], [['0.35', '0.35'], ['3.5', '3.5'], ['0.035', '0.035']], 0, ['Percent means out of 100: 35% = 35/100 = 0.35.', 'प्रतिशत यानी सौ में से: 35% = 35/100 = 0.35।']) },
+    { t: ['Shade 3/10 of the grid.', 'ग्रिड का 3/10 भाग रंगो।'], n: 30,
+      q: Q(['3/10 as a decimal is…', '3/10 दशमलव में…'], [['0.3', '0.3'], ['0.03', '0.03'], ['3.10', '3.10']], 0, ['One tenth is 0.1, so three tenths is 0.3.', 'एक दसवाँ भाग 0.1 है, तो तीन दसवाँ भाग 0.3।']) },
+    { t: ['Shade 0.07 of the grid. It is a small amount.', 'ग्रिड का 0.07 भाग रंगो। यह थोड़ी मात्रा है।'], n: 7,
+      q: Q(['Which is the smallest?', 'सबसे छोटा कौन सा है?'], [['0.07', '0.07'], ['0.7', '0.7'], ['0.17', '0.17']], 0, ['0.07 is 7 hundredths. 0.17 is 17 hundredths and 0.7 is 70 hundredths.', '0.07 यानी 7 सौवाँ। 0.17 यानी 17 सौवाँ और 0.7 यानी 70 सौवाँ।']) },
+    { t: ['Shade 4/5 of the grid.', 'ग्रिड का 4/5 भाग रंगो।'], n: 80,
+      q: Q(['4/5 as a percent is…', '4/5 प्रतिशत में…'], [['80%', '80%'], ['45%', '45%'], ['54%', '54%']], 0, ['1/5 = 20%, so 4/5 = 80%.', '1/5 = 20%, तो 4/5 = 80%।']) }
+  ] },
+  pythag: { field: 'pythDone', name: ['Pythagoras Squares', 'पाइथागोरस के वर्ग'], levels: [
+    { t: ['Set a = 3 and b = 4. Watch the big square.', 'a = 3 और b = 4 रखो। बड़े वर्ग को देखो।'], a: 3, b: 4,
+      q: Q(['In a right triangle with short sides 3 and 4, the long side c is…', 'समकोण त्रिभुज में छोटी भुजाएँ 3 और 4 हों तो लंबी भुजा c…'], [['5', '5'], ['7', '7'], ['12', '12']], 0, ['9 + 16 = 25, and the square root of 25 is 5.', '9 + 16 = 25, और 25 का वर्गमूल 5 है।']) },
+    { t: ['Make a = 6 and a hypotenuse c of exactly 10. Find b.', 'a = 6 रखो और कर्ण c ठीक 10 बनाओ। b ढूँढो।'], a: 6, b: 8,
+      q: Q(['Pythagoras says…', 'पाइथागोरस कहते हैं…'], [['a² + b² = c²', 'a² + b² = c²'], ['a + b = c', 'a + b = c'], ['a × b = c', 'a × b = c']], 0, ['The two small squares together have the same area as the big one.', 'दोनों छोटे वर्गों का क्षेत्रफल मिलकर बड़े वर्ग के बराबर होता है।']) },
+    { t: ['a = 5 and c = 13. Find b.', 'a = 5 और c = 13। b ढूँढो।'], a: 5, b: 12,
+      q: Q(['Which makes a right triangle with 5?', 'किसके साथ 5 से समकोण त्रिभुज बनता है?'], [['12 and 13', '12 और 13'], ['12 and 14', '12 और 14'], ['12 and 15', '12 और 15']], 0, ['25 + 144 = 169 = 13 × 13.', '25 + 144 = 169 = 13 × 13।']) },
+    { t: ['a = 8 and c = 17. Find b.', 'a = 8 और c = 17। b ढूँढो।'], a: 8, b: 15,
+      q: Q(['The hypotenuse is…', 'कर्ण है…'], [['the longest side, opposite the right angle', 'सबसे लंबी भुजा, समकोण के सामने'], ['the shortest side', 'सबसे छोटी भुजा'], ['any side you like', 'कोई भी भुजा']], 0, ['It is always opposite the right angle and longer than both other sides.', 'यह हमेशा समकोण के सामने होती है और बाक़ी दोनों से लंबी।']) },
+    { t: ['a = 9 and c = 15. Find b.', 'a = 9 और c = 15। b ढूँढो।'], a: 9, b: 12,
+      q: Q(['Is 9, 12, 15 a right triangle?', 'क्या 9, 12, 15 समकोण त्रिभुज है?'], [['Yes: 81 + 144 = 225', 'हाँ: 81 + 144 = 225'], ['No', 'नहीं'], ['Only if 9 is the long side', 'सिर्फ़ तब जब 9 लंबी भुजा हो']], 0, ['It is the 3-4-5 triangle made three times bigger.', 'यह 3-4-5 त्रिभुज है जो तीन गुना बड़ा है।']) },
+    { t: ['a = 7 and c = 25. Find b. It is a big one!', 'a = 7 और c = 25। b ढूँढो। यह बड़ा वाला है!'], a: 7, b: 24,
+      q: Q(['Which is a bigger copy of 3-4-5?', 'कौन 3-4-5 की बड़ी नक़ल है?'], [['6, 8, 10', '6, 8, 10'], ['5, 6, 7', '5, 6, 7'], ['4, 5, 6', '4, 5, 6']], 0, ['Double every side: 6, 8, 10. The shape stays a right triangle.', 'हर भुजा दुगनी: 6, 8, 10। आकृति समकोण त्रिभुज ही रहती है।']) }
   ] }
 };
 var tab = LABS[save.tab] ? save.tab : 'matter', L = LABS[tab], levels = L.levels;
@@ -465,6 +529,84 @@ MOUNT.area = function (lv) {
       for (var r = 0; r < hh; r++) for (var c = 0; c < w; c++) tog(document.querySelector('.cell[data-r="' + r + '"][data-c="' + c + '"]')); return;
     }
   };
+};
+
+/* ---------------- Mirror Pictures (Tinkerer) ---------------- */
+MOUNT.symmetry = function (lv) {
+  var R = lv.pat.length, C = 4, on = {};
+  var h = ''; for (var r = 0; r < R; r++) for (var c = 0; c < 2 * C; c++) {
+    var left = c < C, fill = left && lv.pat[r].charAt(c) === '#';
+    h += '<button class="cell' + (fill ? ' on fix' : '') + (left ? ' fixed' : '') + (c === C - 1 ? ' mid' : '') + '" data-r="' + r + '" data-c="' + c + '"' + (left ? ' disabled' : ' aria-pressed="false"') + ' aria-label="square ' + (r + 1) + ',' + (c + 1) + '"></button>';
+  }
+  $('stage').innerHTML = '<div class="grid8" style="grid-template-columns:repeat(8,1fr)">' + h + '</div>';
+  $('ctrl').innerHTML = '<div class="row"><span class="state" id="sm"></span><button class="btn" id="sc">↺ ' + T(['Clear', 'साफ़ करो']) + '</button></div><span class="note">' + T(['Tap squares on the right side.', 'दाईं ओर के वर्गों को छुओ।']) + '</span>';
+  function want(r, c) { return lv.pat[r].charAt(C - 1 - (c - C)) === '#'; }
+  function check() {
+    var bad = 0; for (var r = 0; r < R; r++) for (var c = C; c < 2 * C; c++) if (!!on[r + ',' + c] !== want(r, c)) bad++;
+    $('sm').textContent = bad ? (HI ? 'ग़लत वर्ग: ' : 'Squares to fix: ') + bad : '✓';
+    if (!bad && Object.keys(on).some(function (k) { return on[k]; })) setTimeout(function () { var b2 = 0; for (var r = 0; r < R; r++) for (var c = C; c < 2 * C; c++) if (!!on[r + ',' + c] !== want(r, c)) b2++; if (!b2) solved(); }, 500);
+  }
+  function tog(b) { var k = b.dataset.r + ',' + b.dataset.c; on[k] = !on[k]; b.classList.toggle('on', !!on[k]); b.setAttribute('aria-pressed', on[k] ? 'true' : 'false'); sfx.pop(); check(); }
+  document.querySelectorAll('.cell:not(.fixed)').forEach(function (b) { b.onclick = function () { tog(b); }; });
+  $('sc').onclick = function () { on = {}; document.querySelectorAll('.cell:not(.fixed)').forEach(function (b) { b.classList.remove('on'); b.setAttribute('aria-pressed', 'false'); }); check(); };
+  check();
+  solver = function () { for (var r = 0; r < R; r++) for (var c = C; c < 2 * C; c++) if (want(r, c)) tog(document.querySelector('.cell[data-r="' + r + '"][data-c="' + c + '"]')); };
+};
+
+/* ---------------- Water Cycle (Tinkerer) ---------------- */
+MOUNT.water = function (lv) {
+  var n = lv.steps.length, next = 0, order = [];
+  for (var i = 0; i < n; i++) order[(i * 3 + 1) % n] = i;
+  $('stage').innerHTML = '<div class="wcards" id="wc">' + order.map(function (idx) { var st = lv.steps[idx]; return '<button class="wcard" data-i="' + idx + '"><span class="wi">' + st[0] + '</span><span class="wt">' + esc(T(st[1])) + '</span><b class="wn"></b></button>'; }).join('') + '</div>';
+  $('ctrl').innerHTML = '<span class="state" id="ws"></span><span class="note">' + T(['Tap the steps in order, first to last.', 'पहले से आख़िरी तक चरणों को क्रम से छुओ।']) + '</span>';
+  function upd() { $('ws').textContent = (HI ? 'चरण ' : 'Step ') + Math.min(next + 1, n) + ' / ' + n; }
+  function tap(b) {
+    var i = +b.dataset.i; if (b.classList.contains('done')) return;
+    if (i === next) { b.classList.add('done'); b.querySelector('.wn').textContent = i + 1; next++; sfx.pop(); upd(); if (next === n) setTimeout(solved, 600); }
+    else { sfx.no(); b.classList.add('shake'); setTimeout(function () { b.classList.remove('shake'); }, 400); }
+  }
+  document.querySelectorAll('.wcard').forEach(function (b) { b.onclick = function () { tap(b); }; });
+  upd();
+  solver = function () { for (var j = 0; j < n; j++) tap(document.querySelector('.wcard[data-i="' + j + '"]')); };
+};
+
+/* ---------------- Decimals and Percent ---------------- */
+MOUNT.decimal = function (lv) {
+  var cells = ''; for (var i = 0; i < 100; i++) cells += '<i data-i="' + i + '"></i>';
+  $('stage').innerHTML = '<div class="g100" id="g100">' + cells + '</div>';
+  $('ctrl').innerHTML = range('dn', HI ? 'रंगे वर्ग' : 'Squares shaded', 0, 100, 1, 0) + '<div class="row"><span class="state" id="df"></span><span class="state" id="dd"></span><span class="state" id="dp"></span></div>';
+  var touched = false, n = 0;
+  var ctl = wire('dn', function (v) { return v + ' / 100'; }, function (v) {
+    n = v; touched = touched || v > 0;
+    var els = document.querySelectorAll('#g100 i'); for (var k = 0; k < 100; k++) els[k].className = k < v ? 'on' : '';
+    $('df').textContent = v + '/100'; $('dd').textContent = (v / 100).toFixed(2); $('dp').textContent = v + '%';
+    if (v === lv.n) setTimeout(function () { if (n === lv.n) solved(); }, 600);
+  });
+  solver = function () { ctl.set(lv.n); };
+};
+
+/* ---------------- Pythagoras Squares ---------------- */
+MOUNT.pythag = function (lv) {
+  var W = 340, H = 240, a = 1, b = 1;
+  $('stage').innerHTML = '<canvas id="cv" width="' + W + '" height="' + H + '"></canvas>'; var cv = $('cv'), g = cv.getContext('2d');
+  $('ctrl').innerHTML = range('pa', HI ? 'भुजा a' : 'Side a', 1, 24, 1, 1) + range('pb', HI ? 'भुजा b' : 'Side b', 1, 25, 1, 1) + '<div class="row"><span class="state" id="pe"></span></div>';
+  function sq(p, q, r2, s2, col, label) {
+    g.beginPath(); g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); g.lineTo(r2[0], r2[1]); g.lineTo(s2[0], s2[1]); g.closePath(); g.fillStyle = col; g.fill(); g.strokeStyle = '#0e1430'; g.lineWidth = 2; g.stroke();
+    g.fillStyle = '#121528'; g.font = 'bold 13px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, (p[0] + r2[0]) / 2, (p[1] + r2[1]) / 2);
+  }
+  function draw() {
+    g.fillStyle = '#0e1430'; g.fillRect(0, 0, W, H);
+    var k = Math.min((W - 20) / (a + 2 * b), (H - 20) / (2 * a + b)), ox = (W - (a + 2 * b) * k) / 2 + b * k, oy = (H - (2 * a + b) * k) / 2 + (a + b) * k;
+    var A = [ox + a * k, oy], B = [ox, oy - b * k], O = [ox, oy], n = [b * k, -a * k];
+    sq(O, A, [A[0], A[1] + a * k], [O[0], O[1] + a * k], '#ffb423', 'a² = ' + a * a);
+    sq(O, B, [B[0] - b * k, B[1]], [O[0] - b * k, O[1]], '#7bd88f', 'b² = ' + b * b);
+    sq(A, B, [B[0] + n[0], B[1] + n[1]], [A[0] + n[0], A[1] + n[1]], '#6f9bff', 'c² = ' + (a * a + b * b));
+    g.fillStyle = '#fbf8f1'; g.beginPath(); g.moveTo(O[0], O[1]); g.lineTo(A[0], A[1]); g.lineTo(B[0], B[1]); g.closePath(); g.fill(); g.strokeStyle = '#0e1430'; g.stroke();
+  }
+  function upd() { var c2 = a * a + b * b, c = Math.sqrt(c2); $('pe').textContent = a * a + ' + ' + b * b + ' = ' + c2 + '   (c ≈ ' + (Math.round(c * 100) / 100) + ')'; draw(); if (a === lv.a && b === lv.b) setTimeout(function () { if (a === lv.a && b === lv.b) solved(); }, 600); }
+  var ca = wire('pa', function (v) { return v; }, function (v) { a = v; upd(); });
+  var cb = wire('pb', function (v) { return v; }, function (v) { b = v; upd(); });
+  solver = function () { ca.set(lv.a); cb.set(lv.b); };
 };
 
 window.__curio = { tab: tab, level: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { var b = $('mdNext'); if (!$('overlay').hidden && b) b.click(); } };

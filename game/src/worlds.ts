@@ -34,6 +34,25 @@ const HIDE: Record<WorldId, string> = {
   colour: '.hud-top .row>*{display:none!important}.hud-top .row{min-height:46px}',
 };
 
+/** A shared coat of paint for every world: warmer glow, twinkling stars, softer cards and pressable buttons. */
+const POLISH = `html body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(circle at 12% 16%,rgba(255,255,255,.7) 0 1.3px,transparent 2.4px),radial-gradient(circle at 78% 10%,rgba(255,255,255,.6) 0 1.1px,transparent 2.2px),radial-gradient(circle at 44% 30%,rgba(255,255,255,.45) 0 1px,transparent 2px),radial-gradient(circle at 90% 44%,rgba(255,255,255,.5) 0 1.2px,transparent 2.2px),radial-gradient(circle at 24% 62%,rgba(255,255,255,.4) 0 1px,transparent 2px),radial-gradient(circle at 64% 80%,rgba(255,255,255,.5) 0 1.2px,transparent 2.2px);animation:curio-tw 5s ease-in-out infinite alternate}
+@keyframes curio-tw{from{opacity:.3}to{opacity:.95}}
+html body .card,html body .modal{background:linear-gradient(#fffdf6,#f6ecd6)}
+html body .btn{background:linear-gradient(#fffdf6,#f3e8cf);transition:transform .08s,box-shadow .08s}
+html body .btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+html body .btn.primary,html body .btn.sel{background:linear-gradient(#ffcf5c,#ffb423)}
+html body canvas{box-shadow:0 6px 18px rgba(0,0,0,.35)}
+@keyframes curio-drift{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
+@media (prefers-reduced-motion:reduce){html body::before{animation:none;opacity:.7}html body::after{display:none}}`;
+const drift = (e: string, top: string) => `html body::after{content:"${e}        ${e}       ${e}";position:fixed;top:${top};left:0;white-space:pre;font-size:34px;opacity:.13;pointer-events:none;z-index:-1;animation:curio-drift 70s linear infinite}`;
+const GLOW: Record<WorldId, string> = {
+  colour: '',
+  inventor: 'html body::before{animation:none;opacity:.6}html body{background-image:radial-gradient(90% 50% at 50% 0%,rgba(150,110,255,.24),rgba(150,110,255,0) 70%)}',
+  tinkerer: drift('🫧', '20%') + 'html body{background-image:radial-gradient(90% 50% at 50% 0%,rgba(80,205,170,.24),rgba(80,205,170,0) 70%)}',
+  explorer: drift('☁️', '19%'),
+  inventor2: drift('✨', '21%'),
+};
+
 const BOOT = `(function(){var P=window.parent;window.THREE=P.curioTHREE;window.curio=P.curioWorld;
 var ready=Promise.race([P.curioInstallFonts(document,FontFace),new Promise(function(r){setTimeout(r,2500)})]);
 document.addEventListener('DOMContentLoaded',function(){ready.then(function(){if(P.curioLang==='hi'&&document.getElementById('mMeta')){var nt=document.getElementById('noTR');var mk=!nt?P.curioMakeTR:(nt.getAttribute('data-tk')?P.curioMakeTK:null);if(mk){window.curioTR=mk();window.curioTR.observe(document);}}var s=document.getElementById('curio-main');var n=document.createElement('script');n.textContent=s.textContent;document.body.appendChild(n);if(P.curioWorldReady)P.curioWorldReady();});});})();`;
@@ -45,7 +64,7 @@ export function worldDoc(id: WorldId): string {
   const at = src.indexOf('<script>');
   if (at < 0) throw new Error('world has no main script: ' + id);
   src = src.slice(0, at) + '<script type="text/curio" id="curio-main">' + src.slice(at + '<script>'.length);
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><script>${BOOT}<\/script><style>${HIDE[id]}</style></head><body>${src}</body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><script>${BOOT}<\/script><style>${id === 'colour' ? '' : POLISH}${GLOW[id]}${HIDE[id]}</style></head><body>${src}</body></html>`;
 }
 
 export interface WorldWindow extends Window { __curioDispose?: () => void; __curio?: unknown }
