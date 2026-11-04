@@ -90,10 +90,17 @@ var sfx = {
   no: function () { tone(330, 220, .18, 'triangle', .07); },
   tada: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, f * 1.01, .28, 'triangle', .1, i * .09); }); }
 };
+var voice = null;
 function say(pair) {
+  var text = T(pair);
   try {
-    if (save.sound === false || !window.speechSynthesis) return;
-    speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(T(pair)); u.lang = HI ? 'hi-IN' : 'en-IN'; u.rate = .85; u.pitch = 1.15; speechSynthesis.speak(u);
+    if (window.__sayLog) window.__sayLog.push(text);
+    if (save.sound === false) return;
+    if (voice) { voice.pause(); voice = null; }
+    var vo = par && par.curioVO, src = vo && vo[(HI ? 'hi:' : 'en:') + text];
+    if (src) { voice = new Audio(src); var pr = voice.play(); if (pr && pr.catch) pr.catch(function () {}); return; }
+    if (!window.speechSynthesis) return;
+    speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = HI ? 'hi-IN' : 'en-IN'; u.rate = .85; u.pitch = 1.15; speechSynthesis.speak(u);
   } catch (e) {}
 }
 
@@ -262,7 +269,7 @@ function runPond(i) {
 
 /* test hooks used by the app's smoke test */
 window.__curio = { tab: tab, round: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { if (!$('win').hidden) $('wgo').click(); } };
-window.__curioDispose = function () { try { speechSynthesis.cancel(); } catch (e) {} };
+window.__curioDispose = function () { try { speechSynthesis.cancel(); if (voice) voice.pause(); } catch (e) {} };
 var go = firstOpen(); start(go < 0 ? 0 : go);
 })();
 </script>
