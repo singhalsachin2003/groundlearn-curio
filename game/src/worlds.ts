@@ -11,6 +11,7 @@ import inventor2Src from '../worlds/inventor2.html?raw';
 import type { WorldId } from './labs';
 import { installFonts } from './fonts';
 import { makeTranslator } from './hi/translate';
+import { VO } from './vo';
 import { makeTinkererTranslator } from './hi/tinkerer';
 
 const SRC: Record<WorldId, string> = { colour: colourSrc, inventor: inventorSrc, tinkerer: tinkererSrc, explorer: explorerSrc, inventor2: inventor2Src };
@@ -18,6 +19,7 @@ const SRC: Record<WorldId, string> = { colour: colourSrc, inventor: inventorSrc,
 // The prototypes expect a global THREE with OrbitControls attached, as the CDN build had.
 (window as unknown as Record<string, unknown>).curioTHREE = Object.assign({}, THREE_NS, { OrbitControls });
 (window as unknown as Record<string, unknown>).curioInstallFonts = installFonts;
+(window as unknown as Record<string, unknown>).curioVO = VO;
 (window as unknown as Record<string, unknown>).curioMakeTR = makeTranslator;
 (window as unknown as Record<string, unknown>).curioMakeTK = makeTinkererTranslator;
 /** Language for the next world: Hindi turns on the Inventor Lab translator. */
