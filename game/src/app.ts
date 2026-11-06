@@ -108,7 +108,7 @@ export function start(el: HTMLElement) {
   setInterval(refreshPills, 1000);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !frame) onBack(); });
   if (active()) hub(); else players();
-  if (!S.seenRules) setTimeout(() => rules(true), 400);
+  if (!S.seenRules) setTimeout(onboard, 400);
   send({ t: 'ready' });
 }
 
@@ -136,7 +136,7 @@ function rewardDiff(world: WorldId, oldRaw: string | null, newRaw: string | null
     }
   }
   if (gained > 0) { addCoins(p, gained); toast(`+${gained} ${t('plusCoins')} · ${notes[0]}`); played(p); }
-  if (notes.includes(t('levelDone'))) confetti(reduceMotion);
+  if (notes.includes(t('levelDone'))) confetti(reduceMotion, true); // side bursts: keep the quiz in the middle clear
   if (dailyProgress(p, moved)) setTimeout(() => toast(`+${RULES.coins.daily} ${t('plusCoins')} · ${t('curioDay')} ✓`), 700);
   refreshPills();
 }
@@ -227,7 +227,7 @@ function hub() {
   $('#screen').innerHTML = `
     <div class="hub3d">
       <header class="topbar">
-        <button class="pill who" id="hWho" aria-label="${t('switchPlayer')}"><span class="av">${p.avatar}</span><span class="nm">${esc(p.name || t(p.band))}</span>${streakOf(p) ? `<span class="streak" aria-label="${streakOf(p)} ${t('streakDays')}">🔥${streakOf(p)}</span>` : ''}</button>
+        <button class="pill who" id="hWho" aria-label="${t('switchPlayer')}"><span class="av">${p.avatar}</span><span class="nm">${esc(p.name || t(p.band))}</span>${streakOf(p) ? `<span class="streak" aria-label="${streakOf(p)} ${t(streakOf(p) === 1 ? 'streakDay' : 'streakDays')}">🔥${streakOf(p)}</span>` : ''}</button>
         <span class="grow"></span>
         <button class="pill coins" id="hCoins"></button>
         <button class="pill hearts" id="hHearts"></button>
@@ -436,7 +436,7 @@ function journal() {
   const own = stickersOf(p);
   const book = `<div class="stickers">${STICKERS.map(st => own.includes(st) ? `<span class="stk got">${st}</span>` : `<button class="stk" data-stk="${st}" aria-label="${t('stickerBuy')}"><b>${st}</b><small><i class="coin" aria-hidden="true"></i>${STICKER_COST}</small></button>`).join('')}</div>`;
   const streak = streakOf(p);
-  sheet('journal', `<h2>${t('journalTitle')}</h2>${streak ? `<p class="streakline">🔥 ${streak} ${t('streakDays')}</p>` : ''}<h3>${t('badgesTitle')}</h3>${badges}<h3>${t('stickersTitle')} · ${own.length}/${STICKERS.length}</h3><p class="muted">${t('stickersNote').replace('{cost}', String(STICKER_COST))}</p>${book}<h3>${t('labsTitle')}</h3><div class="jlist">${rows}</div><div class="row-btns"><button class="btn" id="jRules">ℹ️ ${t('rulesBtn')}</button><button class="btn" id="jReset">↺ ${t('resetBtn')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
+  sheet('journal', `<h2>${t('journalTitle')}</h2>${streak ? `<p class="streakline">🔥 ${streak} ${t(streak === 1 ? 'streakDay' : 'streakDays')}</p>` : ''}<h3>${t('badgesTitle')}</h3>${badges}<h3>${t('stickersTitle')} · ${own.length}/${STICKERS.length}</h3><p class="muted">${t('stickersNote').replace('{cost}', String(STICKER_COST))}</p>${book}<h3>${t('labsTitle')}</h3><div class="jlist">${rows}</div><div class="row-btns"><button class="btn" id="jRules">ℹ️ ${t('rulesBtn')}</button><button class="btn" id="jReset">↺ ${t('resetBtn')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('#jRules').onclick = () => rules();
   document.querySelectorAll<HTMLElement>('[data-stk]').forEach(b => b.onclick = () => {
     if (p.coins < STICKER_COST) { toast(t('stickerNeed').replace('{cost}', String(STICKER_COST)), 'bad'); return; }
@@ -464,6 +464,24 @@ function emailAsk() {
     if (!validEmail(v)) { $('#emErr').hidden = false; return; }
     S.parentEmail = 'given'; saveShell(); void saveParentEmail(v, getLang()); parentCorner(); send({ t: 'buyAdFree' });
   };
+}
+
+/** First launch: three picture cards instead of a page of rules. "How to play" still opens the full rules. */
+const OB: { ic: string; tk: Key; bk: Key; bg: string }[] = [
+  { ic: '🏝️', tk: 'ob1T', bk: 'ob1B', bg: 'linear-gradient(160deg,#bfe9ff,#7fd0c9)' },
+  { ic: '🪙', tk: 'ob2T', bk: 'ob2B', bg: 'linear-gradient(160deg,#fff1bf,#ffcf5c)' },
+  { ic: '❤️', tk: 'ob3T', bk: 'ob3B', bg: 'linear-gradient(160deg,#ffd9e2,#ff9fb4)' },
+];
+function onboard(i = 0) {
+  const c = OB[i], last = i === OB.length - 1;
+  const dots = OB.map((_, j) => `<i class="${j === i ? 'on' : ''}"></i>`).join('');
+  sheet('rules', `<div class="ob-art" style="background:${c.bg}" aria-hidden="true"><span>${c.ic}</span></div>
+    <p class="ob-step">${t('obStep').replace('{n}', String(i + 1))}</p><h2>${t(c.tk)}</h2><p class="ob-body">${t(c.bk)}</p>
+    <div class="ob-dots" aria-hidden="true">${dots}</div>
+    <div class="row-btns ob-btns">${last ? '' : `<button class="btn" id="obSkip">${t('obSkip')}</button>`}<button class="btn primary" id="${last ? 'ruOk' : 'obNext'}">${t(last ? 'obGo' : 'obNext')}</button></div>`);
+  const done = () => { S.seenRules = true; saveShell(); closeSheet(); };
+  if (last) $('#ruOk').onclick = done;
+  else { $('#obNext').onclick = () => onboard(i + 1); $('#obSkip').onclick = done; }
 }
 
 /** The "how it works" page: shown once on first launch, and from the player screen and Journal. */
@@ -552,6 +570,6 @@ function closeSheet() { const w = $('#sheet'); if (!w) return; w.hidden = true; 
 
 export function toast(msg: string, kind: '' | 'bad' = '') {
   const el = document.createElement('div'); el.className = 'toast ' + kind; el.textContent = msg;
-  $('#toasts').appendChild(el);
+  const box = $('#toasts'); box.classList.toggle('inworld', !!current); box.appendChild(el);
   setTimeout(() => el.classList.add('out'), 2200); setTimeout(() => el.remove(), 2700);
 }

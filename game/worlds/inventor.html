@@ -1340,10 +1340,10 @@ games.launch = (function () {
     li = clamp(i, 0, LV.length - 1); lv = LV[li]; pl = PL[lv.planet]; P.launchLevel = li; persist(); resetTries('launch');
     scene.background.set(pl.sky); groundMat.color.set(pl.ground);
     const far = lv.zone ? lv.zone[1] : lv.tx;
-    frame = { x0: -4, x1: Math.max(far + 7, 26), y1: lv.ymax };
+    frame = { x0: -3, x1: Math.max(far + 4, 22), y1: lv.ymax }; // Curio app: tighter framing, so the scene sits closer
     const fw = frame.x1 - frame.x0; ballR = Math.max(0.45, fw / 75); ball.scale.setScalar(ballR); launcher.scale.setScalar(clamp(fw / 32, 0.9, 2.2));
     while (marks.children.length) { const c = marks.children.pop(); disposeTree(c); }
-    const stepM = fw > 50 ? 10 : 5, lh = clamp(fw / 30, 0.9, 2.6);
+    const stepM = fw > 50 ? 10 : 5, lh = clamp(fw / 22, 1.2, 3.4); // Curio app: bigger distance labels
     for (let x = stepM; x <= frame.x1; x += stepM) {
       const ln = new THREE.Mesh(new THREE.BoxGeometry(fw / 260, 0.03, 6), new THREE.MeshBasicMaterial({ color: pl.line, transparent: true, opacity: 0.55 })); ln.position.set(x, 0.02, 0); marks.add(ln);
       const s = textSprite(`${x} m`, lh); s.position.set(x, lh * 0.7, 3.4); marks.add(s);
@@ -1374,7 +1374,7 @@ games.launch = (function () {
     let lo = 1, hi = 2500;
     for (let i = 0; i < 34; i++) {
       const mid = (lo + hi) / 2; camera.position.copy(c).addScaledVector(dir, mid); camera.lookAt(c); camera.updateMatrixWorld();
-      const ok = pts.every(p => { v.copy(p).project(camera); return Math.abs(v.x) <= 0.94 && v.y <= yTop && v.y >= yBot; });
+      const ok = pts.every(p => { v.copy(p).project(camera); return Math.abs(v.x) <= 0.97 && v.y <= yTop && v.y >= yBot; });
       if (ok) hi = mid; else lo = mid;
     }
     camera.position.copy(c).addScaledVector(dir, hi); camera.lookAt(c); camera.updateMatrixWorld();

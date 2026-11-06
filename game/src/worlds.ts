@@ -45,10 +45,31 @@ html body canvas{box-shadow:0 6px 18px rgba(0,0,0,.35)}
 @keyframes curio-drift{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
 @media (prefers-reduced-motion:reduce){html body::before{animation:none;opacity:.7}html body::after{display:none}}`;
 const drift = (e: string, top: string) => `html body::after{content:"${e}        ${e}       ${e}";position:fixed;top:${top};left:0;white-space:pre;font-size:34px;opacity:.13;pointer-events:none;z-index:-1;animation:curio-drift 70s linear infinite}`;
+// Child-sized controls for the lab worlds: 44px+ tap targets, a real hint button, bigger
+// instruction text, a chunky slider thumb and a darker label colour that passes contrast.
+const KIDUI = `html body .nav{display:inline-flex;flex:none;white-space:nowrap}
+html body .nav button{width:44px;height:44px;border-radius:12px;font-size:22px;margin-left:6px}
+html body #mHintBtn{min-height:44px;padding:0 16px;border:2px solid var(--ink);border-radius:999px;background:#fff1bf;box-shadow:0 2px 0 var(--ink);text-decoration:none;font-size:15px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+html body #mHintBtn::before{content:"💡"}
+html body .step{width:44px;height:44px;border-radius:12px;font-size:22px}
+html body .btn{min-height:44px}
+html body .mission p,html body #mText{font-size:17px;line-height:1.4}
+html body .mission .meta,html body .card .meta{color:#a8361f;font-size:13px}
+html body .slider{grid-template-columns:62px 44px minmax(0,1fr) 44px 76px}
+html body input[type=range]{-webkit-appearance:none;appearance:none;height:44px;background:transparent}
+html body input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:#e6dcc4;border:2px solid var(--ink)}
+html body input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-12px;border-radius:50%;background:var(--marigold);border:3px solid var(--ink);box-shadow:0 2px 0 var(--ink)}
+html body input[type=range]::-moz-range-track{height:10px;border-radius:999px;background:#e6dcc4;border:2px solid var(--ink)}
+html body input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--marigold);border:3px solid var(--ink)}
+html body input[type=range]:disabled{opacity:.45}
+@media (max-width:560px){html body .slider{grid-template-columns:46px 44px minmax(0,1fr) 44px 66px;gap:6px}html body .mission p{font-size:16px}}`;
+const KID_WORLDS: WorldId[] = ['inventor', 'tinkerer', 'inventor2'];
+
+// Warmer, lighter night skies per world, so the dark labs feel like dusk rather than a void.
 const GLOW: Record<WorldId, string> = {
   colour: '',
-  inventor: 'html body::before{animation:none;opacity:.6}html body{background-image:radial-gradient(90% 50% at 50% 0%,rgba(150,110,255,.24),rgba(150,110,255,0) 70%)}',
-  tinkerer: drift('🫧', '20%') + 'html body{background-image:radial-gradient(90% 50% at 50% 0%,rgba(80,205,170,.24),rgba(80,205,170,0) 70%)}',
+  inventor: 'html body::before{animation:none;opacity:.6}html body{background:radial-gradient(90% 55% at 50% 0%,rgba(255,170,110,.22),rgba(255,170,110,0) 70%),radial-gradient(120% 90% at 50% 0%,#3a2f86 0%,#1b1d45 72%)}',
+  tinkerer: drift('🫧', '20%') + 'html body{background:radial-gradient(90% 55% at 50% 0%,rgba(120,240,200,.22),rgba(120,240,200,0) 70%),radial-gradient(120% 90% at 50% 0%,#17576a 0%,#13284a 72%)}',
   explorer: drift('☁️', '19%'),
   inventor2: drift('✨', '21%'),
 };
@@ -64,7 +85,7 @@ export function worldDoc(id: WorldId): string {
   const at = src.indexOf('<script>');
   if (at < 0) throw new Error('world has no main script: ' + id);
   src = src.slice(0, at) + '<script type="text/curio" id="curio-main">' + src.slice(at + '<script>'.length);
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><script>${BOOT}<\/script><style>${id === 'colour' ? '' : POLISH}${GLOW[id]}${HIDE[id]}</style></head><body>${src}</body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><script>${BOOT}<\/script><style>${id === 'colour' ? '' : POLISH}${GLOW[id]}${KID_WORLDS.includes(id) ? KIDUI : ''}${HIDE[id]}</style></head><body>${src}</body></html>`;
 }
 
 export interface WorldWindow extends Window { __curioDispose?: () => void; __curio?: unknown }

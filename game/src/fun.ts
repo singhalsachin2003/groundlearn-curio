@@ -42,13 +42,14 @@ export const stickersOf = (p: Profile) => (p as Extra).stickers || [];
 export function addSticker(p: Profile, s: string) { const x = p as Extra; x.stickers = [...(x.stickers || []), s]; }
 
 /** A short burst of confetti over the screen. Skipped when the device asks for reduced motion. */
-export function confetti(reduce: boolean) {
+export function confetti(reduce: boolean, sides = false) {
   if (reduce) return;
   const box = document.createElement('div'); box.className = 'confetti'; box.setAttribute('aria-hidden', 'true');
   const cols = ['#ffb423', '#ff5fa2', '#3fd6ff', '#7ed957', '#fff3b0', '#e2553f'];
   for (let i = 0; i < 40; i++) {
     const s = document.createElement('i');
-    s.style.cssText = `left:${Math.random() * 100}%;background:${cols[i % cols.length]};animation-delay:${Math.random() * 0.3}s;animation-duration:${1.4 + Math.random() * 0.9}s;--dx:${(Math.random() - 0.5) * 160}px;--r:${Math.random() * 720 - 360}deg`;
+    const x = sides ? (i % 2 ? 88 : 0) + Math.random() * 12 : Math.random() * 100;
+    s.style.cssText = `left:${x}%;background:${cols[i % cols.length]};animation-delay:${Math.random() * 0.3}s;animation-duration:${1.4 + Math.random() * 0.9}s;--dx:${sides ? (i % 2 ? -1 : 1) * Math.random() * 40 : (Math.random() - 0.5) * 160}px;--r:${Math.random() * 720 - 360}deg`;
     box.appendChild(s);
   }
   document.body.appendChild(box); setTimeout(() => box.remove(), 2600);

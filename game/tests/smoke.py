@@ -30,7 +30,9 @@ async def run_vp(b, name, w, h):
     async def shot(n):
         try: await pg.screenshot(path=str(OUT / f'{name}-{n}.png'), timeout=60000)
         except Exception as e: print('note · screenshot skipped', n)
-    await pg.wait_for_selector('#ruOk'); await shot('0-rules'); await pg.click('#ruOk')
+    await pg.wait_for_selector('#obNext'); await shot('0-rules')
+    for _ in range(2): await pg.click('#obNext')
+    await pg.click('#ruOk')
     await shot('1-players')
     await pg.click('#pAdd'); await pg.fill('#npName', 'Manan'); await pg.click('[data-band="inventor"]'); await pg.click('#npGo')
     await pg.wait_for_selector('.hub3d'); await pg.wait_for_timeout(800); await shot('2-hub')
