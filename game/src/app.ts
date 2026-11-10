@@ -1,7 +1,7 @@
 // The app shell: choose a player, the island hub, coins and hearts, the Journal,
 // the parent gate and Parent Corner, and entering or leaving a world.
 import { t, setLang, getLang, type Key } from './i18n';
-import { LABS, COMING, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
+import { LABS, COMING, NEW_LABS, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
 import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
 import { send, onNative, inApp } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
@@ -209,7 +209,8 @@ function newPlayer() {
 
 function labCard(lab: Lab, p: Profile) {
   const save = readSlot(p.id, lab.world), n = labProgress(lab, save), tot = lab.progress.total;
-  return `<button class="lab s-${lab.subject}" data-lab="${lab.id}">
+  const tag = n >= tot ? `<span class="tag done" aria-label="${t('labDone')}">⭐</span>` : !n && NEW_LABS.has(lab.id) ? `<span class="tag new">${t('labNew')}</span>` : '';
+  return `<button class="lab s-${lab.subject}${n >= tot ? ' complete' : ''}" data-lab="${lab.id}">${tag}
     <span class="ic">${lab.icon}</span><b>${esc(nm(lab.name))}</b><small>${esc(nm(lab.blurb))}</small>
     <span class="bar"><i style="width:${Math.round(100 * n / tot)}%"></i></span><span class="cnt">${n}/${tot} ${lab.progress.kind === 'found' ? t('found') : t('levelsDone')}</span></button>`;
 }
@@ -261,7 +262,7 @@ function zoneStates(p: Profile): ZoneState[] {
   return (Object.keys(ZONE_SUBJECT) as ZoneId[]).map(z => {
     const labs = zoneLabs(p, z);
     const done = labs.reduce((s, l) => s + labProgress(l, readSlot(p.id, l.world)), 0), tot = labs.reduce((s, l) => s + l.progress.total, 0);
-    return { id: z, label: t(z), progress: tot ? done / tot : 0, locked: !labs.length, badge: !labs.length ? t('soonBadge') : undefined };
+    return { id: z, label: t(z), progress: tot ? done / tot : 0, locked: !labs.length, badge: !labs.length ? t('soonBadge') : labs.some(l => NEW_LABS.has(l.id) && !labProgress(l, readSlot(p.id, l.world))) ? t('labNew') : undefined };
   });
 }
 function zoneSheet(z: ZoneId) {
@@ -271,9 +272,17 @@ function zoneSheet(z: ZoneId) {
     <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(LABS.find(l => l.id === b.dataset.lab)!); });
 }
+const SUBJ_ORDER: Lab['subject'][] = ['colour', 'chem', 'phy', 'math', 'bio'];
+const SUBJ_ICON: Record<string, string> = { colour: '🎨', chem: '⚗️', phy: '⚡', math: '🔢', bio: '🌱' };
 function allWorkshops() {
   const p = active(); if (!p) return;
-  const body = `<div class="labs in-sheet">${labsFor(p.band).map(l => labCard(l, p)).join('')}${COMING[p.band].map(soonCard).join('')}</div>`;
+  const mine = labsFor(p.band);
+  const body = SUBJ_ORDER.map(sj => {
+    const labs = mine.filter(l => l.subject === sj), soon = COMING[p.band].filter(c => c.subject === sj); if (!labs.length && !soon.length) return '';
+    const fin = labs.filter(l => labProgress(l, readSlot(p.id, l.world)) >= l.progress.total).length;
+    return `<h3 class="subjhead s-${sj}"><span>${SUBJ_ICON[sj]} ${t(('subj_' + sj) as Key)}</span><small>${fin}/${labs.length} ⭐</small></h3>
+      <div class="labs in-sheet">${labs.map(l => labCard(l, p)).join('')}${soon.map(soonCard).join('')}</div>`;
+  }).join('');
   sheet('all', `<h2>${t('allWorkshops')}</h2>${body}<div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(LABS.find(l => l.id === b.dataset.lab)!); });
 }

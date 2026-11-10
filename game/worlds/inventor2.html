@@ -71,6 +71,28 @@ svg.pizza path{cursor:pointer;stroke:#7a3b13;stroke-width:2;transition:fill .15s
 .wcard.done{background:#c8f3df;border-color:var(--mint)}.wcard.done .wn{display:flex}
 .g100{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;width:min(78vw,300px);aspect-ratio:1}
 .g100 i{background:rgba(255,255,255,.14);border-radius:3px}.g100 i.on{background:var(--marigold)}
+/* Curio app: round 6 labs (Acids and Bases, Coloured Light, Magnet Hunt, Life Cycles, Angle Maker) */
+.phbox{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(96%,420px)}
+.beaker{width:150px;height:150px;border:5px solid var(--card);border-top:0;border-radius:0 0 26px 26px;position:relative;overflow:hidden;background:rgba(255,255,255,.06)}
+.beaker .liq{position:absolute;left:0;right:0;bottom:0;height:72%;transition:background .5s}
+.beaker b{position:absolute;left:0;right:0;bottom:18px;text-align:center;font-size:26px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.45);font-family:var(--f-mono)}
+.phscale{display:grid;grid-template-columns:repeat(13,1fr);gap:2px;width:100%}
+.phscale i{font-style:normal;font-size:12px;font-weight:800;color:#fff;text-align:center;padding:6px 0;border-radius:5px;opacity:.85;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+.phscale i.goal{opacity:1;box-shadow:0 0 0 2px #fff}.phscale i.on{opacity:1;transform:scale(1.25);box-shadow:0 0 0 3px var(--marigold);z-index:1}
+.phends{display:flex;justify-content:space-between;width:100%;color:var(--card);font-size:13px;font-weight:700}
+.room{width:min(96%,440px);min-height:230px;border-radius:18px;background:#080b1c;border:3px solid #2a3158;position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding:16px 10px;box-sizing:border-box}
+.beam{position:absolute;left:10%;right:10%;top:0;height:78%;clip-path:polygon(42% 0,58% 0,100% 100%,0 100%);transition:opacity .3s}
+.objs{display:flex;gap:18px;justify-content:center;position:relative}
+.obj{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--card);font-weight:700;font-size:14px;text-align:center}
+.obj .sw{width:96px;height:96px;border-radius:24px;border:3px solid rgba(255,255,255,.35);transition:background .3s;display:flex;align-items:center;justify-content:center}.obj .sw span{font-size:40px;line-height:1;background:rgba(255,255,255,.9);border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center}
+.obj small{font-size:12px;opacity:.85;display:flex;align-items:center;gap:5px}.obj small i{width:16px;height:16px;border-radius:5px;border:2px solid #fff;display:inline-block}
+.lamp i{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);margin-right:6px;vertical-align:-2px}
+.magwrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(96%,440px)}
+.magbar{font-size:54px;line-height:1;filter:drop-shadow(0 5px 0 rgba(0,0,0,.35))}
+.mitems{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.mitem{display:flex;flex-direction:column;align-items:center;gap:2px;background:linear-gradient(#fffdf6,#f6ecd6);border:3px solid var(--ink);border-radius:16px;padding:8px 4px;min-height:84px;box-shadow:0 3px 0 rgba(0,0,0,.45)}
+.mitem span{font-size:34px;line-height:1.1}.mitem small{font-size:12px;font-weight:700;line-height:1.15}
+.mitem.on{background:#ffe08a;border-color:#b26a00}.mitem.stuck{background:#c8f3df;border-color:var(--mint)}.mitem.bad{background:#ffd7cf;border-color:var(--coral)}
 </style>
 
 <i id="noTR" hidden></i>
@@ -255,6 +277,74 @@ var LABS = {
       q: Q(['Which is the smallest?', 'सबसे छोटा कौन सा है?'], [['0.07', '0.07'], ['0.7', '0.7'], ['0.17', '0.17']], 0, ['0.07 is 7 hundredths. 0.17 is 17 hundredths and 0.7 is 70 hundredths.', '0.07 यानी 7 सौवाँ। 0.17 यानी 17 सौवाँ और 0.7 यानी 70 सौवाँ।']) },
     { t: ['Shade 4/5 of the grid.', 'ग्रिड का 4/5 भाग रंगो।'], n: 80,
       q: Q(['4/5 as a percent is…', '4/5 प्रतिशत में…'], [['80%', '80%'], ['45%', '45%'], ['54%', '54%']], 0, ['1/5 = 20%, so 4/5 = 80%.', '1/5 = 20%, तो 4/5 = 80%।']) }
+  ] },
+  ph: { field: 'phDone', name: ['Acids and Bases', 'अम्ल और क्षार'], levels: [
+    { t: ['This is plain water, pH 7. Add lemon juice until the indicator turns red (pH 3 or lower).', 'यह सादा पानी है, pH 7। नींबू का रस तब तक डालो जब तक सूचक लाल न हो जाए (pH 3 या कम)।'], start: 7, lo: 1, hi: 3, drops: [-1],
+      q: Q(['Lemon juice is…', 'नींबू का रस है…'], [['an acid', 'अम्ल'], ['a base', 'क्षार'], ['neutral', 'उदासीन']], 0, ['Acids have a pH below 7. They taste sour.', 'अम्ल का pH 7 से कम होता है। वे खट्टे होते हैं।']) },
+    { t: ['Now make plain water turn purple (pH 11 or higher) with soap solution.', 'अब साबुन के घोल से सादे पानी को बैंगनी बनाओ (pH 11 या ज़्यादा)।'], start: 7, lo: 11, hi: 13, drops: [1],
+      q: Q(['Soap solution is…', 'साबुन का घोल है…'], [['a base', 'क्षार'], ['an acid', 'अम्ल'], ['neutral', 'उदासीन']], 0, ['Bases have a pH above 7. They feel slippery.', 'क्षार का pH 7 से ज़्यादा होता है। वे फिसलन भरे लगते हैं।']) },
+    { t: ['This vinegar is pH 3. Neutralise it: bring it to exactly pH 7 (green).', 'यह सिरका pH 3 है। इसे उदासीन करो: ठीक pH 7 (हरा) पर लाओ।'], start: 3, lo: 7, hi: 7, drops: [-1, 1],
+      q: Q(['Acid + base makes…', 'अम्ल + क्षार से बनता है…'], [['salt and water', 'लवण और पानी'], ['more acid', 'और अम्ल'], ['only gas', 'सिर्फ़ गैस']], 0, ['This is neutralisation. The acid and base cancel each other out.', 'इसे उदासीनीकरण कहते हैं। अम्ल और क्षार एक-दूसरे को काट देते हैं।']) },
+    { t: ['A stomach has too much acid: pH 2. Use antacid to bring it to pH 4. Do not overshoot!', 'पेट में अम्ल बहुत ज़्यादा है: pH 2। एंटासिड से इसे pH 4 पर लाओ। ज़्यादा मत डालना!'], start: 2, lo: 4, hi: 4, drops: [1, 2],
+      q: Q(['An antacid tablet works because it is…', 'एंटासिड की गोली काम करती है क्योंकि वह है…'], [['a mild base', 'हल्का क्षार'], ['a strong acid', 'तेज़ अम्ल'], ['sugar', 'चीनी']], 0, ['A mild base neutralises some of the extra stomach acid.', 'हल्का क्षार पेट के फ़ालतू अम्ल को उदासीन कर देता है।']) },
+    { t: ['This soil is pH 9, too basic for tea plants. Tea likes pH 5. Fix the soil.', 'यह मिट्टी pH 9 है, चाय के पौधों के लिए बहुत क्षारीय। चाय को pH 5 पसंद है। मिट्टी ठीक करो।'], start: 9, lo: 5, hi: 5, drops: [-2, -1, 1],
+      q: Q(['Which is the most acidic?', 'सबसे ज़्यादा अम्लीय कौन है?'], [['pH 1', 'pH 1'], ['pH 6', 'pH 6'], ['pH 9', 'pH 9']], 0, ['The lower the pH, the stronger the acid.', 'pH जितना कम, अम्ल उतना तेज़।']) },
+    { t: ['A bee sting is acidic (pH 5). Soothe it: make it neutral with baking soda.', 'मधुमक्खी का डंक अम्लीय होता है (pH 5)। आराम दो: बेकिंग सोडा से इसे उदासीन करो।'], start: 5, lo: 7, hi: 7, drops: [1, 2, -1],
+      q: Q(['Turmeric turns red in soap. Turmeric is a natural…', 'हल्दी साबुन में लाल हो जाती है। हल्दी एक प्राकृतिक… है'], [['indicator', 'सूचक'], ['acid', 'अम्ल'], ['metal', 'धातु']], 0, ['An indicator changes colour to show acid or base. Try it on a turmeric stain!', 'सूचक रंग बदलकर अम्ल या क्षार बताता है। हल्दी के दाग़ पर आज़माओ!']) }
+  ] },
+  filter: { field: 'filterDone', name: ['Coloured Light', 'रंगीन रोशनी'], levels: [
+    { t: ['Switch on lamps to make the white shirt look yellow.', 'लैंप जलाकर सफ़ेद कमीज़ को पीला दिखाओ।'], objs: [{ n: ['white shirt', 'सफ़ेद कमीज़'], ico: '👕', c: [1, 1, 1], want: [1, 1, 0] }],
+      q: Q(['Red light + green light makes…', 'लाल रोशनी + हरी रोशनी से बनता है…'], [['yellow', 'पीला'], ['brown', 'भूरा'], ['blue', 'नीला']], 0, ['Light adds up: red and green together look yellow to our eyes.', 'रोशनी जुड़ती है: लाल और हरी मिलकर हमारी आँखों को पीली दिखती है।']) },
+    { t: ['Make the red apple look black. At least one lamp must be on.', 'लाल सेब को काला दिखाओ। कम से कम एक लैंप जलना चाहिए।'], objs: [{ n: ['red apple', 'लाल सेब'], ico: '🍎', c: [1, 0, 0], want: [0, 0, 0] }],
+      q: Q(['Why does a red apple look black in blue light?', 'नीली रोशनी में लाल सेब काला क्यों दिखता है?'], [['It only reflects red, and there is no red light', 'वह सिर्फ़ लाल रोशनी लौटाता है, और लाल रोशनी है ही नहीं'], ['Blue light is dark', 'नीली रोशनी अँधेरी होती है'], ['The apple turns off', 'सेब बंद हो जाता है']], 0, ['A red object soaks up other colours and bounces back only red.', 'लाल वस्तु बाक़ी रंग सोख लेती है और सिर्फ़ लाल लौटाती है।']) },
+    { t: ['Make the white paper look magenta (pinkish purple).', 'सफ़ेद काग़ज़ को मैजेंटा (गुलाबी-बैंगनी) दिखाओ।'], objs: [{ n: ['white paper', 'सफ़ेद काग़ज़'], ico: '📄', c: [1, 1, 1], want: [1, 0, 1] }],
+      q: Q(['All three lamps together on white paper look…', 'तीनों लैंप एक साथ सफ़ेद काग़ज़ पर दिखते हैं…'], [['white', 'सफ़ेद'], ['black', 'काला'], ['brown', 'भूरा']], 0, ['Red + green + blue light makes white. That is how a screen shows white.', 'लाल + हरी + नीली रोशनी से सफ़ेद बनता है। स्क्रीन ऐसे ही सफ़ेद दिखाती है।']) },
+    { t: ['Keep the leaf green but make the rose look black.', 'पत्ते को हरा रखो पर गुलाब को काला दिखाओ।'], objs: [{ n: ['green leaf', 'हरा पत्ता'], ico: '🍃', c: [0, 1, 0], want: [0, 1, 0] }, { n: ['red rose', 'लाल गुलाब'], ico: '🌹', c: [1, 0, 0], want: [0, 0, 0] }],
+      q: Q(['A green leaf looks green because it…', 'हरा पत्ता हरा दिखता है क्योंकि वह…'], [['reflects green light', 'हरी रोशनी लौटाता है'], ['makes its own green light', 'अपनी हरी रोशनी बनाता है'], ['absorbs green light', 'हरी रोशनी सोख लेता है']], 0, ['We see the colour an object reflects into our eyes.', 'हम वही रंग देखते हैं जो वस्तु हमारी आँखों की ओर लौटाती है।']) },
+    { t: ['A yellow banana reflects red and green light. Make it look red.', 'पीला केला लाल और हरी रोशनी लौटाता है। उसे लाल दिखाओ।'], objs: [{ n: ['yellow banana', 'पीला केला'], ico: '🍌', c: [1, 1, 0], want: [1, 0, 0] }],
+      q: Q(['In green light only, the yellow banana looks…', 'सिर्फ़ हरी रोशनी में पीला केला दिखता है…'], [['green', 'हरा'], ['yellow', 'पीला'], ['black', 'काला']], 0, ['It can reflect green, and green is all that arrives.', 'वह हरी रोशनी लौटा सकता है, और वहाँ सिर्फ़ हरी ही पहुँच रही है।']) },
+    { t: ['Make the blue ball look blue and the banana look green, both at once.', 'एक साथ: नीली गेंद नीली दिखे और केला हरा दिखे।'], objs: [{ n: ['blue ball', 'नीली गेंद'], ico: '🔵', c: [0, 0, 1], want: [0, 0, 1] }, { n: ['yellow banana', 'पीला केला'], ico: '🍌', c: [1, 1, 0], want: [0, 1, 0] }],
+      q: Q(['Green + blue light together is called…', 'हरी + नीली रोशनी मिलकर कहलाती है…'], [['cyan', 'सियान'], ['magenta', 'मैजेंटा'], ['yellow', 'पीला']], 0, ['Cyan, magenta and yellow are what you get by mixing two of the three lamps.', 'तीन में से दो लैंप मिलाने पर सियान, मैजेंटा और पीला मिलते हैं।']) }
+  ] },
+  magnet: { field: 'magnetDone', name: ['Magnet Hunt', 'चुंबक की खोज'], levels: [
+    { t: ['Tap everything you think a magnet will pull. Then test it!', 'जो चीज़ें चुंबक खींचेगा, उन सबको छुओ। फिर जाँचो!'], items: [['🔩', ['iron nail', 'लोहे की कील'], 1], ['🥄', ['wooden spoon', 'लकड़ी का चम्मच'], 0], ['📎', ['steel paper clip', 'स्टील की क्लिप'], 1], ['🧽', ['sponge', 'स्पंज'], 0]],
+      q: Q(['A magnet pulls things made of…', 'चुंबक किससे बनी चीज़ें खींचता है?'], [['iron and steel', 'लोहा और स्टील'], ['wood', 'लकड़ी'], ['anything heavy', 'कोई भी भारी चीज़']], 0, ['Iron, and steel (which is mostly iron), are magnetic.', 'लोहा, और स्टील (जो ज़्यादातर लोहा है), चुंबकीय होते हैं।']) },
+    { t: ['Which of these will jump to the magnet?', 'इनमें से कौन चुंबक से चिपकेगा?'], items: [['📌', ['steel pin', 'स्टील की पिन'], 1], ['🧴', ['plastic bottle', 'प्लास्टिक की बोतल'], 0], ['🥛', ['glass', 'काँच का गिलास'], 0], ['🧷', ['safety pin', 'सेफ़्टी पिन'], 1], ['✏️', ['pencil', 'पेंसिल'], 0]],
+      q: Q(['Plastic, glass and wood are…', 'प्लास्टिक, काँच और लकड़ी हैं…'], [['not magnetic', 'चुंबकीय नहीं'], ['magnetic', 'चुंबकीय'], ['magnets', 'चुंबक']], 0, ['A magnet does not pull them at all.', 'चुंबक इन्हें बिलकुल नहीं खींचता।']) },
+    { t: ['Careful: not every metal is magnetic!', 'ध्यान से: हर धातु चुंबकीय नहीं होती!'], items: [['🥫', ['aluminium can', 'एल्युमिनियम का डिब्बा'], 0], ['🔩', ['iron bolt', 'लोहे का बोल्ट'], 1], ['💍', ['gold ring', 'सोने की अँगूठी'], 0], ['🧵', ['copper wire', 'ताँबे का तार'], 0], ['🪡', ['steel needle', 'स्टील की सुई'], 1]],
+      q: Q(['Which metal is NOT pulled by a magnet?', 'कौन सी धातु चुंबक से नहीं खिंचती?'], [['gold', 'सोना'], ['iron', 'लोहा'], ['steel', 'स्टील']], 0, ['Gold, copper, silver and aluminium are metals, but a magnet ignores them.', 'सोना, ताँबा, चाँदी और एल्युमिनियम धातु हैं, पर चुंबक इन्हें नहीं खींचता।']) },
+    { t: ['Sort the scrap yard: what can the crane magnet lift?', 'कबाड़ छाँटो: क्रेन का चुंबक क्या उठा सकता है?'], items: [['🚗', ['steel car door', 'कार का स्टील का दरवाज़ा'], 1], ['🛞', ['rubber tyre', 'रबर का टायर'], 0], ['🍳', ['iron pan', 'लोहे का तवा'], 1], ['🪟', ['window glass', 'खिड़की का काँच'], 0], ['⛓️', ['iron chain', 'लोहे की ज़ंजीर'], 1], ['🥤', ['plastic cup', 'प्लास्टिक का कप'], 0]],
+      q: Q(['Scrap yards use magnets to…', 'कबाड़ख़ाने चुंबक का इस्तेमाल करते हैं…'], [['pick iron and steel out of the junk', 'कबाड़ से लोहा और स्टील अलग करने में'], ['melt plastic', 'प्लास्टिक पिघलाने में'], ['weigh cars', 'कारें तौलने में']], 0, ['Only the iron and steel stick, so they are easy to separate and recycle.', 'सिर्फ़ लोहा और स्टील चिपकते हैं, इसलिए उन्हें अलग करके दोबारा काम में लाना आसान है।']) },
+    { t: ['Last one. Think about what each thing is made of.', 'आख़िरी वाला। सोचो हर चीज़ किससे बनी है।'], items: [['✂️', ['steel scissors', 'स्टील की कैंची'], 1], ['🔔', ['brass bell', 'पीतल की घंटी'], 0], ['🧲', ['another magnet', 'दूसरा चुंबक'], 1], ['🪙', ['silver coin', 'चाँदी का सिक्का'], 0], ['🔨', ['hammer head', 'हथौड़े का सिर'], 1], ['🧦', ['sock', 'मोज़ा'], 0]],
+      q: Q(['Two magnets: north pole meets north pole. They…', 'दो चुंबक: उत्तरी ध्रुव उत्तरी ध्रुव से मिले। वे…'], [['push apart', 'एक-दूसरे को धकेलते हैं'], ['stick together', 'चिपक जाते हैं'], ['do nothing', 'कुछ नहीं करते']], 0, ['Like poles repel. Opposite poles (north and south) attract.', 'एक जैसे ध्रुव धकेलते हैं। उलटे ध्रुव (उत्तर और दक्षिण) खींचते हैं।']) }
+  ] },
+  life: { field: 'lifeDone', name: ['Life Cycles', 'जीवन चक्र'], levels: [
+    { t: ['How does a butterfly grow up? Tap the stages in order.', 'तितली कैसे बड़ी होती है? अवस्थाओं को क्रम से छुओ।'], steps: [['🥚', ['Tiny eggs on a leaf', 'पत्ते पर नन्हे अंडे']], ['🐛', ['A caterpillar hatches and eats', 'इल्ली निकलती है और ख़ूब खाती है']], ['🫘', ['It makes a chrysalis (pupa)', 'वह प्यूपा (कोष) बनाती है']], ['🦋', ['A butterfly comes out', 'तितली बाहर आती है']]],
+      q: Q(['A caterpillar changing into a butterfly is called…', 'इल्ली का तितली में बदलना कहलाता है…'], [['metamorphosis', 'कायांतरण'], ['migration', 'प्रवास'], ['hibernation', 'शीतनिद्रा']], 0, ['Metamorphosis means a big change of body shape while growing up.', 'कायांतरण का मतलब है बड़े होते समय शरीर के रूप का पूरी तरह बदल जाना।']) },
+    { t: ['Now the frog. Tap the stages in order.', 'अब मेंढक। अवस्थाओं को क्रम से छुओ।'], steps: [['🫧', ['Frogspawn: eggs in jelly', 'पानी में जेली जैसे अंडे']], ['🐟', ['Tadpoles with tails swim out', 'पूँछ वाले टैडपोल तैरते हैं']], ['🦎', ['Legs grow, the tail shrinks', 'टाँगें उगती हैं, पूँछ छोटी होती है']], ['🐸', ['A frog hops onto land', 'मेंढक ज़मीन पर फुदकता है']]],
+      q: Q(['A tadpole breathes in water using…', 'टैडपोल पानी में किससे साँस लेता है?'], [['gills', 'गलफड़ों से'], ['lungs', 'फेफड़ों से'], ['its tail', 'पूँछ से']], 0, ['Tadpoles have gills like fish. Grown frogs breathe with lungs.', 'टैडपोल के मछली जैसे गलफड़े होते हैं। बड़े मेंढक फेफड़ों से साँस लेते हैं।']) },
+    { t: ['Grow a bean plant from a seed.', 'बीज से सेम का पौधा उगाओ।'], steps: [['🫘', ['A seed in damp soil', 'गीली मिट्टी में बीज']], ['🌱', ['A root and shoot come out', 'जड़ और अंकुर निकलते हैं']], ['🌿', ['Leaves make food from sunlight', 'पत्तियाँ धूप से खाना बनाती हैं']], ['🌼', ['Flowers open', 'फूल खिलते हैं']], ['🫛', ['Pods grow with new seeds', 'फलियों में नए बीज बनते हैं']]],
+      q: Q(['A seed starting to grow is called…', 'बीज का उगना शुरू होना कहलाता है…'], [['germination', 'अंकुरण'], ['pollination', 'परागण'], ['evaporation', 'वाष्पीकरण']], 0, ['A seed germinates when it has water, air and warmth.', 'पानी, हवा और गरमाहट मिलने पर बीज अंकुरित होता है।']) },
+    { t: ['From egg to hen. Tap in order.', 'अंडे से मुर्गी तक। क्रम से छुओ।'], steps: [['🥚', ['The hen keeps the egg warm', 'मुर्गी अंडे को गरम रखती है']], ['🐣', ['A chick hatches', 'चूज़ा बाहर आता है']], ['🐥', ['The chick grows feathers', 'चूज़े के पंख उगते हैं']], ['🐔', ['A grown hen lays eggs', 'बड़ी मुर्गी अंडे देती है']]],
+      q: Q(['Which animal does NOT hatch from an egg?', 'कौन सा जानवर अंडे से नहीं निकलता?'], [['a puppy', 'पिल्ला'], ['a chick', 'चूज़ा'], ['a baby turtle', 'कछुए का बच्चा']], 0, ['Dogs are mammals. Their babies are born live and drink milk.', 'कुत्ते स्तनधारी हैं। उनके बच्चे सीधे पैदा होते हैं और दूध पीते हैं।']) },
+    { t: ['The mosquito has four stages too. Tap in order.', 'मच्छर की भी चार अवस्थाएँ हैं। क्रम से छुओ।'], steps: [['💧', ['Eggs laid on still water', 'रुके पानी पर अंडे']], ['🪱', ['Larvae wriggle in the water', 'लार्वा पानी में कुलबुलाते हैं']], ['🫘', ['A pupa floats at the top', 'प्यूपा ऊपर तैरता है']], ['🦟', ['An adult mosquito flies off', 'बड़ा मच्छर उड़ जाता है']]],
+      q: Q(['To stop mosquitoes breeding, we should…', 'मच्छरों को पनपने से रोकने के लिए हमें…'], [['empty still water from pots and tyres', 'गमलों और टायरों का रुका पानी हटाना चाहिए'], ['leave buckets of water outside', 'बाहर पानी की बाल्टियाँ छोड़नी चाहिए'], ['water plants more', 'पौधों को ज़्यादा पानी देना चाहिए']], 0, ['Three of the four stages live in still water. No water, no mosquitoes.', 'चार में से तीन अवस्थाएँ रुके पानी में रहती हैं। पानी नहीं, तो मच्छर नहीं।']) },
+    { t: ['A mango tree takes years. Tap the stages in order.', 'आम के पेड़ को बरसों लगते हैं। अवस्थाओं को क्रम से छुओ।'], steps: [['🌰', ['A mango seed is planted', 'आम की गुठली बोई जाती है']], ['🌱', ['A sapling grows', 'छोटा पौधा उगता है']], ['🌳', ['It becomes a tall tree', 'वह ऊँचा पेड़ बन जाता है']], ['🌸', ['Flowers bloom and bees visit', 'बौर आता है और मधुमक्खियाँ आती हैं']], ['🥭', ['Mangoes ripen, with seeds inside', 'आम पकते हैं, जिनमें गुठली होती है']]],
+      q: Q(['Why do plants make fruit?', 'पौधे फल क्यों बनाते हैं?'], [['to carry and spread their seeds', 'अपने बीज ले जाने और फैलाने के लिए'], ['to feed people', 'लोगों को खिलाने के लिए'], ['to stay cool', 'ठंडा रहने के लिए']], 0, ['Animals eat the fruit and drop the seed somewhere new.', 'जानवर फल खाते हैं और बीज किसी नई जगह गिरा देते हैं।']) }
+  ] },
+  angle: { field: 'angleDone', name: ['Angle Maker', 'कोण बनाओ'], levels: [
+    { t: ['Turn the arm to make a right angle: 90°. Judge it by eye, then check.', 'भुजा घुमाकर समकोण बनाओ: 90°। आँख से अंदाज़ा लगाओ, फिर जाँचो।'], target: 90,
+      q: Q(['A right angle is…', 'समकोण होता है…'], [['90°', '90°'], ['45°', '45°'], ['180°', '180°']], 0, ['The corner of a book or a door is a right angle.', 'किताब या दरवाज़े का कोना समकोण होता है।']) },
+    { t: ['Make half a right angle: 45°.', 'समकोण का आधा बनाओ: 45°।'], target: 45,
+      q: Q(['An angle smaller than 90° is called…', '90° से छोटा कोण कहलाता है…'], [['acute', 'न्यून कोण'], ['obtuse', 'अधिक कोण'], ['reflex', 'प्रतिवर्ती कोण']], 0, ['Acute angles are sharp and pointy.', 'न्यून कोण नुकीले होते हैं।']) },
+    { t: ['Make a straight line: 180°.', 'सीधी रेखा बनाओ: 180°।'], target: 180,
+      q: Q(['Two right angles together make…', 'दो समकोण मिलकर बनाते हैं…'], [['a straight angle, 180°', 'सरल कोण, 180°'], ['a full turn', 'पूरा चक्कर'], ['45°', '45°']], 0, ['90° + 90° = 180°, a straight line.', '90° + 90° = 180°, यानी सीधी रेखा।']) },
+    { t: ['Make 120°. It is wider than a right angle.', '120° बनाओ। यह समकोण से चौड़ा है।'], target: 120,
+      q: Q(['An angle between 90° and 180° is…', '90° और 180° के बीच का कोण है…'], [['obtuse', 'अधिक कोण'], ['acute', 'न्यून कोण'], ['right', 'समकोण']], 0, ['Obtuse angles are wide and open.', 'अधिक कोण चौड़े और खुले होते हैं।']) },
+    { t: ['Make 30°. A clock hand moves this much from 12 to 1.', '30° बनाओ। घड़ी की सुई 12 से 1 तक इतना ही घूमती है।'], target: 30,
+      q: Q(['The three angles of any triangle add up to…', 'किसी भी त्रिभुज के तीनों कोणों का जोड़ होता है…'], [['180°', '180°'], ['90°', '90°'], ['360°', '360°']], 0, ['Tear the corners off a paper triangle: they fit along a straight line.', 'काग़ज़ के त्रिभुज के कोने फाड़कर जोड़ो: वे सीधी रेखा बनाते हैं।']) },
+    { t: ['Make 270°: three quarters of a full turn.', '270° बनाओ: पूरे चक्कर का तीन-चौथाई।'], target: 270,
+      q: Q(['A full turn is…', 'एक पूरा चक्कर होता है…'], [['360°', '360°'], ['180°', '180°'], ['100°', '100°']], 0, ['Angles bigger than 180° are called reflex angles. A full circle is 360°.', '180° से बड़े कोण प्रतिवर्ती कोण कहलाते हैं। पूरा वृत्त 360° का होता है।']) }
   ] },
   pythag: { field: 'pythDone', name: ['Pythagoras Squares', 'पाइथागोरस के वर्ग'], levels: [
     { t: ['Set a = 3 and b = 4. Watch the big square.', 'a = 3 और b = 4 रखो। बड़े वर्ग को देखो।'], a: 3, b: 4,
@@ -607,6 +697,91 @@ MOUNT.pythag = function (lv) {
   var ca = wire('pa', function (v) { return v; }, function (v) { a = v; upd(); });
   var cb = wire('pb', function (v) { return v; }, function (v) { b = v; upd(); });
   solver = function () { ca.set(lv.a); cb.set(lv.b); };
+};
+
+/* ---------------- Acids and Bases ---------------- */
+MOUNT.ph = function (lv) {
+  var PHC = ['', '#e53935', '#ef5a2b', '#f57c1f', '#f9a825', '#fdd835', '#c0ca33', '#43a047', '#26a69a', '#1e88e5', '#3949ab', '#5e35b1', '#7b1fa2', '#6a1b9a'], ph = lv.start, moves = 0;
+  var NAME = { '-2': ['🍋 ' + (HI ? 'तेज़ अम्ल' : 'Strong acid'), -2], '-1': ['🍋 ' + (HI ? 'अम्ल की बूँद' : 'Acid drop'), -1], '1': ['🧼 ' + (HI ? 'क्षार की बूँद' : 'Base drop'), 1], '2': ['🧼 ' + (HI ? 'तेज़ क्षार' : 'Strong base'), 2] };
+  var sc = ''; for (var i = 1; i <= 13; i++) sc += '<i data-p="' + i + '" style="background:' + PHC[i] + '">' + i + '</i>';
+  $('stage').innerHTML = '<div class="phbox"><div class="beaker"><div class="liq" id="liq"></div><b id="phn"></b></div><div class="phscale" id="phs">' + sc + '</div><div class="phends"><span>' + T(['acid', 'अम्ल']) + '</span><span>' + T(['neutral', 'उदासीन']) + '</span><span>' + T(['base', 'क्षार']) + '</span></div></div>';
+  $('ctrl').innerHTML = '<div class="row">' + lv.drops.map(function (d) { return '<button class="btn dropb" data-d="' + d + '">' + NAME[d][0] + ' (' + (d > 0 ? '+' : '') + d + ')</button>'; }).join('') + '<button class="btn" id="phr">↺ ' + T(['Start again', 'फिर से']) + '</button></div><span class="state" id="pht"></span>';
+  function draw() {
+    $('liq').style.background = PHC[ph]; $('phn').textContent = 'pH ' + ph;
+    document.querySelectorAll('#phs i').forEach(function (e) { e.classList.toggle('on', +e.dataset.p === ph); e.classList.toggle('goal', +e.dataset.p >= lv.lo && +e.dataset.p <= lv.hi); });
+    $('pht').textContent = (ph < 7 ? T(['Acidic', 'अम्लीय']) : ph > 7 ? T(['Basic', 'क्षारीय']) : T(['Neutral', 'उदासीन'])) + ' · ' + T(['drops used: ', 'बूँदें: ']) + moves;
+    if (moves && ph >= lv.lo && ph <= lv.hi) setTimeout(function () { if (ph >= lv.lo && ph <= lv.hi) solved(); }, 700);
+  }
+  function drop(d) { if (finished) return; ph = Math.max(1, Math.min(13, ph + d)); moves++; sfx.pop(); draw(); }
+  document.querySelectorAll('.dropb').forEach(function (b) { b.onclick = function () { drop(+b.dataset.d); }; });
+  $('phr').onclick = function () { ph = lv.start; moves = 0; draw(); };
+  draw();
+  solver = function () { var guard = 0; while ((ph < lv.lo || ph > lv.hi) && guard++ < 30) { var need = lv.lo - ph, best = lv.drops[0]; lv.drops.forEach(function (d) { if (Math.abs(need - d) < Math.abs(need - best)) best = d; }); drop(best); } };
+};
+
+/* ---------------- Coloured Light ---------------- */
+MOUNT.filter = function (lv) {
+  var on = [0, 0, 0], LN = [['Red lamp', 'लाल लैंप'], ['Green lamp', 'हरा लैंप'], ['Blue lamp', 'नीला लैंप']], LC = ['#ff3b30', '#22c55e', '#3b82f6'];
+  function css(c) { return 'rgb(' + c.map(function (v) { return v ? 255 : 16; }).join(',') + ')'; }
+  $('stage').innerHTML = '<div class="room" id="room"><div class="beam" id="beam"></div><div class="objs">' + lv.objs.map(function (o, j) { return '<div class="obj"><div class="sw" id="ob' + j + '"><span aria-hidden="true">' + o.ico + '</span></div><span>' + esc(T(o.n)) + '</span><small>' + T(['should look', 'ऐसा दिखे']) + ' <i style="background:' + css(o.want) + '"></i></small></div>'; }).join('') + '</div></div>';
+  $('ctrl').innerHTML = '<div class="row">' + [0, 1, 2].map(function (k) { return '<button class="btn lamp" data-k="' + k + '" aria-pressed="false"><i style="background:' + LC[k] + '"></i>' + T(LN[k]) + '</button>'; }).join('') + '</div><span class="note">' + T(['An object only bounces back the colours it can reflect.', 'कोई वस्तु सिर्फ़ वही रंग लौटाती है जो वह परावर्तित कर सकती है।']) + '</span>';
+  function draw() {
+    $('beam').style.background = 'linear-gradient(' + css(on) + ',transparent)'; $('beam').style.opacity = on[0] + on[1] + on[2] ? .55 : 0;
+    var ok = on[0] + on[1] + on[2] > 0;
+    lv.objs.forEach(function (o, j) { var see = o.c.map(function (v, k) { return v * on[k]; }); $('ob' + j).style.background = css(see); if (see.join() !== o.want.join()) ok = false; });
+    var snap = on.join(); if (ok) setTimeout(function () { if (on.join() === snap) solved(); }, 800);
+  }
+  function tog(k) { if (finished) return; on[k] = on[k] ? 0 : 1; var b = document.querySelector('.lamp[data-k="' + k + '"]'); b.classList.toggle('sel', !!on[k]); b.setAttribute('aria-pressed', on[k] ? 'true' : 'false'); sfx.pop(); draw(); }
+  document.querySelectorAll('.lamp').forEach(function (b) { b.onclick = function () { tog(+b.dataset.k); }; });
+  draw();
+  solver = function () {
+    for (var m = 1; m < 8; m++) { var L = [m & 1, (m >> 1) & 1, (m >> 2) & 1]; if (lv.objs.every(function (o) { return o.c.map(function (v, k) { return v * L[k]; }).join() === o.want.join(); })) { [0, 1, 2].forEach(function (k) { if (on[k] !== L[k]) tog(k); }); return; } }
+  };
+};
+
+/* ---------------- Magnet Hunt (Tinkerer) ---------------- */
+MOUNT.magnet = function (lv) {
+  var pick = {};
+  $('stage').innerHTML = '<div class="magwrap"><div class="magbar" id="magbar">🧲</div><div class="mitems">' + lv.items.map(function (it, j) { return '<button class="mitem" data-j="' + j + '" aria-pressed="false"><span>' + it[0] + '</span><small>' + esc(T(it[1])) + '</small></button>'; }).join('') + '</div></div>';
+  $('ctrl').innerHTML = '<div class="row"><button class="btn primary" id="mgo">🧲 ' + T(['Test with the magnet', 'चुंबक से जाँचो']) + '</button><span class="state" id="mst"></span></div><span class="note">' + T(['Tap to choose. Tap again to un-choose.', 'चुनने के लिए छुओ। हटाने के लिए फिर छुओ।']) + '</span>';
+  function tog(b) { if (finished) return; var j = b.dataset.j; pick[j] = !pick[j]; b.classList.toggle('on', !!pick[j]); b.classList.remove('bad', 'stuck'); b.setAttribute('aria-pressed', pick[j] ? 'true' : 'false'); sfx.pop(); $('mst').textContent = ''; }
+  document.querySelectorAll('.mitem').forEach(function (b) { b.onclick = function () { tog(b); }; });
+  function test() {
+    if (finished) return; var wrong = 0;
+    document.querySelectorAll('.mitem').forEach(function (b) { var j = +b.dataset.j, mag = !!lv.items[j][2], p = !!pick[j]; b.classList.toggle('stuck', mag && p); if (mag !== p) { wrong++; if (p) { b.classList.add('bad', 'shake'); setTimeout(function () { b.classList.remove('shake'); }, 400); } } });
+    if (!wrong) { sfx.pop(); $('mst').textContent = '✓'; setTimeout(solved, 800); }
+    else { sfx.no(); $('mst').textContent = (HI ? 'ग़लत: ' : 'Not right yet: ') + wrong; }
+  }
+  $('mgo').onclick = test;
+  solver = function () { document.querySelectorAll('.mitem').forEach(function (b) { if (!!lv.items[+b.dataset.j][2] !== !!pick[b.dataset.j]) tog(b); }); test(); };
+};
+
+/* ---------------- Life Cycles (Tinkerer): same tap-in-order cards as the Water Cycle ---------------- */
+MOUNT.life = function (lv) { MOUNT.water(lv); };
+
+/* ---------------- Angle Maker ---------------- */
+MOUNT.angle = function (lv) {
+  var W = 320, H = 250, cx = 160, cy = 132, R = 96, a = 10, shown = false;
+  $('stage').innerHTML = '<canvas id="cv" width="' + W + '" height="' + H + '"></canvas>'; var g = $('cv').getContext('2d');
+  $('ctrl').innerHTML = '<label class="sl"><span>' + T(['Turn the arm', 'भुजा घुमाओ']) + '</span><input type="range" id="an" min="0" max="359" step="1" value="10" aria-label="angle"></label><div class="row"><button class="btn primary" id="ago">' + T(['Check my angle', 'मेरा कोण जाँचो']) + '</button><span class="state" id="ast"></span></div>';
+  function draw() {
+    g.fillStyle = '#0e1430'; g.fillRect(0, 0, W, H);
+    var r = a * Math.PI / 180;
+    g.fillStyle = 'rgba(255,180,35,.28)'; g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, 44, 0, -r, true); g.closePath(); g.fill();
+    g.lineCap = 'round'; g.lineWidth = 7; g.strokeStyle = '#fbf8f1'; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + R, cy); g.stroke();
+    g.strokeStyle = '#ffb423'; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + R * Math.cos(r), cy - R * Math.sin(r)); g.stroke();
+    g.fillStyle = '#fbf8f1'; g.beginPath(); g.arc(cx, cy, 7, 0, 7); g.fill();
+    if (shown) { var t = lv.target * Math.PI / 180; g.setLineDash([6, 6]); g.lineWidth = 3; g.strokeStyle = '#7bd88f'; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + R * Math.cos(t), cy - R * Math.sin(t)); g.stroke(); g.setLineDash([]); }
+    g.fillStyle = '#fbf8f1'; g.font = '700 18px sans-serif'; g.textAlign = 'center'; g.fillText((HI ? 'लक्ष्य: ' : 'Target: ') + lv.target + '°', cx, 24);
+  }
+  var el = $('an'); el.addEventListener('input', function () { a = +el.value; shown = false; $('ast').textContent = ''; draw(); });
+  function check() {
+    if (finished) return; var d = a - lv.target; shown = true; draw();
+    if (Math.abs(d) <= 6) { sfx.pop(); $('ast').textContent = (HI ? 'तुमने बनाया ' : 'You made ') + a + '° ✓'; setTimeout(solved, 900); }
+    else { sfx.no(); $('ast').textContent = (HI ? 'तुमने बनाया ' : 'You made ') + a + '°. ' + Math.abs(d) + '° ' + (d > 0 ? T(['too wide', 'ज़्यादा चौड़ा']) : T(['too narrow', 'कम चौड़ा'])); }
+  }
+  $('ago').onclick = check; draw();
+  solver = function () { el.value = lv.target; a = lv.target; check(); };
 };
 
 window.__curio = { tab: tab, level: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { var b = $('mdNext'); if (!$('overlay').hidden && b) b.click(); } };

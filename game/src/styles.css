@@ -233,3 +233,13 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .topbar button.pill{min-width:44px;justify-content:center}
 /* small text links get a full-size tap area */
 .hrules,.homefoot .link,#factNext{min-height:44px;padding:0 10px;display:inline-flex;align-items:center}
+/* lab cards: "New" ribbon, finished star, and subject headings in the All workshops list */
+.lab .tag{position:absolute;top:12px;right:10px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 9px;border:2px solid var(--ink)}
+.lab .tag.new{background:#ffe14d;color:var(--ink);transform:rotate(6deg);animation:tagpulse 1.8s ease-in-out infinite}
+.lab .tag.done{background:#fff;font-size:15px;padding:1px 6px;border-color:#b26a00}
+.lab.complete{background:linear-gradient(#fffdf2,#fff3c9)}
+@keyframes tagpulse{50%{transform:rotate(6deg) scale(1.1)}}
+.subjhead{display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px;padding:6px 12px;border-radius:12px;font-family:var(--f-display);font-size:18px;border-left:8px solid var(--sc);background:color-mix(in srgb,var(--sc) 16%,#fff)}
+.subjhead:first-of-type{margin-top:6px}
+.subjhead small{font-family:var(--f-mono);font-size:12px;font-weight:700;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.lab .tag.new{animation:none}}

@@ -57,6 +57,16 @@ const ASK: Record<string, { en: string; hi: string }> = {
   water: { en: 'Can you put the water steps in order?', hi: 'क्या तुम पानी के चरणों को क्रम में लगा सकते हो?' },
   decimal: { en: 'Can you shade the right decimal or percent?', hi: 'क्या तुम सही दशमलव या प्रतिशत रंग सकते हो?' },
   pythag: { en: 'Can you build a right triangle that fits the squares?', hi: 'क्या तुम वर्गों से मेल खाता समकोण त्रिभुज बना सकते हो?' },
+  mix: { en: 'Can you mix a brand new colour?', hi: 'क्या तुम एक नया रंग बना सकते हो?' },
+  states: { en: 'Can you tell a solid from a liquid?', hi: 'क्या तुम ठोस और तरल पहचान सकते हो?' },
+  float: { en: 'Can you guess what floats?', hi: 'क्या तुम बता सकते हो कि क्या तैरेगा?' },
+  count: { en: 'Can you count them all?', hi: 'क्या तुम सबको गिन सकते हो?' },
+  home: { en: 'Can you find an animal\'s home?', hi: 'क्या तुम किसी जानवर का घर ढूँढ सकते हो?' },
+  magnet: { en: 'Can you find everything a magnet pulls?', hi: 'क्या तुम वे सब चीज़ें ढूँढ सकते हो जो चुंबक खींचता है?' },
+  life: { en: 'Can you put a life cycle in order?', hi: 'क्या तुम एक जीवन चक्र को क्रम में लगा सकते हो?' },
+  ph: { en: 'Can you hit the right pH?', hi: 'क्या तुम सही pH बना सकते हो?' },
+  filter: { en: 'Can you change how something looks with coloured light?', hi: 'क्या तुम रंगीन रोशनी से किसी चीज़ का रंग बदल सकते हो?' },
+  angle: { en: 'Can you make an angle by eye?', hi: 'क्या तुम आँख से अंदाज़ा लगाकर कोण बना सकते हो?' },
   cell: { en: 'Can you finish a new cell or germ puzzle?', hi: 'क्या तुम कोशिका या जीवाणु की नई पहेली पूरी कर सकते हो?' },
 };
 

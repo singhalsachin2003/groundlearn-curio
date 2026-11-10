@@ -65,13 +65,23 @@ html body input[type=range]:disabled{opacity:.45}
 @media (max-width:560px){html body .slider{grid-template-columns:46px 44px minmax(0,1fr) 44px 66px;gap:6px}html body .mission p{font-size:16px}}`;
 const KID_WORLDS: WorldId[] = ['inventor', 'tinkerer', 'inventor2'];
 
+// Explorer world: a soft stage for the picture, rolling hills behind the buttons and a gentle bob, so the screen never feels empty.
+const EXPLORER_LOOK = `html body #app::before{content:"";position:fixed;left:-10%;right:-10%;bottom:0;height:30vh;z-index:-1;pointer-events:none;
+background:radial-gradient(58% 100% at 22% 100%,#2c8a63 0 62%,transparent 63%),radial-gradient(66% 84% at 78% 100%,#226f55 0 62%,transparent 63%),radial-gradient(90% 46% at 50% 100%,#1b5a49 0 62%,transparent 63%)}
+html body #scene{background:radial-gradient(80% 70% at 50% 40%,rgba(255,255,255,.13),rgba(255,255,255,.04));border:3px solid rgba(255,255,255,.16);border-radius:30px;margin:12px 0;padding:12px 8px;box-sizing:border-box;box-shadow:inset 0 0 40px rgba(255,220,160,.07)}
+html body .huge:not(.pop):not(.shake){animation:exbob 2.6s ease-in-out infinite}
+@keyframes exbob{50%{transform:translateY(-8px)}}
+html body .big{border-width:4px}
+@media (max-width:400px){html body #top{gap:6px}html body #dots{gap:5px}html body #dots i{width:14px;height:14px}html body #say{height:52px;min-width:52px;padding:0 12px;font-size:24px}html body #mute{width:52px;height:52px;font-size:24px}}
+@media (prefers-reduced-motion:reduce){html body .huge{animation:none !important}}`;
+
 // Warmer, lighter night skies per world, so the dark labs feel like dusk rather than a void.
 const GLOW: Record<WorldId, string> = {
   colour: '',
   inventor: 'html body::before{animation:none;opacity:.6}html body{background:radial-gradient(90% 55% at 50% 0%,rgba(255,170,110,.22),rgba(255,170,110,0) 70%),radial-gradient(120% 90% at 50% 0%,#3a2f86 0%,#1b1d45 72%)}',
   tinkerer: drift('🫧', '20%') + 'html body{background:radial-gradient(90% 55% at 50% 0%,rgba(120,240,200,.22),rgba(120,240,200,0) 70%),radial-gradient(120% 90% at 50% 0%,#17576a 0%,#13284a 72%)}',
-  explorer: drift('☁️', '19%'),
-  inventor2: drift('✨', '21%'),
+  explorer: drift('☁️', '19%') + EXPLORER_LOOK,
+  inventor2: drift('✨', '21%') + 'html body #stage:not(:has(canvas)){background:radial-gradient(80% 70% at 50% 40%,rgba(255,255,255,.11),rgba(255,255,255,.03));border:2px solid rgba(255,255,255,.14);border-radius:22px;padding:10px;box-sizing:border-box}',
 };
 
 const BOOT = `(function(){var P=window.parent;window.THREE=P.curioTHREE;window.curio=P.curioWorld;

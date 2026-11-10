@@ -9,11 +9,12 @@ game/   The game itself: TypeScript + three.js (r128), built by Vite into ONE ht
   src/        The app shell: players, island hub, coins and hearts, Journal, parent gate, Parent Corner.
   worlds/     The playable worlds, one set of labs per age band (Explorer 4-7, Tinkerer 7-10, Inventor 10+).
               Each band sees Colour Studio (which adapts to the band) plus its own labs only:
-              explorer.html     6 no-reading labs: Fizz Kitchen, See-saw Animals, Light the Bulb,
-                                Fruit Scales, Baby Animals, Pond Feeding (a voice reads each task; wrong answers cost nothing)
+              explorer.html     15 no-reading labs (a voice reads each task; wrong answers cost nothing), e.g. Fizz Kitchen,
+                                See-saw Animals, Clock Time, Colour Mixing, Float or Sink, Count Them, Animal Homes
               tinkerer.html     6 labs: Atom Snap, Kitchen Reactions, Mirror Maze, Coordinate Pictures, Pea Crosses, Food Chains
-              inventor.html     12 labs (molecules to ecosystems) and inventor2.html: States of Matter,
-                                Fractions and Ratio, Sound and Waves, Cells and Microbes
+              inventor.html     12 labs (molecules to ecosystems)
+              inventor2.html    18 data-driven labs for the Tinkerer and Inventor bands (States of Matter … Acids and Bases,
+                                Coloured Light, Angle Maker, Magnet Hunt, Life Cycles). A new lab here is a LABS entry plus a MOUNT function.
               colour.html       Colour Studio (all bands)
               Which lab belongs to which band: `only` and `labsFor()` in game/src/labs.ts and daily.ts.
               Hindi: inventor.html through game/src/hi/translate.ts, tinkerer.html through game/src/hi/tinkerer.ts,

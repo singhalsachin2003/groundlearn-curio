@@ -64,8 +64,22 @@ export const LABS: Lab[] = [
   { id: 'water', world: 'inventor2', only: 'tinkerer', subject: 'chem', icon: '🌧️', name: { en: 'Water Cycle', hi: 'जल चक्र' }, blurb: { en: 'Put the steps in order', hi: 'चरणों को क्रम में लगाओ' }, progress: { field: 'waterDone', total: 6, kind: 'levels' } },
   { id: 'decimal', world: 'inventor2', subject: 'math', icon: '💯', name: { en: 'Decimals and Percent', hi: 'दशमलव और प्रतिशत' }, blurb: { en: 'Shade the hundred grid', hi: 'सौ वर्गों की ग्रिड रंगो' }, progress: { field: 'decDone', total: 6, kind: 'levels' } },
   { id: 'pythag', world: 'inventor2', subject: 'math', icon: '📏', name: { en: 'Pythagoras Squares', hi: 'पाइथागोरस के वर्ग' }, blurb: { en: 'Squares on a right triangle', hi: 'समकोण त्रिभुज पर वर्ग' }, progress: { field: 'pythDone', total: 6, kind: 'levels' } },
+  // Round 6: one new lab in every subject for each age band.
+  { id: 'mix', world: 'explorer', only: 'explorer', subject: 'colour', icon: '🖌️', name: { en: 'Colour Mixing', hi: 'रंग मिलाओ' }, blurb: { en: 'Two colours make a new one', hi: 'दो रंगों से नया रंग' }, progress: { field: 'mixDone', total: 6, kind: 'levels' } },
+  { id: 'states', world: 'explorer', only: 'explorer', subject: 'chem', icon: '🧊', name: { en: 'Solid or Liquid', hi: 'ठोस या तरल' }, blurb: { en: 'Sort what you see', hi: 'जो दिखे उसे छाँटो' }, progress: { field: 'statesDone', total: 6, kind: 'levels' } },
+  { id: 'float', world: 'explorer', only: 'explorer', subject: 'phy', icon: '🛟', name: { en: 'Float or Sink', hi: 'तैरेगा या डूबेगा' }, blurb: { en: 'Drop it in the water', hi: 'पानी में डालकर देखो' }, progress: { field: 'floatDone', total: 6, kind: 'levels' } },
+  { id: 'count', world: 'explorer', only: 'explorer', subject: 'math', icon: '🔢', name: { en: 'Count Them', hi: 'गिनती करो' }, blurb: { en: 'How many can you see?', hi: 'कितने दिख रहे हैं?' }, progress: { field: 'countDone', total: 6, kind: 'levels' } },
+  { id: 'home', world: 'explorer', only: 'explorer', subject: 'bio', icon: '🏡', name: { en: 'Animal Homes', hi: 'जानवरों के घर' }, blurb: { en: 'Who lives where?', hi: 'कौन कहाँ रहता है?' }, progress: { field: 'homeDone', total: 6, kind: 'levels' } },
+  { id: 'magnet', world: 'inventor2', only: 'tinkerer', subject: 'phy', icon: '🧲', name: { en: 'Magnet Hunt', hi: 'चुंबक की खोज' }, blurb: { en: 'What will a magnet pull?', hi: 'चुंबक क्या खींचेगा?' }, progress: { field: 'magnetDone', total: 5, kind: 'levels' } },
+  { id: 'life', world: 'inventor2', only: 'tinkerer', subject: 'bio', icon: '🦋', name: { en: 'Life Cycles', hi: 'जीवन चक्र' }, blurb: { en: 'From egg to grown-up', hi: 'अंडे से बड़े होने तक' }, progress: { field: 'lifeDone', total: 6, kind: 'levels' } },
+  { id: 'ph', world: 'inventor2', subject: 'chem', icon: '🧫', name: { en: 'Acids and Bases', hi: 'अम्ल और क्षार' }, blurb: { en: 'Change the pH, watch the colour', hi: 'pH बदलो, रंग देखो' }, progress: { field: 'phDone', total: 6, kind: 'levels' } },
+  { id: 'filter', world: 'inventor2', subject: 'colour', icon: '🔦', name: { en: 'Coloured Light', hi: 'रंगीन रोशनी' }, blurb: { en: 'Why things look coloured', hi: 'चीज़ें रंगीन क्यों दिखती हैं' }, progress: { field: 'filterDone', total: 6, kind: 'levels' } },
+  { id: 'angle', world: 'inventor2', subject: 'math', icon: '📐', name: { en: 'Angle Maker', hi: 'कोण बनाओ' }, blurb: { en: 'Judge angles by eye', hi: 'आँख से कोण का अंदाज़ा' }, progress: { field: 'angleDone', total: 6, kind: 'levels' } },
 ];
 
+
+/** Labs added in the latest update: they wear a "New" ribbon until first played. */
+export const NEW_LABS = new Set(['mix', 'states', 'float', 'count', 'home', 'magnet', 'life', 'ph', 'filter', 'angle']);
 
 /** Planned games (none right now) shown as "coming soon" so younger bands can see what is on the way. */
 export const COMING: Record<Band, { icon: string; en: string; hi: string; subject: Subject }[]> = {
@@ -82,6 +96,7 @@ export const LEVEL_FIELDS: Record<string, string> = {
   geneDone: 'genes', circDone: 'circuit', ecoDone: 'eco', machDone: 'mach', netsDone: 'nets',
   atomDone: 'atom', fizzDone: 'fizz', seesawDone: 'seesaw', bulbDone: 'bulb', scalesDone: 'scales', babyDone: 'baby', pondDone: 'pond',
   matterDone: 'matter', fractionDone: 'fraction', soundDone: 'sound', cellDone: 'cell', shareDone: 'share', clockDone: 'clock', groupsDone: 'groups', ladooDone: 'ladoo', moonDone: 'moon', areaDone: 'area', patternDone: 'pattern', dayDone: 'daynight', symDone: 'symmetry', waterDone: 'water', decDone: 'decimal', pythDone: 'pythag', mirrorStars: 'mirror', coordDone: 'coord', peaDone: 'pea', chainDone: 'chain',
+  mixDone: 'mix', statesDone: 'states', floatDone: 'float', countDone: 'count', homeDone: 'home', magnetDone: 'magnet', lifeDone: 'life', phDone: 'ph', filterDone: 'filter', angleDone: 'angle',
 };
 /** Collections in a world save where each new item is a discovery (field → lab id). */
 export const FOUND_FIELDS: Record<WorldId, Record<string, string>> = {
