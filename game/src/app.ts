@@ -105,7 +105,7 @@ export function start(el: HTMLElement) {
     },
   };
 
-  (window as unknown as Record<string, unknown>).__shell = { S, active, hub, storeWorldSave, mysterySheet }; // test hook
+  (window as unknown as Record<string, unknown>).__shell = { S, active, hub, storeWorldSave, mysterySheet, certPng }; // test hook
   setInterval(refreshPills, 1000);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !frame) onBack(); });
   if (active()) hub(); else players();
@@ -176,7 +176,7 @@ function players() {
       <div class="players">${list}<button class="player add" id="pAdd"><span class="av">＋</span><b>${t('addPlayer')}</b></button></div>
       <div class="fact card"><small>💡 ${t('didYouKnow')}</small><p id="factTx"></p><button class="link" id="factNext">${t('anotherFact')} →</button></div>
       <p class="stats">${t('homeStats')}</p>
-      <div class="homefoot"><button class="link" id="pRules">ℹ️ ${t('rulesBtn')}</button><button class="link" id="pLang">${getLang() === 'en' ? 'हिंदी' : 'English'}</button></div>
+      <div class="homefoot"><button class="link" id="pRules">ℹ️ ${t('rulesBtn')}</button><button class="link" id="pTell">💌 ${t('tellFriend')}</button><button class="link" id="pLang">${getLang() === 'en' ? 'हिंदी' : 'English'}</button></div>
       <small class="copy">© 2026 GroundLearn</small>
     </section>`;
   let fi = factOfDay();
@@ -185,6 +185,7 @@ function players() {
   document.querySelectorAll<HTMLElement>('[data-pid]').forEach(b => b.onclick = () => { S.active = b.dataset.pid!; saveShell(); hub(); });
   $('#pAdd').onclick = () => newPlayer();
   $('#pRules').onclick = () => rules();
+  $('#pTell').onclick = () => gate(() => send({ t: 'share', text: t('tellText') })); // sharing leaves the app: grown-ups only
   $('#pLang').onclick = () => { S.lang = getLang() === 'en' ? 'hi' : 'en'; setLang(S.lang); saveShell(); players(); };
 }
 
@@ -250,8 +251,33 @@ function certSheet(z: ZoneState) {
   const date = new Date().toLocaleDateString(getLang() === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
   sheet('cert', `<div class="cert"><div class="cert-in"><div class="cert-lion">${mascot('cheer')}</div><small>Curio Island · GroundLearn</small><h2>${t('certTitle')}</h2><p>${t('certThis')}</p>
     <b class="cert-name">${esc(p.name || t(p.band))}</b><p>${t('certFor').replace('{place}', esc(z.label))}</p><div class="cert-foot"><span>🥇</span><span>${date}</span><span>⭐⭐⭐</span></div></div></div>
-    <p class="muted">${t('certHint')}</p><div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
+    <div class="row-btns"><button class="btn" id="certShare">📤 ${t('certShare')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
   fx('win'); confetti(reduceMotion);
+  const name = p.name || t(p.band), place = z.label;
+  // Sharing leaves the app, so it sits behind the parent gate; the gate replaces this sheet, so the picture is made first.
+  $('#certShare').onclick = async () => { const png = await certPng(name, place, date); gate(() => { send({ t: 'share', text: t('certShareText').replace('{name}', name).replace('{place}', place) + ' https://curioisland.groundlearn.com', png }); }); };
+}
+/** Draw the certificate as a picture (PNG, base64 without the data: prefix) for sharing. */
+async function certPng(name: string, place: string, date: string): Promise<string> {
+  const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d')!;
+  const font = (px: number, w = 700) => `${w} ${px}px "Bricolage Grotesque", "Baloo 2", "Lexend", system-ui, sans-serif`;
+  g.fillStyle = '#ffb423'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#121528'; for (let i = -H; i < W; i += 80) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 40, 0); g.lineTo(i + 40 + H, H); g.lineTo(i + H, H); g.closePath(); g.globalAlpha = 0.1; g.fill(); } g.globalAlpha = 1;
+  g.fillStyle = '#fffdf6'; g.strokeStyle = '#121528'; g.lineWidth = 8; const r = 44, x = 50, y = 50, w = W - 100, h = H - 100;
+  g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); g.fill(); g.stroke();
+  await new Promise<void>(res => { const im = new Image(); im.onload = () => { g.drawImage(im, W / 2 - 150, 110, 300, 325); res(); }; im.onerror = () => res();
+    im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(mascot('cheer').replace('<svg ', '<svg width="480" height="520" ')); });
+  g.textAlign = 'center'; g.fillStyle = '#8a5200'; g.font = font(30); g.fillText('CURIO ISLAND · GROUNDLEARN', W / 2, 500);
+  g.fillStyle = '#121528'; g.font = font(74, 800); g.fillText(t('certTitle'), W / 2, 600, w - 80);
+  g.font = font(38, 500); g.fillText(t('certThis'), W / 2, 690);
+  g.fillStyle = '#c2410c'; g.font = font(110, 800); g.fillText(name, W / 2, 830, w - 120);
+  g.strokeStyle = '#ffb423'; g.lineWidth = 6; g.setLineDash([14, 12]); g.beginPath(); g.moveTo(240, 866); g.lineTo(W - 240, 866); g.stroke(); g.setLineDash([]);
+  g.fillStyle = '#121528'; g.font = font(40, 500);
+  const words = t('certFor').replace('{place}', place).split(' '); let line = '', yy = 950;
+  for (const wd of words) { if (g.measureText(line + wd).width > w - 200 && line) { g.fillText(line.trim(), W / 2, yy); yy += 58; line = ''; } line += wd + ' '; } g.fillText(line.trim(), W / 2, yy);
+  g.font = font(64); g.fillText('🥇 ⭐⭐⭐', W / 2, 1130);
+  g.fillStyle = '#5b607a'; g.font = font(32, 500); g.fillText(t('certAward').replace('{date}', date), W / 2, 1200); g.fillText('curioisland.groundlearn.com', W / 2, 1250);
+  return c.toDataURL('image/png').split(',')[1] || '';
 }
 let bubbleTimer = 0, cheerIx = 0;
 function buddySay(text: string, mood: Mood = 'happy', ms = 6500) {
@@ -664,6 +690,7 @@ function parentCorner() {
       <button class="link" id="pcRules">ℹ️ ${t('rulesBtn')}</button>
       <button class="link" id="pcPrivacy">${t('privacy')}</button>
       <section class="about"><h3>${t('aboutTitle')}</h3><p class="muted">${t('aboutBody')}</p><p class="muted">${t('aboutCredits')}</p><p class="muted">${t('aboutNote')}</p><p><b>${t('byGl')}</b> · © 2026</p><button class="link" id="pcLic">${t('licences')}</button></section>
+      <section class="tell"><h3>💌 ${t('tellFriend')}</h3><p class="muted">${t('tellBody')}</p><button class="btn primary" id="pcTell">📤 ${t('tellBtn')}</button></section>
     </div>
     <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   document.getElementById('pcBuy')?.addEventListener('click', () => emailAsk());
@@ -679,6 +706,7 @@ function parentCorner() {
   $('#pcRules').onclick = () => rules();
   document.querySelectorAll<HTMLElement>('[data-reset]').forEach(b => b.onclick = () => { const p = S.profiles.find(x => x.id === b.dataset.reset); if (p) resetAsk(p); });
   $('#pcPrivacy').onclick = () => send({ t: 'openUrl', url: PRIVACY_URL });
+  $('#pcTell').onclick = () => send({ t: 'share', text: t('tellText') }); // already behind the parent gate
   $('#pcLic').onclick = () => sheet('licences', `<h2>${t('licences')}</h2>${LICENSES.map(l => `<h3>${esc(l.name)}</h3><pre class="lic">${esc(l.text)}</pre>`).join('')}<div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
 }
 

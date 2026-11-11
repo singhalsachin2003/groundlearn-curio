@@ -312,3 +312,6 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .cert-lion{width:84px;height:92px;margin:0 auto}
 .cert-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;font-weight:700}
 @media (prefers-reduced-motion:reduce){.gift.ready{animation:none}}
+/* tell a friend (Parent Corner) */
+.tell{background:#fff8e1;border:2px solid #f0d58a;border-radius:16px;padding:12px 14px}.tell h3{margin:0 0 4px}.tell .btn{margin-top:8px;min-height:44px}
+.homefoot{flex-wrap:wrap;row-gap:0}

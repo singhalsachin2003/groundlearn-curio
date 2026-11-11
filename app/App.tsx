@@ -1,7 +1,9 @@
 // Curio Island: a thin native shell around the game, which runs in a full-screen WebView.
 // The shell keeps saves, shows ads, sells the Ad-free upgrade and handles the back button.
 import { useCallback, useEffect, useRef, useState, type ComponentType, type Ref } from 'react';
-import { BackHandler, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Linking, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import { File, Paths } from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
@@ -32,7 +34,20 @@ const OPEN_OK = /^https:\/\/(www\.)?groundlearn\.com\//; // only our own pages, 
 
 type FromGame =
   | { t: 'ready' } | { t: 'save'; data: Record<string, string> } | { t: 'interstitial' } | { t: 'banner'; mode: 'off' | 'space' | 'ad' } | { t: 'rewarded'; id: number }
-  | { t: 'buyAdFree' } | { t: 'restore' } | { t: 'openUrl'; url: string } | { t: 'exit' };
+  | { t: 'buyAdFree' } | { t: 'restore' } | { t: 'openUrl'; url: string } | { t: 'exit' }
+  | { t: 'share'; text: string; png?: string };
+
+/** Open Android's share sheet with a message, or with a picture (the certificate). The game only sends this from behind the parent gate. */
+async function shareOut(text: string, png?: string) {
+  try {
+    if (png && (await Sharing.isAvailableAsync())) {
+      const file = new File(Paths.cache, 'curio-island-certificate.png');
+      file.create({ overwrite: true });
+      file.write(png, { encoding: 'base64' });
+      await Sharing.shareAsync(file.uri, { mimeType: 'image/png', dialogTitle: text });
+    } else await Share.share({ message: text });
+  } catch (e) { reportError(e, 'Share'); }
+}
 
 /** Shows what went wrong instead of closing, so a tester can send a screenshot. */
 function CrashScreen({ msg }: { msg: string }) {
@@ -109,6 +124,7 @@ function App() {
       case 'buyAdFree': { const b = billing(); const r = b ? await b.buyAdFree() : { ok: false, message: 'Purchases are not available right now.' }; if (r.ok) setAdFree(true); toGame({ t: 'purchase', ok: r.ok, message: r.message }); break; }
       case 'restore': { const b = billing(); const ok = b ? await b.restoreAdFree() : false; if (ok) setAdFree(true); toGame({ t: 'purchase', ok, message: ok ? undefined : 'No earlier purchase was found on this Google account.' }); break; }
       case 'openUrl': if (OPEN_OK.test(m.url)) Linking.openURL(m.url).catch(() => {}); break;
+      case 'share': if (typeof m.text === 'string' && m.text.length < 600 && (!m.png || m.png.length < 3_000_000)) void shareOut(m.text, m.png); break;
       case 'exit': BackHandler.exitApp(); break;
     }
   }, [toGame, setAdFree]);
