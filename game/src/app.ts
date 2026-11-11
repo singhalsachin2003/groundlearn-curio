@@ -101,6 +101,7 @@ export function start(el: HTMLElement) {
       const p = active(); if (!p) return;
       if (correct) { addCoins(p, RULES.coins.correct); toast(`+${RULES.coins.correct} ${t('plusCoins')} · ${t('correct')}`); }
       else if (p.band !== 'explorer') { loseHeart(p); toast(`−1 ❤️ ${t('lostHeart')}`, 'bad'); }
+      if (!correct && p.band !== 'explorer' && ++missesThisVisit === 2) setTimeout(() => { toast(`💡 ${t('hintNudge')}`); try { document.querySelector<HTMLIFrameElement>('.world-frame')?.contentDocument?.getElementById('mHintBtn')?.classList.add('nudge'); } catch { /* the world is closing */ } }, 1400);
       refreshPills();
     },
   };
@@ -280,6 +281,7 @@ async function certPng(name: string, place: string, date: string): Promise<strin
   return c.toDataURL('image/png').split(',')[1] || '';
 }
 let bubbleTimer = 0, cheerIx = 0;
+let missesThisVisit = 0;
 function buddySay(text: string, mood: Mood = 'happy', ms = 6500) {
   const b = document.getElementById('hBubble'), f = document.getElementById('hBuddy'); if (!b || !f) return;
   f.innerHTML = mascot(mood); b.textContent = text; b.classList.add('show');
@@ -433,7 +435,7 @@ function enterWorld(lab: Lab) {
     ? { tab: lab.id, sound: S.sound, voice: S.voice !== false }
     : { mode: p.band, lang: S.lang, sound: S.sound };
   loadWorldSave(p.id, lab.world, patch);
-  current = { lab, world: lab.world, pid: p.id };
+  current = { lab, world: lab.world, pid: p.id }; missesThisVisit = 0;
   $('#wLab').textContent = `${lab.icon} ${nm(lab.name)}`;
   $('#wBackTxt').textContent = t('island');
   $('#world').hidden = false; $('#screen').hidden = true; showIsland(false);

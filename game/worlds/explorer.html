@@ -74,6 +74,8 @@ body.nightbg{background:radial-gradient(120% 90% at 50% 0%,#0b0f24 0%,#04060f 70
 .tank .thing.fl{top:9%}.tank .thing.sk{top:66%;transition-timing-function:ease-in}
 .crowd{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:330px;font-size:clamp(40px,12vw,58px);line-height:1.1}
 .crowd span{animation:pop .4s both}
+.big.glow{animation:hglow 1s ease-in-out infinite;border-color:#ffd23f}
+@keyframes hglow{0%,100%{box-shadow:0 0 0 0 rgba(255,210,63,.9),0 6px 0 rgba(0,0,0,.4)}50%{box-shadow:0 0 0 12px rgba(255,210,63,0),0 6px 0 rgba(0,0,0,.4);transform:scale(1.07)}}
 </style>
 
 <div id="app">
@@ -303,7 +305,13 @@ var bag = [];
 function replayNext() { if (!bag.length) { for (var k = 0; k < G.n; k++) if (k !== cur) bag.push(k); bag.sort(function () { return Math.random() - .5; }); } return bag.pop(); }
 var FIXED_TRAY = { scales: 1, daynight: 1, float: 1, states: 1, seesaw: 1 };
 function mixTray() { if (FIXED_TRAY[tab] || window.__noShuffle) return; var t = $('tray'), kids = [].slice.call(t.children); for (var k = kids.length - 1; k > 0; k--) { var j = Math.floor(Math.random() * (k + 1)); t.insertBefore(kids[k], kids[j]); var x = kids[k]; kids[k] = kids[j]; kids[j] = x; } }
-function start(i) { cur = i; busy = false; dots(); $('scene').innerHTML = ''; $('tray').innerHTML = ''; G.run(i); mixTray(); }
+/* Curio app: a gentle hint. After two wrong tries, or 20 seconds without a tap, the right choice glows. Nothing is taken away for using it. */
+var hinter = null, misses = 0, idleT = 0;
+function glow() { if (busy || !hinter) return; hinter().forEach(function (q) { var el = q && document.querySelector(q); if (el && !el.classList.contains('used')) el.classList.add('glow'); }); }
+function idle() { clearTimeout(idleT); idleT = setTimeout(glow, 20000); }
+(function () { var no = sfx.no; sfx.no = function () { no.apply(sfx, arguments); misses++; idle(); if (misses >= 2) setTimeout(glow, 1500); }; })();
+document.addEventListener('pointerdown', idle, true);
+function start(i) { cur = i; busy = false; hinter = null; misses = 0; dots(); $('scene').innerHTML = ''; $('tray').innerHTML = ''; G.run(i); mixTray(); idle(); }
 
 function runFizz(i) {
   var r = FIZZ[i], sel = [];
@@ -322,6 +330,7 @@ function runFizz(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(b.dataset.k); }; });
   solver = function () { tap(r.pair[0]); tap(r.pair[1]); };
+  hinter = function () { return ['[data-k="' + r.pair[0] + '"]', '[data-k="' + r.pair[1] + '"]']; };
 }
 
 function runSeesaw(i) {
@@ -354,6 +363,7 @@ function runBulb(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.j); }; });
   solver = function () { for (var j = 0; j < r.opts.length; j++) if (r.opts[j][1]) { tap(j); return; } };
+  hinter = function () { return r.opts.map(function (o, j) { return o[1] ? '[data-j="' + j + '"]' : null; }); };
 }
 
 function runScales(i) {
@@ -369,6 +379,7 @@ function runScales(i) {
   function add() { if (busy || m >= 10) return; m++; sfx.pop(); draw(); }
   $('add').onclick = add; $('sub').onclick = function () { if (busy || m < 1) return; m--; sfx.pop(); draw(); };
   solver = function () { while (m < n) add(); };
+  hinter = function () { return ['#add']; };
 }
 
 function runBaby(i) {
@@ -384,6 +395,7 @@ function runBaby(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.j); }; });
   solver = function () { for (var j = 0; j < opts.length; j++) if (opts[j][2]) { tap(j); return; } };
+  hinter = function () { return opts.map(function (o, j) { return o[2] ? '[data-j="' + j + '"]' : null; }); };
 }
 
 function runPond(i) {
@@ -399,6 +411,7 @@ function runPond(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.j); }; });
   solver = function () { for (var j = 0; j < opts.length; j++) if (opts[j][2]) { tap(j); return; } };
+  hinter = function () { return opts.map(function (o, j) { return o[2] ? '[data-j="' + j + '"]' : null; }); };
 }
 
 function runShare(i) {
@@ -438,6 +451,7 @@ function runClock(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.v); }; });
   solver = function () { tap(h); };
+  hinter = function () { return ['[data-v="' + h + '"]']; };
 }
 
 function runPattern(i) {
@@ -452,6 +466,7 @@ function runPattern(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.j); }; });
   solver = function () { tap(r.opts.indexOf(r.ans)); };
+  hinter = function () { return ['[data-j="' + r.opts.indexOf(r.ans) + '"]']; };
 }
 
 function runDaynight(i) {
@@ -466,6 +481,7 @@ function runDaynight(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(b.dataset.k); }; });
   solver = function () { tap(r[1]); };
+  hinter = function () { return ['[data-k="' + r[1] + '"]']; };
 }
 
 var TRY = ['Not this one. Try again!', 'यह नहीं। फिर से देखो!'];
@@ -486,6 +502,7 @@ function runMix(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(b.dataset.k); }; });
   row(); solver = function () { tap(r.pair[0]); tap(r.pair[1]); };
+  hinter = function () { return ['[data-k="' + r.pair[0] + '"]', '[data-k="' + r.pair[1] + '"]']; };
 }
 
 function runFloat(i) {
@@ -500,6 +517,7 @@ function runFloat(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.k); }; });
   solver = function () { tap(r.fl); };
+  hinter = function () { return ['[data-k="' + r.fl + '"]']; };
 }
 
 function runStates(i) {
@@ -514,6 +532,7 @@ function runStates(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(b.dataset.k); }; });
   solver = function () { tap(r.k); };
+  hinter = function () { return ['[data-k="' + r.k + '"]']; };
 }
 
 function runCount(i) {
@@ -531,6 +550,7 @@ function runCount(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(+b.dataset.v); }; });
   solver = function () { tap(r.n); };
+  hinter = function () { return ['[data-v="' + r.n + '"]']; };
 }
 
 function runHome(i) {
@@ -545,6 +565,7 @@ function runHome(i) {
   }
   document.querySelectorAll('.big').forEach(function (b) { b.onclick = function () { tap(b.dataset.k); }; });
   solver = function () { tap(r.at); };
+  hinter = function () { return ['[data-k="' + r.at + '"]']; };
 }
 
 /* test hooks used by the app's smoke test */

@@ -93,6 +93,9 @@ svg.pizza path{cursor:pointer;stroke:#7a3b13;stroke-width:2;transition:fill .15s
 .mitem{display:flex;flex-direction:column;align-items:center;gap:2px;background:linear-gradient(#fffdf6,#f6ecd6);border:3px solid var(--ink);border-radius:16px;padding:8px 4px;min-height:84px;box-shadow:0 3px 0 rgba(0,0,0,.45)}
 .mitem span{font-size:34px;line-height:1.1}.mitem small{font-size:12px;font-weight:700;line-height:1.15}
 .mitem.on{background:#ffe08a;border-color:#b26a00}.mitem.stuck{background:#c8f3df;border-color:var(--mint)}.mitem.bad{background:#ffd7cf;border-color:var(--coral)}
+.nudge{animation:nudge 1.2s ease-in-out infinite}@keyframes nudge{0%,60%,100%{transform:none}70%{transform:rotate(-6deg) scale(1.08)}85%{transform:rotate(6deg) scale(1.08)}}
+.hrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.card .hint{font-size:15px;line-height:1.4;background:#fff6d6;border:2px dashed #e0b84a;border-radius:12px;padding:8px 12px;margin:8px 0 0}
+#mShow{min-height:44px;padding:0 16px;border:2px solid var(--ink);border-radius:999px;background:#d9f2ff;box-shadow:0 2px 0 var(--ink);text-decoration:none;font-size:15px;font-weight:700}
 </style>
 
 <i id="noTR" hidden></i>
@@ -100,6 +103,8 @@ svg.pizza path{cursor:pointer;stroke:#7a3b13;stroke-width:2;transition:fill .15s
   <section class="card" id="mission" aria-live="polite">
     <div class="meta"><span id="mMeta"></span><span class="nav"><button id="mPrev" aria-label="Previous level">‹</button><button id="mNext" aria-label="Next level">›</button></span></div>
     <p id="mText"></p>
+    <div class="hrow"><button class="link" id="mHintBtn">Hint</button><button class="link" id="mShow" hidden>Show me</button></div>
+    <p class="hint" id="mHint" hidden></p>
   </section>
   <div id="stage"></div>
   <section class="card" id="ctrl"></section>
@@ -371,9 +376,55 @@ function setLevel(i) {
   if (teardown) { try { teardown(); } catch (e) {} teardown = null; }
   cur = Math.max(0, Math.min(levels.length - 1, i)); finished = false; solver = null;
   $('mMeta').textContent = T(L.name) + ' · ' + (HI ? 'स्तर ' : 'Level ') + (cur + 1) + ' / ' + levels.length + (done[cur] ? ' ✓' : '');
-  $('mText').textContent = T(levels[cur].t); $('stage').innerHTML = ''; $('ctrl').innerHTML = '';
+  $('mText').textContent = T(levels[cur].t); $('stage').innerHTML = ''; $('ctrl').innerHTML = ''; hintReset(); $('mShow').textContent = HI ? '▶ करके दिखाओ' : '▶ Show me';
   var f = MOUNT[tab]; if (f) f(levels[cur]);
 }
+/* ---------------- Curio app: hints. Every level gets a clue made from its own numbers, and "Show me" does the level so the player can watch. ---------------- */
+var HINT = {
+  matter: function (lv) { return { solid: ['Water freezes below 0 °C. Slide the temperature to the left of 0.', 'पानी 0 °C से नीचे जमता है। तापमान को 0 से बाईं ओर खिसकाओ।'], liquid: ['Water is liquid between 0 °C and 100 °C. Try about 20 °C.', 'पानी 0 °C और 100 °C के बीच तरल रहता है। लगभग 20 °C आज़माओ।'], gas: ['Water boils at 100 °C. Slide the temperature above 100.', 'पानी 100 °C पर उबलता है। तापमान 100 से ऊपर ले जाओ।'], melt: ['Ice melts at exactly 0 °C. Use the − and + buttons to land on 0.', 'बर्फ़ ठीक 0 °C पर पिघलती है। − और + बटन से 0 पर लाओ।'], cond: ['Two steps: first go above 100 °C to make steam, then come back below 100 °C.', 'दो चरण: पहले 100 °C से ऊपर जाकर भाप बनाओ, फिर 100 °C से नीचे आओ।'] }[lv.goal]; },
+  fraction: function (lv) {
+    if (lv.kind === 'slices') return ['The pizza has ' + lv.n + ' slices. You need to colour ' + lv.k + ' of them.', 'पिज़्ज़ा में ' + lv.n + ' टुकड़े हैं। तुम्हें ' + lv.k + ' रंगने हैं।'];
+    if (lv.kind === 'ratio') return ['2 : 3 means 2 parts red for every 3 parts blue. Try 2 red and 3 blue.', '2 : 3 का मतलब है हर 3 भाग नीले पर 2 भाग लाल। 2 लाल और 3 नीला आज़माओ।'];
+    return ['2 cups make 4 rotis, so 1 cup makes 2 rotis. How many cups for 10?', '2 कप से 4 रोटियाँ बनती हैं, यानी 1 कप से 2 रोटियाँ। 10 के लिए कितने कप?'];
+  },
+  sound: function (lv, i) { return [['Pitch is how high the note is. Push the pitch slider to the right, past 600.', 'सुर बताता है कि आवाज़ कितनी ऊँची है। सुर का स्लाइडर दाईं ओर 600 के पार ले जाओ।'], ['Volume is how loud it is. Pull the volume slider to the left, below 30%.', 'आवाज़ कितनी तेज़ है, यह वॉल्यूम है। वॉल्यूम को बाईं ओर 30% से नीचे लाओ।'], ['Move the pitch until your wave sits exactly on the grey wave: about 260 Hz.', 'सुर तब तक बदलो जब तक तुम्हारी तरंग धूसर तरंग पर न बैठ जाए: लगभग 260 Hz।'], ['You need both: volume high (above 70%) and pitch low (below 200 Hz).', 'दोनों चाहिए: वॉल्यूम ऊँचा (70% से ऊपर) और सुर नीचा (200 Hz से कम)।'], ['Wavelength = speed ÷ pitch. 340 ÷ 0.5 = 680, so set the pitch to 680 Hz.', 'तरंगदैर्घ्य = चाल ÷ सुर। 340 ÷ 0.5 = 680, इसलिए सुर 680 Hz रखो।']][i]; },
+  cell: function (lv) {
+    if (lv.kind === 'grow') return ['Keep doubling: 1, 2, 4, 8, 16, 32, 64. Which hour first passes 50?', 'दोगुना करते जाओ: 1, 2, 4, 8, 16, 32, 64। कौन सा घंटा पहली बार 50 पार करता है?'];
+    if (lv.kind === 'scrub') return ['Soap removes more germs than water alone. Use soap on every scrub.', 'साबुन अकेले पानी से ज़्यादा कीटाणु हटाता है। हर बार साबुन का इस्तेमाल करो।'];
+    if (lv.multi) return ['Microbes that make food (curd, bread) or help us are helpful. The ones that make us ill are harmful.', 'जो सूक्ष्मजीव खाना बनाते हैं (दही, ब्रेड) या हमारी मदद करते हैं, वे उपयोगी हैं। जो बीमार करते हैं, वे हानिकारक हैं।'];
+    var it = lv.items[0], tg = null; lv.targets.forEach(function (x) { if (x[0] === it[0]) tg = x; }); if (!tg) { tg = lv.targets[0]; lv.items.forEach(function (x) { if (x[0] === tg[0]) it = x; }); }
+    return ['Here is one to start you off: ' + it[1][0] + ' → ' + tg[1][0] + '.', 'शुरुआत के लिए एक जोड़ी: ' + it[1][1] + ' → ' + tg[1][1] + '।'];
+  },
+  groups: function (lv) { var g = lv.g || lv.total / lv.k, k = lv.k || lv.total / lv.g; return ['You need ' + g + ' baskets with ' + k + ' in each. ' + g + ' × ' + k + ' = ' + g * k + '.', 'तुम्हें ' + g + ' टोकरियाँ चाहिए, हर एक में ' + k + '। ' + g + ' × ' + k + ' = ' + g * k + '।']; },
+  ladoo: function (lv) { var each = lv.n / lv.d; return ['Split the ' + lv.n + ' ladoos into ' + lv.d + ' equal groups: ' + each + ' in each. Take ' + lv.num + (lv.num === 1 ? ' group.' : ' groups.'), lv.n + ' लड्डुओं को ' + lv.d + ' बराबर समूहों में बाँटो: हर समूह में ' + each + '। ' + lv.num + ' समूह लो।']; },
+  moon: function (lv) { return { 0: ['Put the Moon on the same side as the Sun. We then see its dark side.', 'चाँद को सूरज वाली तरफ़ रखो। तब हमें उसका अँधेरा हिस्सा दिखता है।'], 180: ['Put the Moon on the far side of the Earth from the Sun, so its whole face is lit.', 'चाँद को पृथ्वी के उस पार रखो, सूरज से दूर, ताकि उसका पूरा चेहरा चमके।'], 90: ['A quarter of the way round: slide to about 90°.', 'चक्कर का एक चौथाई: लगभग 90° पर खिसकाओ।'], 45: ['Just a little way round from New Moon: about 45°.', 'अमावस्या से बस थोड़ा आगे: लगभग 45°।'], 225: ['A little past Full Moon: about 225°.', 'पूर्णिमा से थोड़ा आगे: लगभग 225°।'], 270: ['Three quarters of the way round: about 270°.', 'चक्कर का तीन-चौथाई: लगभग 270°।'] }[lv.target]; },
+  area: function (lv) { var best = null; for (var w = 1; w <= 8; w++) if (lv.A % w === 0 && 2 * (w + lv.A / w) === lv.P) { best = [w, lv.A / w]; break; }
+    return best ? ['Try a rectangle ' + best[0] + ' squares by ' + best[1] + ' squares. Area = ' + best[0] + ' × ' + best[1] + '.', best[0] + ' × ' + best[1] + ' वर्गों का आयत आज़माओ। क्षेत्रफल = ' + best[0] + ' × ' + best[1] + '।'] : ['Area is how many squares you colour. Perimeter is the distance round the outside.', 'क्षेत्रफल यानी कितने वर्ग रंगे। परिमाप यानी बाहर का पूरा किनारा।']; },
+  symmetry: function () { return ['Count how far each coloured square is from the mirror line. Colour the square the same distance away on the other side.', 'गिनो कि हर रंगा वर्ग दर्पण रेखा से कितनी दूर है। दूसरी तरफ़ उतनी ही दूरी पर वर्ग रंगो।']; },
+  water: function (lv) { return ['It starts with: ' + lv.steps[0][0] + ' ' + lv.steps[0][1][0] + '. What happens next?', 'शुरुआत होती है: ' + lv.steps[0][0] + ' ' + lv.steps[0][1][1] + '। इसके बाद क्या होता है?']; },
+  decimal: function (lv) { var rows = Math.floor(lv.n / 10), ex = lv.n % 10; return ['The grid has 100 squares, so shade ' + lv.n + ': ' + (rows ? rows + ' full row' + (rows > 1 ? 's' : '') : '') + (rows && ex ? ' and ' : '') + (ex ? ex + ' more squares' : '') + '.', 'ग्रिड में 100 वर्ग हैं, इसलिए ' + lv.n + ' रंगो: ' + (rows ? rows + ' पूरी पंक्तियाँ' : '') + (rows && ex ? ' और ' : '') + (ex ? ex + ' वर्ग और' : '') + '।']; },
+  ph: function (lv) { var need = (lv.lo + lv.hi) / 2 - lv.start, up = need > 0, n = Math.abs(lv.start < lv.lo ? lv.lo - lv.start : lv.start - lv.hi);
+    return [(up ? 'The pH must go UP by ' : 'The pH must go DOWN by ') + n + '. ' + (up ? 'Base drops raise it.' : 'Acid drops lower it.') + ' Watch the number on each button.', (up ? 'pH को ' + n + ' बढ़ाना है। क्षार की बूँदें इसे बढ़ाती हैं।' : 'pH को ' + n + ' घटाना है। अम्ल की बूँदें इसे घटाती हैं।') + ' हर बटन पर लिखी संख्या देखो।']; },
+  filter: function (lv) { var C = [['red', 'लाल'], ['green', 'हरा'], ['blue', 'नीला']], on = null;
+    for (var m = 1; m < 8 && !on; m++) { var L = [m & 1, (m >> 1) & 1, (m >> 2) & 1]; if (lv.objs.every(function (o) { return o.c.map(function (v, k) { return v * L[k]; }).join() === o.want.join(); })) on = L; }
+    var n = on[0] + on[1] + on[2], first = on.indexOf(1);
+    return ['You need ' + n + (n === 1 ? ' lamp' : ' lamps') + ' on. One of them is the ' + C[first][0] + ' lamp.', n + ' लैंप जलाने हैं। उनमें से एक ' + C[first][1] + ' लैंप है।']; },
+  magnet: function (lv) { var n = lv.items.filter(function (x) { return x[2]; }).length; return [n + ' of these are magnetic. Look for iron and steel. Other metals do not count.', 'इनमें से ' + n + ' चीज़ें चुंबकीय हैं। लोहा और स्टील ढूँढो। बाक़ी धातुएँ नहीं गिनतीं।']; },
+  angle: function (lv) { var t = lv.target; return t === 90 ? ['Point the yellow arm straight up, like the corner of a book.', 'पीली भुजा को सीधा ऊपर करो, किताब के कोने की तरह।'] : t === 180 ? ['Point the yellow arm straight to the left, to make one long line.', 'पीली भुजा को सीधा बाईं ओर करो, ताकि एक लंबी रेखा बने।'] : t === 270 ? ['Point the yellow arm straight down.', 'पीली भुजा को सीधा नीचे करो।'] : t < 90 ? ['Straight up is 90°. ' + t + '° is ' + (t === 45 ? 'half' : 'one third') + ' of that.', 'सीधा ऊपर 90° है। ' + t + '° उसका ' + (t === 45 ? 'आधा' : 'एक तिहाई') + ' है।'] : ['Straight up is 90°. Go ' + (t - 90) + '° further, towards the left.', 'सीधा ऊपर 90° है। उससे ' + (t - 90) + '° और आगे, बाईं ओर जाओ।']; },
+  pythag: function (lv, i) { var c = Math.round(Math.sqrt(lv.a * lv.a + lv.b * lv.b)); if (!i) return ['Slide "Side a" to ' + lv.a + ' and "Side b" to ' + lv.b + '. Then add the two small squares: ' + lv.a * lv.a + ' + ' + lv.b * lv.b + ' = ' + c * c + '.', '"भुजा a" को ' + lv.a + ' और "भुजा b" को ' + lv.b + ' पर खिसकाओ। फिर दोनों छोटे वर्ग जोड़ो: ' + lv.a * lv.a + ' + ' + lv.b * lv.b + ' = ' + c * c + '।']; return ['a² + b² = c². Here ' + lv.a + '² = ' + lv.a * lv.a + ' and c² = ' + c * c + ', so b² = ' + (c * c - lv.a * lv.a) + '. Which number times itself gives that?', 'a² + b² = c²। यहाँ ' + lv.a + '² = ' + lv.a * lv.a + ' और c² = ' + c * c + ', इसलिए b² = ' + (c * c - lv.a * lv.a) + '। कौन सी संख्या ख़ुद से गुणा होकर यह देती है?']; }
+};
+HINT.life = HINT.water;
+function hintFor() { var f = HINT[tab], r = null; try { r = f ? f(levels[cur], cur) : null; } catch (e) { r = null; } return r ? T(r) : (HI ? 'निर्देश फिर से ध्यान से पढ़ो और एक-एक कदम आज़माओ।' : 'Read the task again slowly and try one small step at a time.'); }
+function gated(fn) { if (CUR && CUR.hint) CUR.hint(fn); else fn(); }
+var nudgeT = 0;
+function hintReset() { clearTimeout(nudgeT); $('mHintBtn').classList.remove('nudge'); nudgeT = setTimeout(function () { if (!finished && $('mHint').hidden) $('mHintBtn').classList.add('nudge'); }, 40000); $('mHint').hidden = true; $('mShow').hidden = true; $('mHintBtn').hidden = false; $('mHintBtn').textContent = HI ? 'संकेत' : 'Hint'; }
+$('mHintBtn').onclick = function () {
+  if (finished) return;
+  if (!$('mHint').hidden) { $('mHint').hidden = true; $('mShow').hidden = true; $('mHintBtn').textContent = HI ? 'संकेत' : 'Hint'; return; }
+  gated(function () { $('mHint').textContent = hintFor(); $('mHint').hidden = false; $('mShow').hidden = false; $('mHintBtn').textContent = HI ? 'संकेत छिपाओ' : 'Hide hint'; });
+};
+$('mShow').onclick = function () { if (finished || !solver) return; gated(function () { $('mShow').hidden = true; try { solver(); } catch (e) {} }); };
+
 $('mPrev').onclick = function () { setLevel(cur - 1); }; $('mNext').onclick = function () { setLevel(cur + 1); };
 function solved() {
   if (finished) return; finished = true; done[cur] = true; persist(); sfx.tada();
