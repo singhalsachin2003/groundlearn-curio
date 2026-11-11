@@ -139,7 +139,8 @@ function say(pair, force) {
 /* ---------- content ---------- */
 var ITEM = {
   soap: ['🧼', ['soap', 'साबुन']], water: ['💧', ['water', 'पानी']], soda: ['🥄', ['baking soda', 'बेकिंग सोडा']], vinegar: ['🍶', ['vinegar', 'सिरका']],
-  oil: ['🫒', ['oil', 'तेल']], salt: ['🧂', ['salt', 'नमक']], ice: ['🧊', ['ice', 'बर्फ़']], warm: ['♨️', ['warm water', 'गरम पानी']], drop: ['🔴', ['red drop', 'लाल बूँद']]
+  oil: ['🫒', ['oil', 'तेल']], salt: ['🧂', ['salt', 'नमक']], ice: ['🧊', ['ice', 'बर्फ़']], warm: ['♨️', ['warm water', 'गरम पानी']], drop: ['🔴', ['red drop', 'लाल बूँद']],
+  sugar: ['🍬', ['sugar', 'चीनी']], soil: ['🟤', ['soil', 'मिट्टी']], lemon: ['🍋', ['lemon', 'नींबू']] // Curio app: round 7 items
 };
 var FIZZ = [
   { goal: ['Make bubbles!', 'बुलबुले बनाओ!'], ico: '🫧', pair: ['soap', 'water'], opts: ['soap', 'salt', 'water', 'soda'], res: '🫧🫧🫧', rt: ['Bubbles!', 'बुलबुले!'] },
@@ -147,26 +148,39 @@ var FIZZ = [
   { goal: ['Which two stay apart?', 'कौन से दो अलग रहते हैं?'], ico: '🥛', pair: ['oil', 'water'], opts: ['oil', 'vinegar', 'water', 'salt'], res: '🟡 / 🔵', rt: ['Oil floats on water!', 'तेल पानी पर तैरता है!'] },
   { goal: ['Make the salt vanish!', 'नमक गायब करो!'], ico: '✨', pair: ['salt', 'water'], opts: ['oil', 'salt', 'soda', 'water'], res: '💧✨', rt: ['The salt dissolved!', 'नमक घुल गया!'] },
   { goal: ['Melt the ice!', 'बर्फ़ पिघलाओ!'], ico: '🫠', pair: ['ice', 'warm'], opts: ['ice', 'oil', 'warm', 'salt'], res: '🧊➜💧', rt: ['Warm water melts ice!', 'गरम पानी से बर्फ़ पिघलती है!'] },
-  { goal: ['Colour the water!', 'पानी को रंगो!'], ico: '🌈', pair: ['drop', 'water'], opts: ['soda', 'drop', 'salt', 'water'], res: '🟥🌊', rt: ['Red water!', 'लाल पानी!'] }
+  { goal: ['Colour the water!', 'पानी को रंगो!'], ico: '🌈', pair: ['drop', 'water'], opts: ['soda', 'drop', 'salt', 'water'], res: '🟥🌊', rt: ['Red water!', 'लाल पानी!'] },
+  // Curio app: round 7 adds four more rounds to every lab
+  { goal: ['Make the sugar vanish!', 'चीनी गायब करो!'], ico: '🍬', pair: ['sugar', 'water'], opts: ['oil', 'water', 'sugar', 'ice'], res: '💧✨', rt: ['The sugar dissolved!', 'चीनी घुल गई!'] },
+  { goal: ['Make mud!', 'कीचड़ बनाओ!'], ico: '🟤', pair: ['soil', 'water'], opts: ['soil', 'salt', 'oil', 'water'], res: '🟤💦', rt: ['Squishy mud!', 'गीला कीचड़!'] },
+  { goal: ['Make lemonade!', 'नींबू पानी बनाओ!'], ico: '🥤', pair: ['lemon', 'water'], opts: ['water', 'oil', 'lemon', 'soil'], res: '🍋🥤', rt: ['Yummy lemonade!', 'मज़ेदार नींबू पानी!'] },
+  { goal: ['Make a lemon volcano!', 'नींबू का ज्वालामुखी बनाओ!'], ico: '🌋', pair: ['lemon', 'soda'], opts: ['lemon', 'salt', 'oil', 'soda'], res: '🌋💨', rt: ['Lemon and soda fizz too!', 'नींबू और सोडा से भी झाग बनता है!'] }
 ];
 var WT = { elephant: ['🐘', 4, ['elephant', 'हाथी']], bear: ['🐻', 3, ['bear', 'भालू']], dog: ['🐕', 2, ['dog', 'कुत्ता']], cat: ['🐱', 1, ['cat', 'बिल्ली']] };
-var SEESAW = [['elephant'], ['bear'], ['elephant', 'cat'], ['elephant', 'dog'], ['elephant', 'bear'], ['elephant', 'elephant']];
+var SEESAW = [['elephant'], ['bear'], ['elephant', 'cat'], ['elephant', 'dog'], ['elephant', 'bear'], ['elephant', 'elephant'], ['bear', 'dog', 'cat'], ['elephant', 'elephant', 'cat'], ['bear', 'bear', 'dog'], ['elephant', 'elephant', 'dog']];
 var BULB = [
   { opts: [['🔑', 1, ['key', 'चाबी']], ['🪵', 0, ['wood', 'लकड़ी']], ['🧦', 0, ['sock', 'मोज़ा']]] },
   { opts: [['📄', 0, ['paper', 'काग़ज़']], ['🪙', 1, ['coin', 'सिक्का']], ['🧽', 0, ['sponge', 'स्पंज']]] },
   { opts: [['🧸', 0, ['toy bear', 'खिलौना']], ['🪵', 0, ['wood', 'लकड़ी']], ['🍴', 1, ['fork', 'काँटा']]] },
   { opts: [['🧶', 0, ['wool', 'ऊन']], ['📎', 1, ['paper clip', 'क्लिप']], ['🛍️', 0, ['plastic bag', 'थैली']]] },
   { opts: [['🔩', 1, ['metal nut', 'नट']], ['🧴', 0, ['plastic bottle', 'बोतल']], ['🧻', 0, ['tissue', 'टिश्यू']]] },
-  { opts: [['🎈', 0, ['balloon', 'ग़ुब्बारा']], ['🧻', 0, ['tissue', 'टिश्यू']], ['🔔', 1, ['metal bell', 'घंटी']]] }
+  { opts: [['🎈', 0, ['balloon', 'ग़ुब्बारा']], ['🧻', 0, ['tissue', 'टिश्यू']], ['🔔', 1, ['metal bell', 'घंटी']]] },
+  { opts: [['🪨', 0, ['stone', 'पत्थर']], ['🥄', 1, ['metal spoon', 'चम्मच']], ['🧱', 0, ['brick', 'ईंट']]] },
+  { opts: [['✂️', 1, ['scissors', 'कैंची']], ['🧤', 0, ['glove', 'दस्ताना']], ['🍃', 0, ['leaf', 'पत्ता']]] },
+  { opts: [['🧵', 0, ['thread', 'धागा']], ['🪶', 0, ['feather', 'पंख']], ['🥫', 1, ['tin can', 'टिन का डिब्बा']]] },
+  { opts: [['🕯️', 0, ['candle', 'मोमबत्ती']], ['🔧', 1, ['spanner', 'पाना']], ['🧼', 0, ['soap', 'साबुन']]] }
 ];
-var FRUIT = [['🍎', 2, '🍌'], ['🍎', 3, '🍇'], ['🍎', 5, '🍊'], ['🍎', 4, '🍓'], ['🍎', 7, '🍒'], ['🍎', 9, '🥭']];
+var FRUIT = [['🍎', 2, '🍌'], ['🍎', 3, '🍇'], ['🍎', 5, '🍊'], ['🍎', 4, '🍓'], ['🍎', 7, '🍒'], ['🍎', 9, '🥭'], ['🍎', 6, '🍐'], ['🍎', 8, '🍋'], ['🍎', 1, '🍉'], ['🍎', 10, '🍑']];
 var BABY = [
   { baby: ['🐥', ['chick', 'चूज़ा']], mum: ['🐔', ['hen', 'मुर्गी']], other: [['🐕', ['dog', 'कुत्ता']], ['🐈', ['cat', 'बिल्ली']]] },
   { baby: ['🐶', ['puppy', 'पिल्ला']], mum: ['🐕', ['dog', 'कुत्ता']], other: [['🐔', ['hen', 'मुर्गी']], ['🐄', ['cow', 'गाय']]] },
   { baby: ['🐱', ['kitten', 'बिल्ली का बच्चा']], mum: ['🐈', ['cat', 'बिल्ली']], other: [['🐕', ['dog', 'कुत्ता']], ['🐖', ['pig', 'सूअर']]] },
   { baby: ['🐮', ['calf', 'बछड़ा']], mum: ['🐄', ['cow', 'गाय']], other: [['🐔', ['hen', 'मुर्गी']], ['🐈', ['cat', 'बिल्ली']]] },
   { baby: ['🐷', ['piglet', 'सूअर का बच्चा']], mum: ['🐖', ['pig', 'सूअर']], other: [['🐄', ['cow', 'गाय']], ['🐕', ['dog', 'कुत्ता']]] },
-  { baby: ['🐰', ['bunny', 'खरगोश का बच्चा']], mum: ['🐇', ['rabbit', 'खरगोश']], other: [['🐈', ['cat', 'बिल्ली']], ['🐔', ['hen', 'मुर्गी']]] }
+  { baby: ['🐰', ['bunny', 'खरगोश का बच्चा']], mum: ['🐇', ['rabbit', 'खरगोश']], other: [['🐈', ['cat', 'बिल्ली']], ['🐔', ['hen', 'मुर्गी']]] },
+  { baby: ['🐴', ['foal', 'घोड़े का बच्चा']], mum: ['🐎', ['horse', 'घोड़ी']], other: [['🐄', ['cow', 'गाय']], ['🐖', ['pig', 'सूअर']]] },
+  { baby: ['🐯', ['tiger cub', 'बाघ का बच्चा']], mum: ['🐅', ['tiger', 'बाघिन']], other: [['🐈', ['cat', 'बिल्ली']], ['🐕', ['dog', 'कुत्ता']]] },
+  { baby: ['🐵', ['baby monkey', 'बंदर का बच्चा']], mum: ['🐒', ['monkey', 'बंदरिया']], other: [['🐇', ['rabbit', 'खरगोश']], ['🐔', ['hen', 'मुर्गी']]] },
+  { baby: ['🐤', ['duckling', 'बत्तख का बच्चा']], mum: ['🦆', ['duck', 'बत्तख']], other: [['🐔', ['hen', 'मुर्गी']], ['🐈', ['cat', 'बिल्ली']]] }
 ];
 var POND = [
   { who: ['🐸', ['frog', 'मेंढक']], food: ['🪰', ['fly', 'मक्खी']], other: [['🍕', ['pizza', 'पिज़्ज़ा']], ['🧦', ['sock', 'मोज़ा']]] },
@@ -174,28 +188,40 @@ var POND = [
   { who: ['🦆', ['duck', 'बत्तख']], food: ['🌱', ['pond weed', 'जलीय पौधा']], other: [['🦴', ['bone', 'हड्डी']], ['🍔', ['burger', 'बर्गर']]] },
   { who: ['🐢', ['turtle', 'कछुआ']], food: ['🥬', ['leaves', 'पत्ते']], other: [['🍕', ['pizza', 'पिज़्ज़ा']], ['🧱', ['brick', 'ईंट']]] },
   { who: ['🐊', ['crocodile', 'मगरमच्छ']], food: ['🐟', ['fish', 'मछली']], other: [['🍰', ['cake', 'केक']], ['🥬', ['leaves', 'पत्ते']]] },
-  { who: ['🦩', ['flamingo', 'राजहंस']], food: ['🦐', ['shrimp', 'झींगा']], other: [['🍔', ['burger', 'बर्गर']], ['🧱', ['brick', 'ईंट']]] }
+  { who: ['🦩', ['flamingo', 'राजहंस']], food: ['🦐', ['shrimp', 'झींगा']], other: [['🍔', ['burger', 'बर्गर']], ['🧱', ['brick', 'ईंट']]] },
+  { who: ['🦦', ['otter', 'ऊदबिलाव']], food: ['🐟', ['fish', 'मछली']], other: [['🍕', ['pizza', 'पिज़्ज़ा']], ['🧦', ['sock', 'मोज़ा']]] },
+  { who: ['🐍', ['snake', 'साँप']], food: ['🐸', ['frog', 'मेंढक']], other: [['🍰', ['cake', 'केक']], ['🥬', ['leaves', 'पत्ते']]] },
+  { who: ['🦎', ['lizard', 'छिपकली']], food: ['🦗', ['insect', 'कीड़ा']], other: [['🍔', ['burger', 'बर्गर']], ['🦴', ['bone', 'हड्डी']]] },
+  { who: ['🐌', ['snail', 'घोंघा']], food: ['🥬', ['leaves', 'पत्ते']], other: [['🧱', ['brick', 'ईंट']], ['🍕', ['pizza', 'पिज़्ज़ा']]] }
 ];
 
-var SHARE = [[2, 2], [4, 2], [6, 2], [8, 2], [6, 3], [9, 3]], FRIENDS = ['🐻', '🐰', '🐯'];
-var CLOCK = [3, 6, 9, 12, 2, 5];
+var SHARE = [[2, 2], [4, 2], [6, 2], [8, 2], [6, 3], [9, 3], [10, 2], [12, 3], [3, 3], [12, 2]], FRIENDS = ['🐻', '🐰', '🐯'];
+var CLOCK = [3, 6, 9, 12, 2, 5, 1, 4, 8, 10];
 var PATTERN = [
   { seq: ['🔴', '🔵', '🔴', '🔵'], ans: '🔴', opts: ['🔴', '🔵', '🟡'] },
   { seq: ['🔴', '🔴', '🔵', '🔴', '🔴'], ans: '🔵', opts: ['🔴', '🔵', '🟢'] },
   { seq: ['🍎', '🍌', '🍇', '🍎', '🍌'], ans: '🍇', opts: ['🍇', '🍎', '🍌'] },
   { seq: ['🐶', '🐱', '🐶', '🐱', '🐶'], ans: '🐱', opts: ['🐶', '🐱', '🐰'] },
   { seq: ['⭐', '⭐', '🌙', '⭐', '⭐'], ans: '🌙', opts: ['⭐', '🌙', '☀️'] },
-  { seq: ['🟦', '🟨', '🟥', '🟦', '🟨'], ans: '🟥', opts: ['🟨', '🟥', '🟦'] }
+  { seq: ['🟦', '🟨', '🟥', '🟦', '🟨'], ans: '🟥', opts: ['🟨', '🟥', '🟦'] },
+  { seq: ['🔺', '🔺', '🟢', '🟢', '🔺', '🔺'], ans: '🟢', opts: ['🔺', '🟢', '🟦'] },
+  { seq: ['🌞', '🌧️', '🌈', '🌞', '🌧️'], ans: '🌈', opts: ['🌈', '🌞', '🌧️'] },
+  { seq: ['🐸', '🐸', '🐸', '🦆', '🐸', '🐸', '🐸'], ans: '🦆', opts: ['🐸', '🐟', '🦆'] },
+  { seq: ['1️⃣', '2️⃣', '3️⃣', '1️⃣', '2️⃣'], ans: '3️⃣', opts: ['1️⃣', '3️⃣', '2️⃣'] }
 ];
-var DAYNIGHT = [['☀️', 'day'], ['🌙', 'night'], ['⭐', 'night'], ['☁️', 'day'], ['🦉', 'night'], ['🌈', 'day']];
-var MIXC = { red: ['#e53935', ['red', 'लाल']], yellow: ['#fdd835', ['yellow', 'पीला']], blue: ['#1e6fe0', ['blue', 'नीला']], white: ['#ffffff', ['white', 'सफ़ेद']], black: ['#22242e', ['black', 'काला']] };
+var DAYNIGHT = [['☀️', 'day'], ['🌙', 'night'], ['⭐', 'night'], ['☁️', 'day'], ['🦉', 'night'], ['🌈', 'day'], ['🌅', 'day'], ['🦇', 'night'], ['🌻', 'day'], ['🌌', 'night']];
+var MIXC = { red: ['#e53935', ['red', 'लाल']], yellow: ['#fdd835', ['yellow', 'पीला']], blue: ['#1e6fe0', ['blue', 'नीला']], white: ['#ffffff', ['white', 'सफ़ेद']], black: ['#22242e', ['black', 'काला']], green: ['#43a047', ['green', 'हरा']] };
 var MIX = [
   { pair: ['red', 'yellow'], opts: ['red', 'blue', 'yellow'], out: '#fb8c00', goal: ['Make orange!', 'नारंगी रंग बनाओ!'], rt: ['Red and yellow make orange!', 'लाल और पीला मिलकर नारंगी बनता है!'] },
   { pair: ['blue', 'yellow'], opts: ['yellow', 'red', 'blue'], out: '#43a047', goal: ['Make green!', 'हरा रंग बनाओ!'], rt: ['Blue and yellow make green!', 'नीला और पीला मिलकर हरा बनता है!'] },
   { pair: ['red', 'blue'], opts: ['blue', 'yellow', 'red'], out: '#8e44ad', goal: ['Make purple!', 'बैंगनी रंग बनाओ!'], rt: ['Red and blue make purple!', 'लाल और नीला मिलकर बैंगनी बनता है!'] },
   { pair: ['red', 'white'], opts: ['white', 'red', 'blue', 'yellow'], out: '#f48fb1', goal: ['Make pink!', 'गुलाबी रंग बनाओ!'], rt: ['Red and white make pink!', 'लाल और सफ़ेद मिलकर गुलाबी बनता है!'] },
   { pair: ['black', 'white'], opts: ['black', 'yellow', 'white', 'red'], out: '#9e9e9e', goal: ['Make grey!', 'स्लेटी रंग बनाओ!'], rt: ['Black and white make grey!', 'काला और सफ़ेद मिलकर स्लेटी बनता है!'] },
-  { pair: ['blue', 'white'], opts: ['red', 'white', 'yellow', 'blue'], out: '#90caf9', goal: ['Make sky blue!', 'आसमानी रंग बनाओ!'], rt: ['Blue and white make sky blue!', 'नीला और सफ़ेद मिलकर आसमानी बनता है!'] }
+  { pair: ['blue', 'white'], opts: ['red', 'white', 'yellow', 'blue'], out: '#90caf9', goal: ['Make sky blue!', 'आसमानी रंग बनाओ!'], rt: ['Blue and white make sky blue!', 'नीला और सफ़ेद मिलकर आसमानी बनता है!'] },
+  { pair: ['red', 'green'], opts: ['green', 'white', 'red', 'blue'], out: '#7b4a2d', goal: ['Make brown!', 'भूरा रंग बनाओ!'], rt: ['Red and green make brown!', 'लाल और हरा मिलकर भूरा बनता है!'] },
+  { pair: ['green', 'white'], opts: ['white', 'red', 'green', 'black'], out: '#a5d6a7', goal: ['Make light green!', 'हल्का हरा रंग बनाओ!'], rt: ['Green and white make light green!', 'हरा और सफ़ेद मिलकर हल्का हरा बनता है!'] },
+  { pair: ['blue', 'black'], opts: ['black', 'white', 'yellow', 'blue'], out: '#1a2f6b', goal: ['Make dark blue!', 'गहरा नीला रंग बनाओ!'], rt: ['Blue and black make dark blue!', 'नीला और काला मिलकर गहरा नीला बनता है!'] },
+  { pair: ['green', 'black'], opts: ['green', 'yellow', 'black', 'white'], out: '#1f5a2a', goal: ['Make dark green!', 'गहरा हरा रंग बनाओ!'], rt: ['Green and black make dark green!', 'हरा और काला मिलकर गहरा हरा बनता है!'] }
 ];
 var FLOAT = [
   { ico: '🪨', fl: 0, goal: ['Will the rock float or sink?', 'पत्थर तैरेगा या डूबेगा?'], rt: ['The rock sinks!', 'पत्थर डूब जाता है!'] },
@@ -203,17 +229,25 @@ var FLOAT = [
   { ico: '🪙', fl: 0, goal: ['Will the coin float or sink?', 'सिक्का तैरेगा या डूबेगा?'], rt: ['The coin sinks!', 'सिक्का डूब जाता है!'] },
   { ico: '🍃', fl: 1, goal: ['Will the leaf float or sink?', 'पत्ता तैरेगा या डूबेगा?'], rt: ['The leaf floats!', 'पत्ता तैरता है!'] },
   { ico: '🔑', fl: 0, goal: ['Will the key float or sink?', 'चाबी तैरेगी या डूबेगी?'], rt: ['The key sinks!', 'चाबी डूब जाती है!'] },
-  { ico: '⚽', fl: 1, goal: ['Will the ball float or sink?', 'गेंद तैरेगी या डूबेगी?'], rt: ['The ball floats!', 'गेंद तैरती है!'] }
+  { ico: '⚽', fl: 1, goal: ['Will the ball float or sink?', 'गेंद तैरेगी या डूबेगी?'], rt: ['The ball floats!', 'गेंद तैरती है!'] },
+  { ico: '🪶', fl: 1, goal: ['Will the feather float or sink?', 'पंख तैरेगा या डूबेगा?'], rt: ['The feather floats!', 'पंख तैरता है!'] },
+  { ico: '⚓', fl: 0, goal: ['Will the anchor float or sink?', 'लंगर तैरेगा या डूबेगा?'], rt: ['The anchor sinks!', 'लंगर डूब जाता है!'] },
+  { ico: '🪵', fl: 1, goal: ['Will the wood float or sink?', 'लकड़ी तैरेगी या डूबेगी?'], rt: ['The wood floats!', 'लकड़ी तैरती है!'] },
+  { ico: '🧱', fl: 0, goal: ['Will the brick float or sink?', 'ईंट तैरेगी या डूबेगी?'], rt: ['The brick sinks!', 'ईंट डूब जाती है!'] }
 ];
 var STATES = [
   { ico: '🧊', k: 'solid', rt: ['Ice is a solid!', 'बर्फ़ ठोस है!'] }, { ico: '🥛', k: 'liquid', rt: ['Milk is a liquid!', 'दूध तरल है!'] },
   { ico: '🪨', k: 'solid', rt: ['A rock is a solid!', 'पत्थर ठोस है!'] }, { ico: '🧃', k: 'liquid', rt: ['Juice is a liquid!', 'जूस तरल है!'] },
-  { ico: '🧱', k: 'solid', rt: ['A brick is a solid!', 'ईंट ठोस है!'] }, { ico: '🍯', k: 'liquid', rt: ['Honey is a liquid!', 'शहद तरल है!'] }
+  { ico: '🧱', k: 'solid', rt: ['A brick is a solid!', 'ईंट ठोस है!'] }, { ico: '🍯', k: 'liquid', rt: ['Honey is a liquid!', 'शहद तरल है!'] },
+  { ico: '🪙', k: 'solid', rt: ['A coin is a solid!', 'सिक्का ठोस है!'] }, { ico: '🍵', k: 'liquid', rt: ['Tea is a liquid!', 'चाय तरल है!'] },
+  { ico: '🪵', k: 'solid', rt: ['Wood is a solid!', 'लकड़ी ठोस है!'] }, { ico: '🫒', k: 'liquid', rt: ['Oil is a liquid!', 'तेल तरल है!'] }
 ];
 var COUNT = [
   { ico: '🐥', n: 3, goal: ['How many chicks?', 'कितने चूज़े हैं?'], rt: ['3 chicks!', '3 चूज़े!'] }, { ico: '🐟', n: 5, goal: ['How many fish?', 'कितनी मछलियाँ हैं?'], rt: ['5 fish!', '5 मछलियाँ!'] },
   { ico: '🐞', n: 4, goal: ['How many ladybirds?', 'कितने कीड़े हैं?'], rt: ['4 ladybirds!', '4 कीड़े!'] }, { ico: '⭐', n: 7, goal: ['How many stars?', 'कितने तारे हैं?'], rt: ['7 stars!', '7 तारे!'] },
-  { ico: '🍎', n: 6, goal: ['How many apples?', 'कितने सेब हैं?'], rt: ['6 apples!', '6 सेब!'] }, { ico: '🎈', n: 9, goal: ['How many balloons?', 'कितने ग़ुब्बारे हैं?'], rt: ['9 balloons!', '9 ग़ुब्बारे!'] }
+  { ico: '🍎', n: 6, goal: ['How many apples?', 'कितने सेब हैं?'], rt: ['6 apples!', '6 सेब!'] }, { ico: '🎈', n: 9, goal: ['How many balloons?', 'कितने ग़ुब्बारे हैं?'], rt: ['9 balloons!', '9 ग़ुब्बारे!'] },
+  { ico: '🐶', n: 2, goal: ['How many dogs?', 'कितने कुत्ते हैं?'], rt: ['2 dogs!', '2 कुत्ते!'] }, { ico: '🦋', n: 8, goal: ['How many butterflies?', 'कितनी तितलियाँ हैं?'], rt: ['8 butterflies!', '8 तितलियाँ!'] },
+  { ico: '🌞', n: 1, goal: ['How many suns?', 'कितने सूरज हैं?'], rt: ['1 sun!', '1 सूरज!'] }, { ico: '🍓', n: 10, goal: ['How many strawberries?', 'कितनी स्ट्रॉबेरी हैं?'], rt: ['10 strawberries!', '10 स्ट्रॉबेरी!'] }
 ];
 var PLACE = { tree: ['🌳', ['tree', 'पेड़']], sea: ['🌊', ['sea', 'समुद्र']], web: ['🕸️', ['web', 'जाला']], ice: ['🧊', ['ice', 'बर्फ़']], desert: ['🏜️', ['desert', 'रेगिस्तान']], farm: ['🚜', ['farm', 'खेत']] };
 var HOME = [
@@ -222,7 +256,11 @@ var HOME = [
   { who: '🕷️', at: 'web', opts: ['web', 'sea', 'farm'], goal: ['Where does the spider live?', 'मकड़ी कहाँ रहती है?'], rt: ['The spider lives in a web!', 'मकड़ी जाले में रहती है!'] },
   { who: '🐧', at: 'ice', opts: ['desert', 'ice', 'tree'], goal: ['Where does the penguin live?', 'पेंगुइन कहाँ रहता है?'], rt: ['The penguin lives on the ice!', 'पेंगुइन बर्फ़ पर रहता है!'] },
   { who: '🐪', at: 'desert', opts: ['sea', 'web', 'desert'], goal: ['Where does the camel live?', 'ऊँट कहाँ रहता है?'], rt: ['The camel lives in the desert!', 'ऊँट रेगिस्तान में रहता है!'] },
-  { who: '🐮', at: 'farm', opts: ['farm', 'ice', 'web'], goal: ['Where does the cow live?', 'गाय कहाँ रहती है?'], rt: ['The cow lives on a farm!', 'गाय खेत में रहती है!'] }
+  { who: '🐮', at: 'farm', opts: ['farm', 'ice', 'web'], goal: ['Where does the cow live?', 'गाय कहाँ रहती है?'], rt: ['The cow lives on a farm!', 'गाय खेत में रहती है!'] },
+  { who: '🦉', at: 'tree', opts: ['web', 'tree', 'sea'], goal: ['Where does the owl live?', 'उल्लू कहाँ रहता है?'], rt: ['The owl lives in a tree!', 'उल्लू पेड़ पर रहता है!'] },
+  { who: '🐬', at: 'sea', opts: ['sea', 'farm', 'desert'], goal: ['Where does the dolphin live?', 'डॉल्फ़िन कहाँ रहती है?'], rt: ['The dolphin lives in the sea!', 'डॉल्फ़िन समुद्र में रहती है!'] },
+  { who: '🐔', at: 'farm', opts: ['ice', 'web', 'farm'], goal: ['Where does the hen live?', 'मुर्गी कहाँ रहती है?'], rt: ['The hen lives on a farm!', 'मुर्गी खेत में रहती है!'] },
+  { who: '🐍', at: 'desert', opts: ['desert', 'ice', 'sea'], goal: ['Where does the snake live?', 'साँप कहाँ रहता है?'], rt: ['The snake lives in the desert!', 'साँप रेगिस्तान में रहता है!'] }
 ];
 function clockSvg(h) {
   var a = h % 12 * 30, rad = function (d) { return (d - 90) * Math.PI / 180; }, svg = '<svg class="clockface" viewBox="-110 -110 220 220" role="img" aria-label="clock"><circle r="102" fill="#fbf8f1" stroke="#c98b4a" stroke-width="10"/>';
@@ -257,10 +295,15 @@ function win(msg) {
   $('wtx').textContent = all ? T(['All done! You are a star!', 'सब पूरा! तुम सितारे हो!']) : T(msg || ['Well done!', 'शाबाश!']);
   say(all ? ['All done! You are a star!', 'सब पूरा! तुम सितारे हो!'] : (msg || ['Well done!', 'शाबाश!']));
   $('win').hidden = false;
-  $('wgo').onclick = function () { $('win').hidden = true; var nx = firstOpen(); if (nx < 0) nx = (cur + 1) % G.n; start(nx); };
+  $('wgo').onclick = function () { $('win').hidden = true; var nx = firstOpen(); if (nx < 0) nx = replayNext(); start(nx); };
   $('wgo').focus();
 }
-function start(i) { cur = i; busy = false; dots(); $('scene').innerHTML = ''; $('tray').innerHTML = ''; G.run(i); }
+/* Curio app: replays come in a shuffled order, and the choices swap places every time, so position can't be memorised. */
+var bag = [];
+function replayNext() { if (!bag.length) { for (var k = 0; k < G.n; k++) if (k !== cur) bag.push(k); bag.sort(function () { return Math.random() - .5; }); } return bag.pop(); }
+var FIXED_TRAY = { scales: 1, daynight: 1, float: 1, states: 1, seesaw: 1 };
+function mixTray() { if (FIXED_TRAY[tab] || window.__noShuffle) return; var t = $('tray'), kids = [].slice.call(t.children); for (var k = kids.length - 1; k > 0; k--) { var j = Math.floor(Math.random() * (k + 1)); t.insertBefore(kids[k], kids[j]); var x = kids[k]; kids[k] = kids[j]; kids[j] = x; } }
+function start(i) { cur = i; busy = false; dots(); $('scene').innerHTML = ''; $('tray').innerHTML = ''; G.run(i); mixTray(); }
 
 function runFizz(i) {
   var r = FIZZ[i], sel = [];
@@ -508,6 +551,6 @@ function runHome(i) {
 window.__curio = { tab: tab, round: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { if (!$('win').hidden) $('wgo').click(); } };
 window.__curioDispose = function () { try { speechSynthesis.cancel(); if (voice) voice.pause(); } catch (e) {} };
 setVoice(voiceOn);
-var go = firstOpen(); start(go < 0 ? 0 : go);
+var go = firstOpen(); start(go < 0 ? Math.floor(Math.random() * G.n) : go);
 })();
 </script>

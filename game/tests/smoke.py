@@ -96,10 +96,10 @@ async def run_vp(b, name, w, h):
             await shot('7c-fizz'); MU = "document.querySelector('.world-frame').contentDocument.getElementById('mute')"
             await pg.evaluate(f"{MU}.click()"); check(await pg.evaluate(f"{MU}.getAttribute('aria-pressed')") == 'true', 'Explorer voice can be muted'); await shot('7d-muted')
             await pg.evaluate(f"{MU}.click()"); check(await pg.evaluate(f"{MU}.getAttribute('aria-pressed')") == 'false', 'Explorer voice can be turned back on')
-        for i in range(6):
+        for i in range(10):
             await pg.evaluate(f"{WJ}.solve()"); await pg.wait_for_timeout(2200); await pg.evaluate(f"{WJ}.next()"); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('wBack').click()"); await pg.wait_for_selector('.hub3d')
-        await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith('6/6'), f'explorer {lab} finished 6/6'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
+        await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith('10/10'), f'explorer {lab} finished 10/10'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     # Players keep separate saves.
     await pg.click('#hWho'); await pg.click('.player >> text=Manan'); await pg.wait_for_selector('.hub3d')
     await pg.click('#hAll', force=True); prog = await pg.inner_text('.sheet [data-lab="nets"] .cnt'); check(prog.startswith('1/6'), 'Manan keeps his own progress')
@@ -112,7 +112,7 @@ async def run_vp(b, name, w, h):
         for i in range(n):
             await pg.evaluate("window.__shell.active().hearts = 5")  # wrong quiz picks must not lock the test out
             await pg.evaluate(f"{WJ}.solve()"); await pg.wait_for_timeout(1700)
-            await pg.evaluate("document.querySelector('.world-frame').contentDocument.querySelector('#modal .qopt').click()"); await pg.wait_for_timeout(200)
+            await pg.evaluate("document.querySelector('.world-frame').contentWindow.__curio.right()"); await pg.wait_for_timeout(200)
             await pg.evaluate(f"{WJ}.next()"); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('wBack').click()"); await pg.wait_for_selector('.hub3d')
         await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(f'{n}/{n}'), f'inventor {lab} finished {n}/{n}'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
@@ -167,7 +167,7 @@ async def run_vp(b, name, w, h):
         for i in range(n):
             await pg.evaluate("window.__shell.active().hearts = 5")  # wrong quiz picks must not lock the test out
             await pg.evaluate(f"{WJ}.solve()"); await pg.wait_for_timeout(1700)
-            await pg.evaluate("document.querySelector('.world-frame').contentDocument.querySelector('#modal .qopt').click()"); await pg.wait_for_timeout(200)
+            await pg.evaluate("document.querySelector('.world-frame').contentWindow.__curio.right()"); await pg.wait_for_timeout(200)
             await pg.evaluate(f"{WJ}.next()"); await pg.wait_for_timeout(300)
         await pg.evaluate("document.getElementById('wBack').click()"); await pg.wait_for_selector('.hub3d')
         await pg.click('#hAll', force=True); prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(f'{n}/{n}'), f'tinkerer {lab} finished {n}/{n}'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")

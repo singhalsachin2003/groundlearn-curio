@@ -417,7 +417,7 @@ $('overlay').addEventListener('click', e => { if (e.target.id === 'overlay') clo
 /** A win card with one bonus question. A wrong answer costs a heart in the Curio app; the level is already done either way. */
 function winCard(o) {
   const q = o.q;
-  const body = `${o.body || ''}${q ? `<p><b>${q.text}</b></p><div class="qopts">${q.options.map((t, i) => `<button class="btn qopt" data-i="${i}">${t}</button>`).join('')}</div><div class="note" id="fb" hidden></div>` : ''}
+  const body = `${o.body || ''}${q ? `<p><b>${q.text}</b></p><div class="qopts">${q.options.map((t, i) => [Math.random(), `<button class="btn qopt" data-i="${i}">${t}</button>`]).sort((x, y) => x[0] - y[0]).map(x => x[1]).join('') /* Curio app: answers appear in a random order */}</div><div class="note" id="fb" hidden></div>` : ''}
     ${o.fact ? `<div class="facts"><div><b>Did you know?</b>${o.fact}</div></div>` : ''}`;
   showCard({ eyebrow: o.eyebrow, title: o.title, sub: o.sub, titleClass: o.titleClass, body, primary: o.primary, secondary: o.secondary });
   if (!q) return;

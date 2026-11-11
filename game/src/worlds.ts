@@ -72,7 +72,8 @@ html body #scene{background:radial-gradient(80% 70% at 50% 40%,rgba(255,255,255,
 html body .huge:not(.pop):not(.shake){animation:exbob 2.6s ease-in-out infinite}
 @keyframes exbob{50%{transform:translateY(-8px)}}
 html body .big{border-width:4px}
-@media (max-width:400px){html body #top{gap:6px}html body #dots{gap:5px}html body #dots i{width:14px;height:14px}html body #say{height:52px;min-width:52px;padding:0 12px;font-size:24px}html body #mute{width:52px;height:52px;font-size:24px}}
+html body #dots{gap:5px}html body #dots i{width:13px;height:13px;border-width:2px}
+@media (max-width:400px){html body #top{gap:6px}html body #dots{gap:4px}html body #dots i{width:11px;height:11px}html body #say{height:52px;min-width:52px;padding:0 12px;font-size:24px}html body #mute{width:52px;height:52px;font-size:24px}}
 @media (prefers-reduced-motion:reduce){html body .huge{animation:none !important}}`;
 
 // Warmer, lighter night skies per world, so the dark labs feel like dusk rather than a void.

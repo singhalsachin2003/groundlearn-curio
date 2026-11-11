@@ -381,7 +381,7 @@ function solved() {
   var lv = levels[cur], q = lv.q, last = cur === levels.length - 1;
   var m = $('modal');
   m.innerHTML = '<div class="eyebrow">' + (HI ? 'स्तर पूरा' : 'Level complete') + '</div><h2>' + (HI ? 'शाबाश!' : 'Well done!') + '</h2><p><b>' + esc(T(q.q)) + '</b></p><div class="qopts">' +
-    q.opts.map(function (o, i) { return '<button class="btn qopt" data-i="' + i + '">' + esc(T(o)) + '</button>'; }).join('') + '</div><div class="fb" id="fb" hidden></div><div class="mbtns"><button class="btn primary" id="mdNext">' + (last ? (HI ? 'फिर से खेलो' : 'Play again') : (HI ? 'अगला स्तर' : 'Next level')) + '</button></div>';
+    q.opts.map(function (o, i) { return [Math.random(), '<button class="btn qopt" data-i="' + i + '">' + esc(T(o)) + '</button>']; }).sort(function (x, y) { return x[0] - y[0]; }).map(function (x) { return x[1]; }).join('') + '</div><div class="fb" id="fb" hidden></div><div class="mbtns"><button class="btn primary" id="mdNext">' + (last ? (HI ? 'फिर से खेलो' : 'Play again') : (HI ? 'अगला स्तर' : 'Next level')) + '</button></div>';
   $('overlay').hidden = false; var answered = false;
   document.querySelectorAll('#modal .qopt').forEach(function (b) {
     b.onclick = function () {
@@ -784,7 +784,7 @@ MOUNT.angle = function (lv) {
   solver = function () { el.value = lv.target; a = lv.target; check(); };
 };
 
-window.__curio = { tab: tab, level: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { var b = $('mdNext'); if (!$('overlay').hidden && b) b.click(); } };
+window.__curio = { tab: tab, level: function () { return cur; }, solve: function () { if (solver) solver(); }, next: function () { var b = $('mdNext'); if (!$('overlay').hidden && b) b.click(); }, right: function () { var b = document.querySelector('#modal .qopt[data-i="' + LABS[tab].levels[cur].q.c + '"]'); if (b) b.click(); } };
 window.__curioDispose = function () { try { if (teardown) teardown(); } catch (e) {} };
 setLevel(cur);
 })();

@@ -238,7 +238,8 @@ function hub() {
       <div class="hubfoot" id="hubFoot">
         ${daily}
         <button class="btn" id="hAll">🗺️ ${t('allWorkshops')}</button>
-        <button class="link hrules" id="hRules">ℹ️ ${t('rulesBtn')}</button>
+        <div class="hubrow"><button class="link hrules" id="hRules">ℹ️ ${t('rulesBtn')}</button>
+          <button class="pill hmusic" id="hMusic" aria-pressed="${S.sound && S.music !== false}" aria-label="${t('musicLbl')}">${S.sound && S.music !== false ? '🎵' : '🔇'} ${t(S.sound && S.music !== false ? 'musicOn' : 'musicOff')}</button></div>
       </div>
     </div>`;
   $('#screen').classList.add('over-island');
@@ -249,6 +250,12 @@ function hub() {
   $('#hParent').onclick = () => gate(parentCorner);
   $('#hAll').onclick = () => allWorkshops();
   $('#hRules').onclick = () => rules();
+  $('#hMusic').onclick = () => {
+    // Turning music on also turns sound back on, since music cannot play with all sound off.
+    const on = !(S.sound && S.music !== false); S.music = on; if (on) S.sound = true; saveShell();
+    music(on && !$('#islandHost').hidden);
+    const b = $('#hMusic'); b.setAttribute('aria-pressed', String(on)); b.textContent = `${on ? '🎵' : '🔇'} ${t(on ? 'musicOn' : 'musicOff')}`;
+  };
   document.querySelectorAll<HTMLElement>('#hubFoot [data-lab]').forEach(b => b.onclick = () => enterWorld(LABS.find(l => l.id === b.dataset.lab)!));
   showIsland(true);
   island!.setZones(zoneStates(p));

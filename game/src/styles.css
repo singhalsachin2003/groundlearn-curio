@@ -243,3 +243,7 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .subjhead:first-of-type{margin-top:6px}
 .subjhead small{font-family:var(--f-mono);font-size:12px;font-weight:700;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.lab .tag.new{animation:none}}
+/* hub: music on/off beside "How to play" */
+.hubrow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}
+.hmusic{min-height:44px;font-weight:700;font-size:14px;cursor:pointer}
+.hmusic[aria-pressed="false"]{opacity:.8}
