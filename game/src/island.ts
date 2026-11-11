@@ -43,7 +43,10 @@ function prop(id: ZoneId, colour: number): THREE.Object3D {
   return g;
 }
 
-export interface Island { setZones(z: ZoneState[]): void; fit(w: number, h: number, top: number, bottom: number): void; pause(p: boolean): void; dispose(): void }
+/** Things that appear on the island as the player finishes labs, in order. */
+export const GROWTH = ['flowers', 'boat', 'lighthouse', 'rainbow', 'balloon', 'windmill', 'butterflies', 'star'] as const;
+
+export interface Island { setGrowth(stage: number, popNew: boolean): void; setZones(z: ZoneState[]): void; fit(w: number, h: number, top: number, bottom: number): void; pause(p: boolean): void; dispose(): void }
 
 export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, reduceMotion: boolean): Island {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -91,6 +94,55 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
     const hit = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 2.2), new THREE.MeshBasicMaterial({ visible: false })); hit.position.y = 0.9; hit.userData.zone = z.id; group.add(hit);
     return { id: z.id, group, roof: roofM, colour: new THREE.Color(z.colour), sign: null, hit, bump: 0 };
   });
+
+  // decorations that arrive as labs are finished (see GROWTH)
+  const m = (geo: THREE.BufferGeometry, color: number, x = 0, y = 0, z = 0, o: Partial<THREE.MeshStandardMaterialParameters> = {}) => { const k = new THREE.Mesh(geo, mat(color, o)); k.position.set(x, y, z); return k; };
+  const deco: THREE.Group[] = GROWTH.map(() => { const g = new THREE.Group(); g.visible = false; g.userData.pop = 0; scene.add(g); return g; });
+  { // 0 flowers round the plaza
+    const cols = [0xff5fa2, 0xffd23f, 0xffffff, 0xff7a3d, 0xc084fc];
+    for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2 + 0.2, r = 1.55 + (i % 3) * 0.28; const f = new THREE.Group(); f.position.set(Math.cos(a) * r, 0.36, Math.sin(a) * r + 0.2);
+      f.add(m(new THREE.CylinderGeometry(0.03, 0.03, 0.24, 5), 0x3f9a4a, 0, 0.12, 0), m(new THREE.IcosahedronGeometry(0.15, 0), cols[i % cols.length], 0, 0.32, 0), m(new THREE.IcosahedronGeometry(0.06, 0), 0xfff3a0, 0, 0.44, 0)); deco[0].add(f); }
+  }
+  { // 1 sailing boat behind the island
+    const b = deco[1]; b.position.set(-3.4, -0.05, -6.6); b.name = 'boat';
+    const hull = m(new THREE.BoxGeometry(1.5, 0.3, 0.55), 0xb5562b, 0, 0.12, 0); const mast = m(new THREE.CylinderGeometry(0.035, 0.035, 1.5, 6), 0x6b4a2a, 0, 0.95, 0);
+    const sail = m(new THREE.ConeGeometry(0.62, 1.15, 3), 0xffffff, 0.02, 1.0, 0); sail.scale.z = 0.12; const flag = m(new THREE.BoxGeometry(0.26, 0.14, 0.02), 0xe2553f, 0.13, 1.66, 0);
+    b.add(hull, mast, sail, flag);
+  }
+  { // 2 lighthouse on the far shore
+    const l = deco[2]; l.position.set(4.3, 0.15, -4.4);
+    l.add(m(new THREE.CylinderGeometry(0.42, 0.5, 0.25, 10), 0x8b8fa3, 0, 0.12, 0));
+    [0xffffff, 0xe2553f, 0xffffff, 0xe2553f].forEach((c, i) => l.add(m(new THREE.CylinderGeometry(0.3 - i * 0.03, 0.33 - i * 0.03, 0.42, 10), c, 0, 0.45 + i * 0.42, 0)));
+    l.add(m(new THREE.CylinderGeometry(0.2, 0.2, 0.26, 8), 0xfff3a0, 0, 2.05, 0, { emissive: 0xffd23f, emissiveIntensity: 0.9 }), m(new THREE.ConeGeometry(0.3, 0.3, 8), 0xe2553f, 0, 2.33, 0));
+  }
+  { // 3 rainbow over the back of the island
+    const r = deco[3]; r.position.set(0, 0.1, -5.6);
+    [0xe2553f, 0xff9a3d, 0xffd23f, 0x4fbf5a, 0x3f8dff, 0x8a5cf6].forEach((c, i) => { const arc = new THREE.Mesh(new THREE.TorusGeometry(3.0 - i * 0.15, 0.075, 6, 28, Math.PI), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.85 })); r.add(arc); });
+  }
+  { // 4 hot-air balloon
+    const b = deco[4]; b.position.set(-3.9, 2.3, 2.9); b.name = 'balloon';
+    b.add(m(new THREE.SphereGeometry(0.62, 10, 8), 0xff5fa2, 0, 0.5, 0)); const band = m(new THREE.CylinderGeometry(0.63, 0.63, 0.22, 10), 0xffd23f, 0, 0.5, 0); b.add(band);
+    b.add(m(new THREE.BoxGeometry(0.26, 0.2, 0.26), 0x8a5a3a, 0, -0.42, 0)); [-0.11, 0.11].forEach(x => b.add(m(new THREE.CylinderGeometry(0.012, 0.012, 0.5, 4), 0x5a3a2a, x, -0.12, 0)));
+  }
+  { // 5 windmill between the two back workshops
+    const w = deco[5]; w.position.set(0, 0.35, -3.6);
+    w.add(m(new THREE.CylinderGeometry(0.2, 0.34, 1.3, 8), 0xfbf3e2, 0, 0.65, 0), m(new THREE.ConeGeometry(0.3, 0.34, 8), 0xa8552b, 0, 1.47, 0));
+    const hub = new THREE.Group(); hub.position.set(0, 1.2, 0.3); hub.name = 'blades';
+    for (let i = 0; i < 4; i++) { const bl = m(new THREE.BoxGeometry(0.14, 0.78, 0.03), 0xffffff, 0, 0.4, 0); const arm = new THREE.Group(); arm.rotation.z = i * Math.PI / 2; arm.add(bl); hub.add(arm); }
+    w.add(hub);
+  }
+  { // 6 butterflies round the big tree
+    const cols = [0xff5fa2, 0x3fd6ff, 0xffd23f, 0xc084fc, 0xff7a3d];
+    cols.forEach((c, i) => { const b = new THREE.Group(); b.userData = { a: i * 1.3, r: 1.0 + (i % 3) * 0.35, h: 1.5 + (i % 2) * 0.6, s: 0.5 + i * 0.12 };
+      const l = m(new THREE.CircleGeometry(0.09, 5), c, -0.07, 0, 0, { side: THREE.DoubleSide }), r = m(new THREE.CircleGeometry(0.09, 5), c, 0.07, 0, 0, { side: THREE.DoubleSide }); l.name = 'wl'; r.name = 'wr'; b.add(l, r); deco[6].add(b); });
+  }
+  { // 7 a golden star on top of the big tree
+    const s = deco[7]; s.position.set(0, 2.95, 0); s.name = 'star';
+    const star = m(new THREE.OctahedronGeometry(0.3, 0), 0xffd23f, 0, 0, 0, { emissive: 0xffb423, emissiveIntensity: 0.8, metalness: 0.4, roughness: 0.3 }); star.scale.set(1, 1.5, 0.5); s.add(star);
+  }
+  function setGrowth(stage: number, popNew: boolean) {
+    deco.forEach((g, i) => { const on = i < stage; if (on && !g.visible && popNew && !reduceMotion) { g.userData.pop = 1; g.scale.setScalar(0.01); } else if (on && !g.userData.pop) g.scale.setScalar(1); g.visible = on; });
+  }
 
   // clouds
   const clouds: THREE.Group[] = [];
@@ -162,15 +214,21 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
       clouds.forEach((c, i) => { c.position.x += dt * (0.25 + i * 0.05); if (c.position.x > 16) c.position.x = -16; });
       sea.position.y = -0.15 + Math.sin(time * 0.8) * 0.03;
       zones.forEach(z => { const sp = z.group.getObjectByName('spin'); if (sp) sp.rotation.z += dt; });
+      if (deco[1].visible) { deco[1].position.x = -3.4 + Math.sin(time * 0.12) * 0.9; deco[1].position.y = -0.05 + Math.sin(time * 1.1) * 0.04; deco[1].rotation.z = Math.sin(time * 0.9) * 0.05; }
+      if (deco[4].visible) { deco[4].position.y = 2.3 + Math.sin(time * 0.5) * 0.2; deco[4].position.x = -3.9 + Math.sin(time * 0.17) * 0.3; }
+      if (deco[5].visible) deco[5].getObjectByName('blades')!.rotation.z -= dt * 1.2;
+      if (deco[6].visible) deco[6].children.forEach(b => { const u = b.userData; u.a += dt * u.s; b.position.set(Math.cos(u.a) * u.r, u.h + Math.sin(u.a * 2.3) * 0.2, Math.sin(u.a) * u.r); b.rotation.y = -u.a; const f = Math.sin(time * 14 + u.r * 9) * 0.9; b.getObjectByName('wl')!.rotation.y = f; b.getObjectByName('wr')!.rotation.y = -f; });
+      if (deco[7].visible) deco[7].rotation.y += dt * 1.5;
     }
     scaleSigns();
+    deco.forEach(g => { if (g.userData.pop > 0) { g.userData.pop = Math.max(0, g.userData.pop - dt * 1.1); const k = 1 - g.userData.pop; g.scale.setScalar(Math.max(0.01, k < 0.7 ? k / 0.7 * 1.25 : 1.25 - (k - 0.7) / 0.3 * 0.25)); } });
     zones.forEach(z => { if (z.bump > 0) { z.bump = Math.max(0, z.bump - dt * 3); const s = 1 + Math.sin(z.bump * Math.PI) * 0.08; z.group.scale.set(s, s, s); } });
     renderer.render(scene, camera);
   }
   raf = requestAnimationFrame(frame);
 
   return {
-    setZones, fit,
+    setZones, setGrowth, fit,
     pause(p: boolean) { paused = p; last = performance.now(); },
     dispose() {
       cancelAnimationFrame(raf);

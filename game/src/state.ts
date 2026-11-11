@@ -25,6 +25,13 @@ export interface Profile {
   daily?: { day: string; lab: string; done: boolean };
   /** Labs whose worked example the player has already seen. */
   ex?: string[];
+  /** Daily treasure chest: the day it was last opened and how many have been opened. */
+  chestDay?: string;
+  chestN?: number;
+  /** How many island decorations the player has already been shown arriving (see GROWTH in island.ts). */
+  grown?: number;
+  /** True once Sheru has said hello. */
+  met?: boolean;
 }
 
 export interface Shell {
@@ -54,6 +61,8 @@ export const RULES = {
   freeHintsPerDay: 3,
   adHintsPerDay: 10,
   coins: { correct: 10, level: 20, star: 5, discovery: 15, daily: 10 },
+  /** Daily treasure chest: coins for chest 1 to 7, then the week repeats. Always shown up front, never random. */
+  chest: [15, 15, 25, 20, 20, 30, 60],
   ads: { quietStartSec: 180, gapSec: 180, levelGapSec: 150, maxPerSession: 8 },
 };
 
@@ -92,7 +101,7 @@ export function resetProgress(p: Profile) {
   (['colour', 'inventor', 'tinkerer', 'explorer', 'inventor2'] as WorldId[]).forEach(w => writeRaw(slotKey(p.id, w), null));
   p.coins = 0; p.levels = {}; p.disc = []; p.hearts = RULES.maxHearts; p.heartTs = Date.now(); p.adDay = ''; p.adCount = 0;
   delete (p as { badges?: unknown }).badges; delete (p as { stickers?: unknown }).stickers;
-  delete (p as { daily?: unknown }).daily; delete (p as { ex?: unknown }).ex;
+  delete (p as { daily?: unknown }).daily; delete (p as { ex?: unknown }).ex; delete p.grown;
   saveShell();
 }
 export function removeProfile(id: string) {

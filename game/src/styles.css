@@ -247,3 +247,45 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .hubrow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}
 .hmusic{min-height:44px;font-weight:700;font-size:14px;cursor:pointer}
 .hmusic[aria-pressed="false"]{opacity:.8}
+/* ---------- Sheru the lion, his speech bubble and the daily chest ---------- */
+.mascot{display:block;width:100%;height:100%;overflow:visible}
+.mascot .ms-wave{transform-origin:76px 88px;animation:ms-wave 1s ease-in-out infinite}
+@keyframes ms-wave{50%{transform:rotate(16deg)}}
+.hubfoot{position:relative}
+.hubside{position:absolute;left:0;right:0;bottom:100%;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
+.hubside>*{pointer-events:auto}
+.buddy{display:flex;align-items:flex-end;gap:4px;max-width:74%}
+.buddy-fig{width:78px;height:84px;flex:none;padding:0;border:0;background:none;cursor:pointer;filter:drop-shadow(0 4px 0 rgba(0,0,0,.22));animation:ms-bob 3s ease-in-out infinite}
+.buddy-fig.hop{animation:ms-hop .5s ease-out,ms-bob 3s ease-in-out .5s infinite}
+@keyframes ms-bob{50%{transform:translateY(-4px)}}
+@keyframes ms-hop{40%{transform:translateY(-14px) scale(1.06)}}
+.bubble{position:relative;background:#fff;color:var(--ink);border:2.5px solid var(--ink);border-radius:16px;padding:8px 12px;font-size:14px;font-weight:700;line-height:1.3;box-shadow:0 3px 0 rgba(0,0,0,.25);margin-bottom:26px;opacity:0;transform:scale(.6);transform-origin:0 100%;transition:opacity .2s,transform .25s cubic-bezier(.3,1.6,.5,1);pointer-events:none}
+.bubble.show{opacity:1;transform:none}
+.bubble::before{content:"";position:absolute;left:-9px;bottom:10px;width:14px;height:14px;background:#fff;border-left:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);transform:rotate(45deg)}
+.chest{width:66px;height:62px;flex:none;padding:0;border:0;background:none;cursor:pointer;filter:drop-shadow(0 4px 0 rgba(0,0,0,.25));position:relative}
+.chest svg,.chest-art svg{width:100%;height:100%;display:block}
+.chest.ready{animation:chest-bounce 1.6s ease-in-out infinite}
+.chest.ready::after{content:"!";position:absolute;top:-6px;right:-4px;width:22px;height:22px;border-radius:50%;background:#e2553f;color:#fff;font-weight:800;font-size:14px;line-height:22px;text-align:center;border:2px solid #fff}
+.chest.open{opacity:.85}
+@keyframes chest-bounce{0%,60%,100%{transform:none}70%{transform:translateY(-8px) rotate(-5deg)}80%{transform:translateY(0) rotate(4deg)}90%{transform:translateY(-3px)}}
+.chest-art{width:120px;height:108px;margin:0 auto}.chest-art.ready{animation:chest-bounce 1.6s ease-in-out infinite}
+.chest-track{list-style:none;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:0;margin:10px 0}
+.chest-track li{border:2px solid #d8cfb8;border-radius:12px;padding:6px 2px;text-align:center;font-size:12px;background:#fff;display:flex;flex-direction:column;gap:3px;align-items:center}
+.chest-track li b{font-family:var(--f-mono);color:var(--muted)}
+.chest-track li span{display:flex;align-items:center;gap:2px;font-weight:800}
+.chest-track li.got{background:#e3f6e8;border-color:#3f9f5a}.chest-track li.got b::after{content:" ✓";color:#2c7a41}
+.chest-track li.now{background:#fff1bf;border-color:var(--ink);box-shadow:0 2px 0 var(--ink);transform:scale(1.08)}
+.chest-msg{text-align:center;font-weight:800;min-height:1.4em}
+.homebuddy{display:flex;align-items:flex-end;justify-content:center;gap:6px;margin-top:6px}
+.homebuddy .mascot{width:92px;height:100px;flex:none;filter:drop-shadow(0 5px 0 rgba(0,0,0,.25))}
+.homebuddy .bubble{margin-bottom:30px;pointer-events:auto;text-align:left}
+.homebuddy .bubble small{display:block;font-size:13px;color:#8a5200}.homebuddy .bubble h1{margin:0;font-size:20px;color:var(--ink)}
+.big-ic.lion{width:110px;height:118px;margin:0 auto}
+.ob-art .mascot{width:120px;height:130px}.ob-art span:has(.mascot){font-size:0}
+.toast.lion{display:flex;align-items:center;gap:8px;padding-left:8px}.toast.lion .mascot{width:34px;height:37px;flex:none}
+@media (max-width:400px){.buddy-fig{width:66px;height:72px}.chest{width:56px;height:52px}.bubble{font-size:13px;padding:7px 10px}}
+@media (prefers-reduced-motion:reduce){.buddy-fig,.chest.ready,.chest-art.ready,.mascot .ms-wave{animation:none}}
+/* every button gives a little squish when pressed */
+.btn:active,.pill:active,.lab:active,.player:active,.band:active,.avbtn:active{transform:translateY(2px) scale(.97)}
+.pill.bump{animation:pill-bump .45s ease-out}
+@keyframes pill-bump{40%{transform:scale(1.18)}}

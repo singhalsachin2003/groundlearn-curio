@@ -5,13 +5,14 @@ import { LABS, COMING, NEW_LABS, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, lab
 import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
 import { send, onNative, inApp } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
-import { createIsland, ZONE_OF, type Island, type ZoneId, type ZoneState } from './island';
+import { mascot, chestSvg, MASCOT, type Mood } from './mascot';
+import { createIsland, ZONE_OF, GROWTH, type Island, type ZoneId, type ZoneState } from './island';
 import { EXAMPLES } from './examples';
 import { EXAMPLES_HI } from './examples_hi';
 import { saveParentEmail, validEmail } from './subscribe';
 import { LICENSES } from './licenses';
 import { HERO, FACTS, factOfDay } from './home';
-import { hintUse, hintCounts, markPlayed, streakOf, badgeFor, raiseBadge, badgesOf, BADGE_ICON, BADGE_COINS, STICKERS, STICKER_COST, stickersOf, addSticker, confetti, music } from './fun';
+import { today, hintUse, hintCounts, markPlayed, streakOf, badgeFor, raiseBadge, badgesOf, BADGE_ICON, BADGE_COINS, STICKERS, STICKER_COST, stickersOf, addSticker, confetti, music } from './fun';
 import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
 export const PRIVACY_URL = 'https://groundlearn.com/curio/privacy';
@@ -104,7 +105,7 @@ export function start(el: HTMLElement) {
     },
   };
 
-  (window as unknown as Record<string, unknown>).__shell = { S, active }; // test hook
+  (window as unknown as Record<string, unknown>).__shell = { S, active, hub, storeWorldSave }; // test hook
   setInterval(refreshPills, 1000);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !frame) onBack(); });
   if (active()) hub(); else players();
@@ -170,7 +171,7 @@ function players() {
       <div class="logo"><b>Curio Island</b><small class="by">${t('byGl')}</small></div>
       <p class="tagline">${t('homeTag')}</p>
       <div class="subjects">${(['colour', 'chem', 'phy', 'math', 'bio'] as const).map(s => `<span class="subj s-${s}">${({ colour: '🎨', chem: '⚗️', phy: '⚡', math: '🔢', bio: '🌱' })[s]} ${t(('subj_' + s) as Key)}</span>`).join('')}</div>
-      <h1>${t('whoPlaying')}</h1>
+      <div class="homebuddy">${mascot('wave')}<div class="bubble show static"><small>${t('homeHi')}</small><h1>${t('whoPlaying')}</h1></div></div>
       <div class="players">${list}<button class="player add" id="pAdd"><span class="av">＋</span><b>${t('addPlayer')}</b></button></div>
       <div class="fact card"><small>💡 ${t('didYouKnow')}</small><p id="factTx"></p><button class="link" id="factNext">${t('anotherFact')} →</button></div>
       <p class="stats">${t('homeStats')}</p>
@@ -218,6 +219,56 @@ function soonCard(c: { icon: string; en: string; hi: string; subject: string }) 
   return `<div class="lab soon s-${c.subject}" aria-disabled="true"><span class="ic">${c.icon}</span><b>${esc(nm(c))}</b><small>${t('comingSoon')}</small></div>`;
 }
 
+/* ------------------------------------------------------------------ Sheru, the growing island and the daily chest */
+/** Labs that must be finished for each island decoration, scaled to how many labs this age band has. */
+function growthNeeds(p: Profile) { const tot = labsFor(p.band).length; return [0.01, 0.15, 0.25, 0.4, 0.55, 0.7, 0.85, 1].map((f, i) => Math.min(tot, Math.max(i + 1, Math.ceil(tot * f)))); }
+function labsFinished(p: Profile) { return labsFor(p.band).filter(l => labProgress(l, readSlot(p.id, l.world)) >= l.progress.total).length; }
+function growthStage(p: Profile) { const fin = labsFinished(p); return growthNeeds(p).filter(n => fin >= n).length; }
+const chestReady = (p: Profile) => p.chestDay !== today();
+let bubbleTimer = 0, cheerIx = 0;
+function buddySay(text: string, mood: Mood = 'happy', ms = 6500) {
+  const b = document.getElementById('hBubble'), f = document.getElementById('hBuddy'); if (!b || !f) return;
+  f.innerHTML = mascot(mood); b.textContent = text; b.classList.add('show');
+  f.classList.remove('hop'); void f.offsetWidth; f.classList.add('hop');
+  clearTimeout(bubbleTimer); bubbleTimer = window.setTimeout(() => { b.classList.remove('show'); f.innerHTML = mascot('happy'); }, ms);
+}
+function nextGrowthLine(p: Profile) {
+  const st = growthStage(p); if (st >= GROWTH.length) return t('buddyAllGrown');
+  const n = growthNeeds(p)[st] - labsFinished(p), thing = t(('grow_' + GROWTH[st]) as Key);
+  return t(n === 1 ? 'buddyNext1' : 'buddyNext').replace('{n}', String(n)).replace('{thing}', thing);
+}
+function buddyGreet(p: Profile, newStage: number) {
+  const name = p.name || t(p.band), h = new Date().getHours();
+  if (!p.met) { p.met = true; saveShell(); setTimeout(() => buddySay(t('buddyHi').replace('{name}', name), 'wave', 9000), 700); return; }
+  if (newStage && p.grown !== undefined) { setTimeout(() => { buddySay(t('buddyGrow').replace('{thing}', t(('grow_' + GROWTH[newStage - 1]) as Key)), 'cheer', 9000); confetti(reduceMotion, true); }, 900); return; }
+  const line = chestReady(p) ? t('buddyChest') : streakOf(p) >= 3 && Math.random() < 0.4 ? t('buddyStreak').replace('{n}', String(streakOf(p)))
+    : Math.random() < 0.5 ? nextGrowthLine(p) : t(h < 12 ? 'buddyMorning' : h < 17 ? 'buddyDay' : 'buddyEvening').replace('{name}', name);
+  setTimeout(() => buddySay(line, chestReady(p) ? 'wave' : 'happy'), 700);
+}
+function buddyTap() {
+  const p = active(); if (!p) return;
+  const lines = [nextGrowthLine(p), t('buddyC1'), t('buddyC2'), t('buddyC3'), t('buddyC4')];
+  buddySay(lines[cheerIx++ % lines.length], cheerIx % 2 ? 'cheer' : 'wave');
+}
+function chestSheet() {
+  const p = active(); if (!p) return;
+  const ready = chestReady(p), n = p.chestN || 0, week = RULES.chest, at = n % week.length;
+  // The track shows every reward in advance: nothing here is a surprise or a gamble.
+  const track = week.map((c, i) => `<li class="${(ready ? i < at : i <= (n - 1) % week.length) ? 'got' : i === at && ready ? 'now' : ''}"><b>${i + 1}</b><span><i class="coin" aria-hidden="true"></i>${c}</span></li>`).join('');
+  sheet('chest', `<div class="chest-art ${ready ? 'ready' : ''}" id="chArt">${chestSvg(!ready)}</div><h2>${t('chestTitle')}</h2><p class="muted">${t('chestBody')}</p>
+    <ol class="chest-track">${track}</ol><p id="chMsg" class="chest-msg">${ready ? '' : t('chestTomorrow')}</p>
+    <div class="row-btns">${ready ? `<button class="btn primary" id="chGo">${t('chestOpen')}</button>` : ''}<button class="btn" data-close>${t('close')}</button></div>`);
+  const go = document.getElementById('chGo');
+  if (go) go.onclick = () => {
+    if (!chestReady(p)) return; const c = week[at];
+    p.chestDay = today(); p.chestN = n + 1; addCoins(p, c); played(p); saveShell();
+    $('#chArt').innerHTML = chestSvg(true); $('#chArt').classList.remove('ready'); $('#chMsg').textContent = t('chestGot').replace('{n}', String(c)) + ' ' + t('chestTomorrow');
+    document.querySelectorAll('.chest-track li')[at]?.classList.replace('now', 'got'); go.remove();
+    const hc = document.getElementById('hChest'); if (hc) { hc.innerHTML = chestSvg(true); hc.classList.replace('ready', 'open'); }
+    confetti(reduceMotion); refreshPills();
+  };
+}
+
 function hub() {
   const p = active(); if (!p) return players();
   closeSheet();
@@ -236,6 +287,10 @@ function hub() {
         <button class="pill" id="hParent" aria-label="${t('grownUps')}">👪<span class="long"> ${t('grownUps')}</span></button>
       </header>
       <div class="hubfoot" id="hubFoot">
+        <div class="hubside">
+          <div class="buddy"><button class="buddy-fig" id="hBuddy" aria-label="${MASCOT[getLang()]}">${mascot('happy')}</button><div class="bubble" id="hBubble" role="status"></div></div>
+          <button class="chest ${chestReady(p) ? 'ready' : 'open'}" id="hChest" aria-label="${t('chestAria')}">${chestSvg(!chestReady(p))}</button>
+        </div>
         ${daily}
         <button class="btn" id="hAll">🗺️ ${t('allWorkshops')}</button>
         <div class="hubrow"><button class="link hrules" id="hRules">ℹ️ ${t('rulesBtn')}</button>
@@ -257,8 +312,14 @@ function hub() {
     const b = $('#hMusic'); b.setAttribute('aria-pressed', String(on)); b.textContent = `${on ? '🎵' : '🔇'} ${t(on ? 'musicOn' : 'musicOff')}`;
   };
   document.querySelectorAll<HTMLElement>('#hubFoot [data-lab]').forEach(b => b.onclick = () => enterWorld(LABS.find(l => l.id === b.dataset.lab)!));
+  $('#hChest').onclick = () => chestSheet();
+  $('#hBuddy').onclick = () => buddyTap();
   showIsland(true);
   island!.setZones(zoneStates(p));
+  const st = growthStage(p), fresh = st > (p.grown || 0);
+  island!.setGrowth(st, fresh && p.grown !== undefined);
+  buddyGreet(p, fresh ? st : 0);
+  if (fresh || p.grown === undefined) { p.grown = st; saveShell(); }
   requestAnimationFrame(fitIsland);
   refreshPills();
 }
@@ -379,7 +440,7 @@ function refreshPills() {
   regen(p);
   const c = `<i class="coin" aria-hidden="true"></i>${p.coins}`;
   const h = `❤️ ${p.hearts}${p.hearts < RULES.maxHearts ? `<small>${mmss(msToNextHeart(p))}</small>` : ''}`;
-  document.querySelectorAll('#hCoins,#wCoins').forEach(e => { e.innerHTML = c; e.setAttribute('aria-label', `${t('coins')}: ${p.coins}`); });
+  document.querySelectorAll('#hCoins,#wCoins').forEach(e => { const up = e.getAttribute('data-n') !== null && +e.getAttribute('data-n')! < p.coins; e.innerHTML = c; e.setAttribute('data-n', String(p.coins)); e.setAttribute('aria-label', `${t('coins')}: ${p.coins}`); if (up) { e.classList.remove('bump'); void (e as HTMLElement).offsetWidth; e.classList.add('bump'); } });
   document.querySelectorAll('#hHearts,#wHearts').forEach(e => { e.innerHTML = h; e.setAttribute('aria-label', `${t('hearts')}: ${p.hearts}`); });
   const live = document.getElementById('ohTimer'); if (live) live.textContent = p.hearts > 0 ? '' : mmss(msToNextHeart(p));
   if (p.hearts > 0) lastOut = 0; // got a heart back: the next time they run out, show the sheet again
@@ -405,7 +466,7 @@ let adId = 0;
 function outOfHearts() {
   const p = active(); if (!p) return; regen(p);
   const left = adHeartsLeft(p), canAd = S.adsForHearts && !S.adFree && left > 0;
-  sheet('out', `<div class="big-ic">💔</div><h2>${t('outTitle')}</h2><p>${t('outBody')}</p>
+  sheet('out', `<div class="big-ic lion">${mascot('sleep')}</div><h2>${t('outTitle')}</h2><p>${t('outBody')}</p><p class="muted">${t('chestRest')}</p>
     <p class="muted">${t('waitIn')} <b id="ohTimer">${mmss(msToNextHeart(p))}</b></p>
     <div class="col-btns">
       <button class="btn" id="ohBuy" ${p.coins < RULES.heartCost ? 'disabled' : ''}><i class="coin" aria-hidden="true"></i>${(p.coins < RULES.heartCost ? t('needCoins') : t('buyHeart')).replace('{cost}', String(RULES.heartCost))}</button>
@@ -484,7 +545,7 @@ function emailAsk() {
 
 /** First launch: three picture cards instead of a page of rules. "How to play" still opens the full rules. */
 const OB: { ic: string; tk: Key; bk: Key; bg: string }[] = [
-  { ic: '🏝️', tk: 'ob1T', bk: 'ob1B', bg: 'linear-gradient(160deg,#bfe9ff,#7fd0c9)' },
+  { ic: mascot('wave'), tk: 'ob1T', bk: 'ob1B', bg: 'linear-gradient(160deg,#bfe9ff,#7fd0c9)' },
   { ic: '🪙', tk: 'ob2T', bk: 'ob2B', bg: 'linear-gradient(160deg,#fff1bf,#ffcf5c)' },
   { ic: '❤️', tk: 'ob3T', bk: 'ob3B', bg: 'linear-gradient(160deg,#ffd9e2,#ff9fb4)' },
 ];
@@ -586,6 +647,7 @@ function closeSheet() { const w = $('#sheet'); if (!w) return; w.hidden = true; 
 
 export function toast(msg: string, kind: '' | 'bad' = '') {
   const el = document.createElement('div'); el.className = 'toast ' + kind; el.textContent = msg;
+  if (!kind && msg.includes(t('levelDone'))) { el.classList.add('lion'); el.insertAdjacentHTML('afterbegin', mascot('cheer')); }
   const box = $('#toasts'); box.classList.toggle('inworld', !!current); box.appendChild(el);
   setTimeout(() => el.classList.add('out'), 2200); setTimeout(() => el.remove(), 2700);
 }
