@@ -32,6 +32,11 @@ export interface Profile {
   grown?: number;
   /** True once Sheru has said hello. */
   met?: boolean;
+  /** Sheru's wardrobe: what the player owns and what he wears now. */
+  wearOwn?: string[];
+  wear?: { hat?: string; face?: string; neck?: string };
+  /** The week (see weekId) whose weekend mystery lab has been unwrapped. */
+  mystWeek?: string;
 }
 
 export interface Shell {
@@ -60,7 +65,7 @@ export const RULES = {
   /** Hints: a few free each day, then an optional rewarded ad (never needed: hints stay free once the ad cap is hit or ads are off). */
   freeHintsPerDay: 3,
   adHintsPerDay: 10,
-  coins: { correct: 10, level: 20, star: 5, discovery: 15, daily: 10 },
+  coins: { correct: 10, level: 20, star: 5, discovery: 15, daily: 10, mystery: 20 },
   /** Daily treasure chest: coins for chest 1 to 7, then the week repeats. Always shown up front, never random. */
   chest: [15, 15, 25, 20, 20, 30, 60],
   ads: { quietStartSec: 180, gapSec: 180, levelGapSec: 150, maxPerSession: 8 },
@@ -101,7 +106,7 @@ export function resetProgress(p: Profile) {
   (['colour', 'inventor', 'tinkerer', 'explorer', 'inventor2'] as WorldId[]).forEach(w => writeRaw(slotKey(p.id, w), null));
   p.coins = 0; p.levels = {}; p.disc = []; p.hearts = RULES.maxHearts; p.heartTs = Date.now(); p.adDay = ''; p.adCount = 0;
   delete (p as { badges?: unknown }).badges; delete (p as { stickers?: unknown }).stickers;
-  delete (p as { daily?: unknown }).daily; delete (p as { ex?: unknown }).ex; delete p.grown;
+  delete (p as { daily?: unknown }).daily; delete (p as { ex?: unknown }).ex; delete p.grown; delete p.wearOwn; delete p.wear; delete p.mystWeek;
   saveShell();
 }
 export function removeProfile(id: string) {

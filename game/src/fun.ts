@@ -87,3 +87,27 @@ export function music(play: boolean) {
     clearInterval(timer); timer = window.setInterval(tick, 520);
   } catch { on = false; }
 }
+
+/* ------------------------------------------------------------------ little sounds for the shell */
+// Short synthesised effects (no audio files): coins, a level fanfare, the chest and new things on the island.
+let fxCtx: AudioContext | null = null;
+function tone(c: AudioContext, f: number, at: number, len: number, vol: number, type: OscillatorType = 'triangle') {
+  const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.value = f; o.connect(g); g.connect(c.destination);
+  g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, at + len); o.start(at); o.stop(at + len + 0.05);
+}
+export type Fx = 'coin' | 'win' | 'chest' | 'grow' | 'tap' | 'wear';
+export function sfx(kind: Fx) {
+  try {
+    if (!fxCtx) { const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext; fxCtx = new AC(); }
+    const c = fxCtx; if (c.state === 'suspended') void c.resume(); const t0 = c.currentTime + 0.02;
+    const seq: Record<Fx, [number, number, number][]> = {
+      coin: [[1318, 0, 0.09], [1760, 0.07, 0.22]],
+      win: [[523, 0, 0.14], [659, 0.11, 0.14], [784, 0.22, 0.14], [1047, 0.33, 0.4]],
+      chest: [[392, 0, 0.12], [523, 0.1, 0.12], [659, 0.2, 0.12], [784, 0.3, 0.12], [1047, 0.42, 0.5]],
+      grow: [[440, 0, 0.12], [554, 0.09, 0.12], [659, 0.18, 0.12], [880, 0.27, 0.45]],
+      tap: [[660, 0, 0.06]],
+      wear: [[587, 0, 0.08], [880, 0.07, 0.16]],
+    };
+    seq[kind].forEach(([f, d, len]) => tone(c, f, t0 + d, len, kind === 'tap' ? 0.05 : 0.1));
+  } catch { /* sound is a nicety: never let it break the game */ }
+}

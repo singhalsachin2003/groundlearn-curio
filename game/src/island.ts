@@ -46,7 +46,7 @@ function prop(id: ZoneId, colour: number): THREE.Object3D {
 /** Things that appear on the island as the player finishes labs, in order. */
 export const GROWTH = ['flowers', 'boat', 'lighthouse', 'rainbow', 'balloon', 'windmill', 'butterflies', 'star'] as const;
 
-export interface Island { setGrowth(stage: number, popNew: boolean): void; setZones(z: ZoneState[]): void; fit(w: number, h: number, top: number, bottom: number): void; pause(p: boolean): void; dispose(): void }
+export interface Island { setStickers(list: string[]): void; setGrowth(stage: number, popNew: boolean): void; setZones(z: ZoneState[]): void; fit(w: number, h: number, top: number, bottom: number): void; pause(p: boolean): void; dispose(): void }
 
 export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, reduceMotion: boolean): Island {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -144,6 +144,26 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
     deco.forEach((g, i) => { const on = i < stage; if (on && !g.visible && popNew && !reduceMotion) { g.userData.pop = 1; g.scale.setScalar(0.01); } else if (on && !g.userData.pop) g.scale.setScalar(1); g.visible = on; });
   }
 
+  // the player's stickers stand on little posts round the island, in the order they were bought
+  const stickerGroup = new THREE.Group(); scene.add(stickerGroup); let stickerKey = '';
+  function emojiSprite(e: string) {
+    const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d')!;
+    g.fillStyle = '#fffdf6'; g.strokeStyle = '#121528'; g.lineWidth = 6; g.beginPath(); g.arc(64, 64, 58, 0, 7); g.fill(); g.stroke();
+    g.font = '78px system-ui, "Noto Color Emoji", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, 64, 70);
+    const tex = new THREE.CanvasTexture(c); tex.anisotropy = 4; return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+  }
+  function setStickers(list: string[]) {
+    const key = list.join(''); if (key === stickerKey) return; stickerKey = key;
+    stickerGroup.children.slice().forEach(o => { stickerGroup.remove(o); o.traverse(k => { const sp = k as THREE.Sprite; if (sp.isSprite) { sp.material.map?.dispose(); sp.material.dispose(); } }); });
+    list.slice(0, 24).forEach((e, i) => {
+      // front of the island first, then alternating left and right towards the back
+      const side = i % 2 ? 1 : -1, step = Math.ceil(i / 2), a = Math.PI / 2 + side * step * 0.255, r = 4.75;
+      const post = new THREE.Group(); post.position.set(Math.cos(a) * r, 0.33, Math.sin(a) * r);
+      post.add(m(new THREE.CylinderGeometry(0.03, 0.03, 0.42, 5), 0x8a5a3a, 0, 0.21, 0));
+      const sp = emojiSprite(e); sp.scale.set(0.8, 0.8, 1); sp.position.y = 0.75; post.add(sp); stickerGroup.add(post);
+    });
+  }
+
   // clouds
   const clouds: THREE.Group[] = [];
   for (let i = 0; i < 4; i++) { const c = new THREE.Group(); [0, 0.5, -0.5].forEach((x, k) => { const p = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5 - k * 0.1, 0), mat(0xffffff, { roughness: 1 })); p.position.set(x, 0, 0); c.add(p); }); c.position.set(-12 + i * 7, 5 + (i % 2), -6 - i); scene.add(c); clouds.push(c); }
@@ -228,7 +248,7 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
   raf = requestAnimationFrame(frame);
 
   return {
-    setZones, setGrowth, fit,
+    setZones, setGrowth, setStickers, fit,
     pause(p: boolean) { paused = p; last = performance.now(); },
     dispose() {
       cancelAnimationFrame(raf);

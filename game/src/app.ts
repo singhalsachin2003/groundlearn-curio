@@ -5,14 +5,14 @@ import { LABS, COMING, NEW_LABS, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, lab
 import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
 import { send, onNative, inApp } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
-import { mascot, chestSvg, MASCOT, type Mood } from './mascot';
+import { mascot, chestSvg, setOutfit, MASCOT, WEAR, type Mood } from './mascot';
 import { createIsland, ZONE_OF, GROWTH, type Island, type ZoneId, type ZoneState } from './island';
 import { EXAMPLES } from './examples';
 import { EXAMPLES_HI } from './examples_hi';
 import { saveParentEmail, validEmail } from './subscribe';
 import { LICENSES } from './licenses';
 import { HERO, FACTS, factOfDay } from './home';
-import { today, hintUse, hintCounts, markPlayed, streakOf, badgeFor, raiseBadge, badgesOf, BADGE_ICON, BADGE_COINS, STICKERS, STICKER_COST, stickersOf, addSticker, confetti, music } from './fun';
+import { sfx, type Fx, today, hintUse, hintCounts, markPlayed, streakOf, badgeFor, raiseBadge, badgesOf, BADGE_ICON, BADGE_COINS, STICKERS, STICKER_COST, stickersOf, addSticker, confetti, music } from './fun';
 import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
 export const PRIVACY_URL = 'https://groundlearn.com/curio/privacy';
@@ -105,7 +105,7 @@ export function start(el: HTMLElement) {
     },
   };
 
-  (window as unknown as Record<string, unknown>).__shell = { S, active, hub, storeWorldSave }; // test hook
+  (window as unknown as Record<string, unknown>).__shell = { S, active, hub, storeWorldSave, mysterySheet }; // test hook
   setInterval(refreshPills, 1000);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !frame) onBack(); });
   if (active()) hub(); else players();
@@ -137,7 +137,7 @@ function rewardDiff(world: WorldId, oldRaw: string | null, newRaw: string | null
     }
   }
   if (gained > 0) { addCoins(p, gained); toast(`+${gained} ${t('plusCoins')} · ${notes[0]}`); played(p); }
-  if (notes.includes(t('levelDone'))) confetti(reduceMotion, true); // side bursts: keep the quiz in the middle clear
+  if (notes.includes(t('levelDone'))) { confetti(reduceMotion, true); fx('win'); } else if (gained > 0) fx('coin'); // side bursts: keep the quiz in the middle clear
   if (dailyProgress(p, moved)) setTimeout(() => toast(`+${RULES.coins.daily} ${t('plusCoins')} · ${t('curioDay')} ✓`), 700);
   refreshPills();
 }
@@ -162,6 +162,7 @@ function checkBadges() {
 
 /* =================================================================== screens */
 function players() {
+  setOutfit(undefined);
   closeSheet(); showIsland(false);
   const list = S.profiles.map(p => `<button class="player" data-pid="${p.id}"><span class="av">${p.avatar}</span><b>${esc(p.name || '—')}</b><small>${t(p.band)}</small></button>`).join('');
   $('#screen').innerHTML = `
@@ -225,6 +226,33 @@ function growthNeeds(p: Profile) { const tot = labsFor(p.band).length; return [0
 function labsFinished(p: Profile) { return labsFor(p.band).filter(l => labProgress(l, readSlot(p.id, l.world)) >= l.progress.total).length; }
 function growthStage(p: Profile) { const fin = labsFinished(p); return growthNeeds(p).filter(n => fin >= n).length; }
 const chestReady = (p: Profile) => p.chestDay !== today();
+const fx = (k: Fx) => { if (S.sound) sfx(k); };
+/** Monday-based week id, the same for Saturday and Sunday of one weekend. */
+function weekId() { const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)); return `${mon.getFullYear()}-${mon.getMonth() + 1}-${mon.getDate()}`; }
+const isWeekend = () => { const d = new Date().getDay(); return d === 0 || d === 6; };
+/** This weekend's mystery lab: the same lab all weekend, picked from the ones the player has not finished. */
+function mysteryLab(p: Profile): Lab | null {
+  const all = labsFor(p.band), open = all.filter(l => labProgress(l, readSlot(p.id, l.world)) < l.progress.total), pool = open.length ? open : all; if (!pool.length) return null;
+  let h = 0; for (const ch of weekId() + p.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return pool[h % pool.length];
+}
+function mysterySheet() {
+  const p = active(); if (!p) return; const lab = mysteryLab(p); if (!lab) return;
+  const first = p.mystWeek !== weekId();
+  if (first) { p.mystWeek = weekId(); addCoins(p, RULES.coins.mystery); saveShell(); refreshPills(); fx('chest'); confetti(reduceMotion); const g = document.getElementById('hGift'); if (g) g.classList.remove('ready'); }
+  sheet('myst', `<div class="big-ic">🎁</div><h2>${t('mystTitle')}</h2>${first ? `<p class="chest-msg">${t('chestGot').replace('{n}', String(RULES.coins.mystery))}</p>` : ''}<p>${t('mystBody')}</p>
+    <div class="labs in-sheet one">${labCard(lab, p)}</div><div class="row-btns"><button class="btn" data-close>${t('close')}</button></div>`);
+  $('.sheet').querySelectorAll<HTMLElement>('[data-lab]').forEach(b => b.onclick = () => { closeSheet(); enterWorld(lab); });
+}
+/** A certificate for finishing every lab of one subject. Shown on screen for a grown-up to screenshot. */
+function certSheet(z: ZoneState) {
+  const p = active(); if (!p) return;
+  const date = new Date().toLocaleDateString(getLang() === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+  sheet('cert', `<div class="cert"><div class="cert-in"><div class="cert-lion">${mascot('cheer')}</div><small>Curio Island · GroundLearn</small><h2>${t('certTitle')}</h2><p>${t('certThis')}</p>
+    <b class="cert-name">${esc(p.name || t(p.band))}</b><p>${t('certFor').replace('{place}', esc(z.label))}</p><div class="cert-foot"><span>🥇</span><span>${date}</span><span>⭐⭐⭐</span></div></div></div>
+    <p class="muted">${t('certHint')}</p><div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
+  fx('win'); confetti(reduceMotion);
+}
 let bubbleTimer = 0, cheerIx = 0;
 function buddySay(text: string, mood: Mood = 'happy', ms = 6500) {
   const b = document.getElementById('hBubble'), f = document.getElementById('hBuddy'); if (!b || !f) return;
@@ -240,14 +268,15 @@ function nextGrowthLine(p: Profile) {
 function buddyGreet(p: Profile, newStage: number) {
   const name = p.name || t(p.band), h = new Date().getHours();
   if (!p.met) { p.met = true; saveShell(); setTimeout(() => buddySay(t('buddyHi').replace('{name}', name), 'wave', 9000), 700); return; }
-  if (newStage && p.grown !== undefined) { setTimeout(() => { buddySay(t('buddyGrow').replace('{thing}', t(('grow_' + GROWTH[newStage - 1]) as Key)), 'cheer', 9000); confetti(reduceMotion, true); }, 900); return; }
-  const line = chestReady(p) ? t('buddyChest') : streakOf(p) >= 3 && Math.random() < 0.4 ? t('buddyStreak').replace('{n}', String(streakOf(p)))
+  if (newStage && p.grown !== undefined) { setTimeout(() => { buddySay(t('buddyGrow').replace('{thing}', t(('grow_' + GROWTH[newStage - 1]) as Key)), 'cheer', 9000); confetti(reduceMotion, true); fx('grow'); }, 900); return; }
+  const line = chestReady(p) ? t('buddyChest') : isWeekend() && p.mystWeek !== weekId() && mysteryLab(p) ? t('buddyMyst') : streakOf(p) >= 3 && Math.random() < 0.4 ? t('buddyStreak').replace('{n}', String(streakOf(p)))
     : Math.random() < 0.5 ? nextGrowthLine(p) : t(h < 12 ? 'buddyMorning' : h < 17 ? 'buddyDay' : 'buddyEvening').replace('{name}', name);
   setTimeout(() => buddySay(line, chestReady(p) ? 'wave' : 'happy'), 700);
 }
 function buddyTap() {
   const p = active(); if (!p) return;
-  const lines = [nextGrowthLine(p), t('buddyC1'), t('buddyC2'), t('buddyC3'), t('buddyC4')];
+  const lines = [nextGrowthLine(p), t('buddyC1'), isWeekend() ? t('buddyMyst') : t('buddyMystSoon'), t('buddyC2'), t('buddyC3'), t('buddyWear'), t('buddyC4')];
+  fx('tap');
   buddySay(lines[cheerIx++ % lines.length], cheerIx % 2 ? 'cheer' : 'wave');
 }
 function chestSheet() {
@@ -261,7 +290,7 @@ function chestSheet() {
   const go = document.getElementById('chGo');
   if (go) go.onclick = () => {
     if (!chestReady(p)) return; const c = week[at];
-    p.chestDay = today(); p.chestN = n + 1; addCoins(p, c); played(p); saveShell();
+    p.chestDay = today(); p.chestN = n + 1; addCoins(p, c); played(p); saveShell(); fx('chest');
     $('#chArt').innerHTML = chestSvg(true); $('#chArt').classList.remove('ready'); $('#chMsg').textContent = t('chestGot').replace('{n}', String(c)) + ' ' + t('chestTomorrow');
     document.querySelectorAll('.chest-track li')[at]?.classList.replace('now', 'got'); go.remove();
     const hc = document.getElementById('hChest'); if (hc) { hc.innerHTML = chestSvg(true); hc.classList.replace('ready', 'open'); }
@@ -271,6 +300,7 @@ function chestSheet() {
 
 function hub() {
   const p = active(); if (!p) return players();
+  setOutfit(p.wear);
   closeSheet();
   const dl = dailyFor(p), dt = dl ? dailyText(dl, getLang()) : null;
   const daily = !dt ? `<div class="daily card"><span class="dic">🏆</span><div class="dtx"><small>${t('curioDay')}</small><p>${t('dailyAllDone')}</p></div></div>`
@@ -289,7 +319,8 @@ function hub() {
       <div class="hubfoot" id="hubFoot">
         <div class="hubside">
           <div class="buddy"><button class="buddy-fig" id="hBuddy" aria-label="${MASCOT[getLang()]}">${mascot('happy')}</button><div class="bubble" id="hBubble" role="status"></div></div>
-          <button class="chest ${chestReady(p) ? 'ready' : 'open'}" id="hChest" aria-label="${t('chestAria')}">${chestSvg(!chestReady(p))}</button>
+          <span class="hubtreats">${isWeekend() && mysteryLab(p) ? `<button class="gift ${p.mystWeek !== weekId() ? 'ready' : ''}" id="hGift" aria-label="${t('mystTitle')}">🎁</button>` : ''}
+          <button class="chest ${chestReady(p) ? 'ready' : 'open'}" id="hChest" aria-label="${t('chestAria')}">${chestSvg(!chestReady(p))}</button></span>
         </div>
         ${daily}
         <button class="btn" id="hAll">🗺️ ${t('allWorkshops')}</button>
@@ -313,11 +344,13 @@ function hub() {
   };
   document.querySelectorAll<HTMLElement>('#hubFoot [data-lab]').forEach(b => b.onclick = () => enterWorld(LABS.find(l => l.id === b.dataset.lab)!));
   $('#hChest').onclick = () => chestSheet();
+  const gift = document.getElementById('hGift'); if (gift) gift.onclick = () => mysterySheet();
   $('#hBuddy').onclick = () => buddyTap();
   showIsland(true);
   island!.setZones(zoneStates(p));
   const st = growthStage(p), fresh = st > (p.grown || 0);
   island!.setGrowth(st, fresh && p.grown !== undefined);
+  island!.setStickers(stickersOf(p));
   buddyGreet(p, fresh ? st : 0);
   if (fresh || p.grown === undefined) { p.grown = st; saveShell(); }
   requestAnimationFrame(fitIsland);
@@ -509,15 +542,30 @@ function journal() {
   const rows = labs.map(l => { const n = labProgress(l, readSlot(p.id, l.world)), tot = l.progress.total;
     return `<div class="jrow s-${l.subject}"><span class="ic">${l.icon}</span><span class="jt"><b>${esc(nm(l.name))}</b><span class="bar"><i style="width:${Math.round(100 * n / tot)}%"></i></span></span><span class="cnt">${n}/${tot}</span></div>`; }).join('');
   const bg = badgesOf(p), zs = zoneStates(p).filter(z => !z.locked);
-  const badges = `<div class="badges">${zs.map(z => `<span class="bdg ${bg[z.id] ? '' : 'off'}"><b>${bg[z.id] ? BADGE_ICON[bg[z.id]] : '🏅'}</b><small>${esc(z.label)}</small></span>`).join('')}</div>`;
+  const badges = `<div class="badges">${zs.map(z => bg[z.id] === 3 ? `<button class="bdg cert-btn" data-cert="${z.id}"><b>🥇</b><small>${esc(z.label)}</small><em>📜 ${t('certOpen')}</em></button>` : `<span class="bdg ${bg[z.id] ? '' : 'off'}"><b>${bg[z.id] ? BADGE_ICON[bg[z.id]] : '🏅'}</b><small>${esc(z.label)}</small></span>`).join('')}</div>`;
+  const ownW = p.wearOwn || [], wearing = p.wear || {};
+  const wardrobe = `<div class="wardrobe"><div class="ward-lion" id="jLion">${mascot('happy', '', wearing)}</div><div class="ward-items">${WEAR.map(w => ownW.includes(w.id)
+    ? `<button class="wear got" data-wear="${w.id}" aria-pressed="${wearing[w.slot] === w.id}"><span class="wi">${mascot('happy', '', { [w.slot]: w.id })}</span><small>${esc(nm(w))}</small></button>`
+    : `<button class="wear" data-wear="${w.id}"><span class="wi">${mascot('happy', '', { [w.slot]: w.id })}</span><small>${esc(nm(w))}</small><em><i class="coin" aria-hidden="true"></i>${w.cost}</em></button>`).join('')}</div></div>`;
   const own = stickersOf(p);
   const book = `<div class="stickers">${STICKERS.map(st => own.includes(st) ? `<span class="stk got">${st}</span>` : `<button class="stk" data-stk="${st}" aria-label="${t('stickerBuy')}"><b>${st}</b><small><i class="coin" aria-hidden="true"></i>${STICKER_COST}</small></button>`).join('')}</div>`;
   const streak = streakOf(p);
-  sheet('journal', `<h2>${t('journalTitle')}</h2>${streak ? `<p class="streakline">🔥 ${streak} ${t(streak === 1 ? 'streakDay' : 'streakDays')}</p>` : ''}<h3>${t('badgesTitle')}</h3>${badges}<h3>${t('stickersTitle')} · ${own.length}/${STICKERS.length}</h3><p class="muted">${t('stickersNote').replace('{cost}', String(STICKER_COST))}</p>${book}<h3>${t('labsTitle')}</h3><div class="jlist">${rows}</div><div class="row-btns"><button class="btn" id="jRules">ℹ️ ${t('rulesBtn')}</button><button class="btn" id="jReset">↺ ${t('resetBtn')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
+  sheet('journal', `<h2>${t('journalTitle')}</h2>${streak ? `<p class="streakline">🔥 ${streak} ${t(streak === 1 ? 'streakDay' : 'streakDays')}</p>` : ''}<h3>${t('badgesTitle')}</h3>${badges}<h3>${t('wardTitle')}</h3><p class="muted">${t('wardNote')}</p>${wardrobe}<h3>${t('stickersTitle')} · ${own.length}/${STICKERS.length}</h3><p class="muted">${t('stickersNote').replace('{cost}', String(STICKER_COST))}</p>${book}<h3>${t('labsTitle')}</h3><div class="jlist">${rows}</div><div class="row-btns"><button class="btn" id="jRules">ℹ️ ${t('rulesBtn')}</button><button class="btn" id="jReset">↺ ${t('resetBtn')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('#jRules').onclick = () => rules();
   document.querySelectorAll<HTMLElement>('[data-stk]').forEach(b => b.onclick = () => {
     if (p.coins < STICKER_COST) { toast(t('stickerNeed').replace('{cost}', String(STICKER_COST)), 'bad'); return; }
-    addCoins(p, -STICKER_COST); addSticker(p, b.dataset.stk!); saveShell(); refreshPills(); confetti(reduceMotion); journal();
+    addCoins(p, -STICKER_COST); addSticker(p, b.dataset.stk!); saveShell(); refreshPills(); confetti(reduceMotion); fx('wear'); island?.setStickers(stickersOf(p)); toast(t('stickerPlaced')); journal();
+  });
+  document.querySelectorAll<HTMLElement>('[data-cert]').forEach(b => b.onclick = () => { const z = zs.find(x => x.id === b.dataset.cert); if (z) certSheet(z); });
+  document.querySelectorAll<HTMLElement>('[data-wear]').forEach(b => b.onclick = () => {
+    const w = WEAR.find(x => x.id === b.dataset.wear)!; p.wearOwn = p.wearOwn || []; p.wear = p.wear || {};
+    if (!p.wearOwn.includes(w.id)) {
+      if (p.coins < w.cost) { toast(t('stickerNeed').replace('{cost}', String(w.cost)), 'bad'); return; }
+      addCoins(p, -w.cost); p.wearOwn.push(w.id); p.wear[w.slot] = w.id; confetti(reduceMotion);
+    } else if (p.wear[w.slot] === w.id) delete p.wear[w.slot]; else p.wear[w.slot] = w.id;
+    saveShell(); setOutfit(p.wear); fx('wear'); refreshPills();
+    const hb = document.getElementById('hBuddy'); if (hb) hb.innerHTML = mascot('happy');
+    const top = $('.sheet').scrollTop; journal(); $('.sheet').scrollTop = top;
   });
   $('#jReset').onclick = () => gate(() => resetAsk(p));
 }

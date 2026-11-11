@@ -289,3 +289,26 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .btn:active,.pill:active,.lab:active,.player:active,.band:active,.avbtn:active{transform:translateY(2px) scale(.97)}
 .pill.bump{animation:pill-bump .45s ease-out}
 @keyframes pill-bump{40%{transform:scale(1.18)}}
+/* ---------- wardrobe, certificate, weekend gift ---------- */
+.hubtreats{display:flex;align-items:flex-end;gap:6px}
+.gift{width:54px;height:54px;border-radius:16px;border:2.5px solid var(--ink);background:#fff1bf;font-size:30px;line-height:1;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.3);padding:0}
+.gift.ready{animation:chest-bounce 1.6s ease-in-out .4s infinite}
+.labs.in-sheet.one{justify-content:center}
+.wardrobe{display:flex;gap:10px;align-items:flex-start}
+.ward-lion{width:96px;height:116px;flex:none;position:sticky;top:0;background:linear-gradient(160deg,#bfe9ff,#7fd0c9);border:2px solid var(--ink);border-radius:16px;padding:14px 4px 2px;box-sizing:border-box}
+.ward-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;flex:1;min-width:0}
+.wear{display:flex;flex-direction:column;align-items:center;gap:1px;border:2px solid #d8cfb8;border-radius:12px;background:#fff;padding:4px 2px 5px;cursor:pointer;min-height:92px;font:inherit;color:var(--ink)}
+.wear .wi{width:50px;height:46px;overflow:hidden;display:block}.wear .wi .mascot{width:50px;height:60px;margin-top:6px}
+.wear small{font-size:11px;font-weight:700;line-height:1.1;text-align:center}
+.wear em{font-style:normal;font-size:12px;font-weight:800;display:flex;align-items:center;gap:2px}
+.wear.got{border-color:#3f9f5a;background:#f1fbf3}.wear.got[aria-pressed="true"]{background:#fff1bf;border-color:var(--ink);box-shadow:0 2px 0 var(--ink)}
+.bdg.cert-btn{border:2px solid #b26a00;background:#fff3c9;border-radius:14px;cursor:pointer;font:inherit;color:var(--ink);padding:6px 8px}
+.bdg.cert-btn em{display:block;font-style:normal;font-size:11px;font-weight:800;color:#8a5200}
+.cert{background:repeating-linear-gradient(45deg,#ffd23f 0 10px,#ffb423 10px 20px);padding:10px;border-radius:18px;border:2px solid var(--ink)}
+.cert-in{background:#fffdf6;border-radius:10px;padding:14px 12px;text-align:center;border:2px solid var(--ink)}
+.cert-in small{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.cert-in h2{margin:2px 0 6px;font-size:22px}.cert-in p{margin:4px 0;font-size:14px}
+.cert-name{display:block;font-family:var(--f-display);font-size:30px;line-height:1.15;color:#a8361f;border-bottom:2px dashed #d8cfb8;padding-bottom:4px;margin:4px 14px}
+.cert-lion{width:84px;height:92px;margin:0 auto}
+.cert-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;font-weight:700}
+@media (prefers-reduced-motion:reduce){.gift.ready{animation:none}}
