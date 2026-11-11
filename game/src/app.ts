@@ -97,6 +97,14 @@ export function start(el: HTMLElement) {
       if (c.ads >= RULES.adHintsPerDay) { open(); return; }
       hintAsk(p, open);
     },
+    /** "Show me" plays the level's solution. It always costs a reward ad (never a free hint), except for families who bought Ad-free. */
+    showMe(open: () => void) {
+      const p = active();
+      if (!p || S.adFree) { open(); return; }
+      if (!S.adsForHearts) { toast(t('showOff'), 'bad'); return; }
+      if (hintCounts(p).ads >= RULES.adHintsPerDay) { toast(t('showCap'), 'bad'); return; }
+      hintAsk(p, open, true);
+    },
     answer(correct: boolean) {
       const p = active(); if (!p) return;
       if (correct) { addCoins(p, RULES.coins.correct); toast(`+${RULES.coins.correct} ${t('plusCoins')} · ${t('correct')}`); }
@@ -548,9 +556,9 @@ function outOfHearts() {
 }
 
 /** Out of free hints today: offer a short ad, or keep trying. Opt-in only; closing the sheet changes nothing. */
-function hintAsk(p: Profile, open: () => void) {
-  sheet('hint', `<div class="big-ic">💡</div><h2>${t('hintTitle')}</h2><p>${t('hintBody').replace('{n}', String(RULES.freeHintsPerDay))}</p>
-    <div class="row-btns"><button class="btn" data-close>${t('hintNo')}</button><button class="btn primary" id="hiAd">▶ ${t('hintAd')}</button></div>`);
+function hintAsk(p: Profile, open: () => void, show = false) {
+  sheet('hint', `<div class="big-ic${show ? ' lion' : ''}">${show ? mascot('think') : '💡'}</div><h2>${t(show ? 'showTitle' : 'hintTitle')}</h2><p>${show ? t('showBody') : t('hintBody').replace('{n}', String(RULES.freeHintsPerDay))}</p>
+    <div class="row-btns"><button class="btn" data-close>${t('hintNo')}</button><button class="btn primary" id="hiAd">▶ ${t(show ? 'showAd' : 'hintAd')}</button></div>`);
   const b = $('#hiAd') as HTMLButtonElement;
   b.onclick = () => {
     const id = ++adId; b.disabled = true; b.textContent = t('adLoading');

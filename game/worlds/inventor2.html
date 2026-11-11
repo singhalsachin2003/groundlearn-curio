@@ -376,7 +376,7 @@ function setLevel(i) {
   if (teardown) { try { teardown(); } catch (e) {} teardown = null; }
   cur = Math.max(0, Math.min(levels.length - 1, i)); finished = false; solver = null;
   $('mMeta').textContent = T(L.name) + ' · ' + (HI ? 'स्तर ' : 'Level ') + (cur + 1) + ' / ' + levels.length + (done[cur] ? ' ✓' : '');
-  $('mText').textContent = T(levels[cur].t); $('stage').innerHTML = ''; $('ctrl').innerHTML = ''; hintReset(); $('mShow').textContent = HI ? '▶ करके दिखाओ' : '▶ Show me';
+  $('mText').textContent = T(levels[cur].t); $('stage').innerHTML = ''; $('ctrl').innerHTML = ''; hintReset(); $('mShow').textContent = HI ? '▶ करके दिखाओ (विज्ञापन)' : '▶ Show me (ad)';
   var f = MOUNT[tab]; if (f) f(levels[cur]);
 }
 /* ---------------- Curio app: hints. Every level gets a clue made from its own numbers, and "Show me" does the level so the player can watch. ---------------- */
@@ -423,7 +423,7 @@ $('mHintBtn').onclick = function () {
   if (!$('mHint').hidden) { $('mHint').hidden = true; $('mShow').hidden = true; $('mHintBtn').textContent = HI ? 'संकेत' : 'Hint'; return; }
   gated(function () { $('mHint').textContent = hintFor(); $('mHint').hidden = false; $('mShow').hidden = false; $('mHintBtn').textContent = HI ? 'संकेत छिपाओ' : 'Hide hint'; });
 };
-$('mShow').onclick = function () { if (finished || !solver) return; gated(function () { $('mShow').hidden = true; try { solver(); } catch (e) {} }); };
+$('mShow').onclick = function () { if (finished || !solver) return; var go = function () { $('mShow').hidden = true; try { solver(); } catch (e) {} }; if (CUR && CUR.showMe) CUR.showMe(go); else gated(go); }; // Curio app: Show me always asks for a reward ad
 
 $('mPrev').onclick = function () { setLevel(cur - 1); }; $('mNext').onclick = function () { setLevel(cur + 1); };
 function solved() {
