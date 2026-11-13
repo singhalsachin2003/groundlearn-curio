@@ -210,7 +210,7 @@ sub{font-size:.7em}
   <section class="mission card" id="mission" aria-live="polite">
     <div class="meta"><span id="mMeta"></span><span class="nav" id="mNav"><button id="mPrev" aria-label="Previous level">‹</button><button id="mNext" aria-label="Next level">›</button></span></div>
     <p id="mText"></p>
-    <div class="mrow"><button class="link" id="mHintBtn">Show hint</button><span class="stars" id="mStars"></span></div>
+    <div class="mrow"><button class="link" id="mHintBtn">Show hint</button><button class="btn" id="mShow" hidden>▶ Show me (ad)</button><span class="stars" id="mStars"></span></div>
     <p class="hint" id="mHint" hidden></p>
   </section>
 </div>
@@ -327,14 +327,18 @@ window.__curioDispose = () => { try { renderer.forceContextLoss(); renderer.disp
 const CURIO = window.curio || null;
 // Tries: labs with no questions still have a goal. Each level gives a few free tries; each extra miss costs a heart.
 const TRIES = {};
+// Curio app: "Show me" plays a level's solution. While it runs, moves cost nothing.
+let SHOWING = false;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const until = async (f, max = 12000) => { const t0 = performance.now(); while (!f() && performance.now() - t0 < max) await wait(80); };
 function resetTries(lab) { Object.keys(TRIES).forEach(k => { if (k.indexOf(lab + ':') === 0) delete TRIES[k]; }); }
 function miss(lab, lvl, free) {
-  if (!CURIO) return; const k = lab + ':' + lvl, n = TRIES[k] = (TRIES[k] || 0) + 1;
+  if (!CURIO || SHOWING) return; const k = lab + ':' + lvl, n = TRIES[k] = (TRIES[k] || 0) + 1;
   if (n <= free) { if (n === free) toast('That was your last free try. The next miss costs a heart.'); return; }
   if (CURIO.canAnswer()) CURIO.answer(false, lab);
 }
 function budget(lab, lvl, free, every) {
-  if (!CURIO) return; const k = lab + ':b' + lvl, n = TRIES[k] = (TRIES[k] || 0) + 1;
+  if (!CURIO || SHOWING) return; const k = lab + ':b' + lvl, n = TRIES[k] = (TRIES[k] || 0) + 1;
   if (n === free) toast('Try to finish soon. Too many moves will cost a heart.');
   if (n > free && (n - free) % every === 0 && CURIO.canAnswer()) CURIO.answer(false, lab);
 }
@@ -615,7 +619,13 @@ games.atom = (function () {
   document.querySelectorAll('#dock-atom .atom').forEach(b => b.onclick = () => add(b.dataset.el));
   $('aUndo').onclick = () => { const n = nodes[nodes.length - 1]; if (!n || won) return; const p = n.parent; atomsG.remove(n.g); disposeTree(n.g); nodes.pop(); if (p) p.kids.pop(); layout(); rebuildLinks(); sfx.click(); status(); };
   $('aClear').onclick = () => { sfx.click(); clearAll(); };
-  return { scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.atomLevel, 0, ATOM.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _add: add, _state: () => ({ li, formula: formulaOf(counts()), free: totalFree(), won }) };
+  // Curio app: Show me builds the molecule, atoms with the most hands first.
+  async function show() {
+    if (won) return; clearAll(); await wait(300); const need = MOLS[li].need, list = [];
+    Object.keys(need).forEach(el => { for (let i = 0; i < need[el]; i++) list.push(el); }); list.sort((a, b) => EL[b].v - EL[a].v);
+    for (const el of list) { if (won) break; add(el); await wait(450); }
+  }
+  return { show, scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.atomLevel, 0, ATOM.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _add: add, _state: () => ({ li, formula: formulaOf(counts()), free: totalFree(), won }) };
 })();
 
 /* =====================================================================
@@ -792,7 +802,13 @@ games.kitchen = (function () {
   const ik = $('kIngs'); ik.innerHTML = Object.keys(ING).map(k => `<button class="ing" data-i="${k}"><span class="em">${ING[k].em}</span>${ING[k].name}</button>`).join('');
   ik.querySelectorAll('.ing').forEach(b => b.onclick = () => toggle(b.dataset.i));
   $('kMix').onclick = mix; $('kEmpty').onclick = () => { sfx.click(); reset(); };
-  return { scene, camera, update, fit, tap() {}, mission, enter() {}, exit() {}, boot: () => reset(), _pick: toggle, _mix: mix, _reset: reset, _state: () => ({ sel: [...sel], mixed, found: [...P.kitchenFound] }) };
+  // Curio app: Show me mixes the pair for the next discovery.
+  async function show() {
+    await until(() => !modalOpen); const m = KMISSIONS.find(x => !P.kitchenFound.has(x[0])); if (!m) return;
+    const pair = Object.keys(RX).find(k => RX[k].id === m[0]).split('+');
+    reset(); guess = null; renderUI(); await wait(300); toggle(pair[0]); await wait(450); toggle(pair[1]); await wait(600); mix();
+  }
+  return { show, scene, camera, update, fit, tap() {}, mission, enter() {}, exit() {}, boot: () => reset(), _pick: toggle, _mix: mix, _reset: reset, _state: () => ({ sel: [...sel], mixed, found: [...P.kitchenFound] }) };
 })();
 
 /* =====================================================================
@@ -918,7 +934,21 @@ games.mirror = (function () {
     return { meta: `Level ${li + 1} of ${MIR.length}`, text: L.text, hint: L.hint, stars: starHTML(P.mirrorStars[li] || 0), nav: true, prevOk: li > 0, nextOk: li < MIR.length - 1 && !!P.mirrorStars[li] };
   }
   $('mrClear').onclick = () => { if (won) return; placed.clear(); sfx.click(); retrace(); };
-  return { scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.mirrorLevel, 0, MIR.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _cell: cell, _state: () => ({ li, placed: [...placed], hit: tr ? tr.hit.size : 0, won }), _levels: MIR };
+  // Curio app: Show me finds the fewest mirrors that light every star, then places them.
+  async function show() {
+    if (won) return; const W = wallSet(), F = fixedMap(), S = starSet();
+    const walk = pl => { let x = L.em.x, y = L.em.y, [dx, dy] = DIRS[L.em.dir]; const hit = new Set(), cells = [];
+      for (let i = 0; i < 80; i++) { x += dx; y += dy; if (x < 0 || y < 0 || x >= GN || y >= GN || W.has(key(x, y))) break; const k = key(x, y);
+        if (S.has(k)) hit.add(k); const m = F.get(k) || pl.get(k); if (!m && !S.has(k)) cells.push(k); if (m) { if (m === '/') [dx, dy] = [-dy, -dx]; else [dx, dy] = [dy, dx]; } }
+      return { hit, cells }; };
+    const dfs = (pl, depth) => { const r = walk(pl); if (r.hit.size === L.stars.length) return pl; if (!depth) return null;
+      for (const k of new Set(r.cells)) if (!pl.has(k)) for (const o of ['/', '\\']) { const n = new Map(pl); n.set(k, o); const got = dfs(n, depth - 1); if (got) return got; }
+      return null; };
+    let sol = null; for (let d = 0; d <= L.max && !sol; d++) sol = dfs(new Map(), d); if (!sol) return;
+    placed = new Map(); retrace(); await wait(400);
+    for (const [k, o] of sol) { if (won) break; const [x, y] = k.split(',').map(Number); cell(x, y); await wait(350); if (o === '\\' && !won) { cell(x, y); await wait(350); } }
+  }
+  return { show, scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.mirrorLevel, 0, MIR.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _cell: cell, _state: () => ({ li, placed: [...placed], hit: tr ? tr.hit.size : 0, won }), _levels: MIR };
 })();
 
 
@@ -1040,7 +1070,11 @@ games.coord = (function () {
   function mission() { return { meta: `Picture ${li + 1} of ${PICS.length}`, text: pic.text, hint: pic.hint, stars: P.coordDone[li] ? doneHTML('Drawn ✓') : '', nav: true, prevOk: li > 0, nextOk: li < PICS.length - 1 && !!P.coordDone[li] }; }
   $('cPlace').onclick = place;
   $('cUndo').onclick = () => { if (n === 0 || won) return; n--; const g = placedMeshes[n]; ink.remove(g); disposeTree(g); placedMeshes.length = n; sel = null; ring.visible = false; ghost.visible = false; sfx.click(); renderUI(); };
-  return { scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.coordLevel, 0, PICS.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _select: select, _place: place, _target: () => pts[n], _state: () => ({ li, n, total: pts.length, won }) };
+  // Curio app: Show me plots the remaining dots in order.
+  async function show() {
+    while (!won && n < pts.length && !modalOpen) { const t = pts[n]; select(t.x, t.y); await wait(320); place(); await wait(250); }
+  }
+  return { show, scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.coordLevel, 0, PICS.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _select: select, _place: place, _target: () => pts[n], _state: () => ({ li, n, total: pts.length, won }) };
 })();
 
 /* =====================================================================
@@ -1146,7 +1180,13 @@ games.pea = (function () {
   }
   function mission() { return { meta: `Cross ${li + 1} of ${PEA.length}`, text: L.text, hint: L.hint, stars: P.peaDone[li] ? doneHTML('Solved ✓') : '', nav: true, prevOk: li > 0, nextOk: li < PEA.length - 1 && !!P.peaDone[li] }; }
   $('pGo').onclick = go;
-  return { scene, camera, update, fit, tap() {}, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.peaLevel, 0, PEA.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _set: (a, b) => { p1 = a; p2 = b; crossed = null; draw(); renderUI(); }, _go: go, _state: () => ({ li, p1, p2, won, crossed }) };
+  // Curio app: Show me picks two parents that pass this puzzle and crosses them.
+  async function show() {
+    if (won) return; await until(() => !busy); let pick = null;
+    GENOS.forEach(a => GENOS.forEach(b => { if (pick) return; const babies = babyOf(a, b), purple = babies.filter(isPurple).length; if (L.test({ babies, purple, white: 4 - purple }, a, b)) pick = [a, b]; }));
+    if (!pick) return; p1 = pick[0]; renderUI(); await wait(400); p2 = pick[1]; crossed = null; draw(); renderUI(); await wait(500); go();
+  }
+  return { show, scene, camera, update, fit, tap() {}, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.peaLevel, 0, PEA.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _set: (a, b) => { p1 = a; p2 = b; crossed = null; draw(); renderUI(); }, _go: go, _state: () => ({ li, p1, p2, won, crossed }) };
 })();
 
 /* =====================================================================
@@ -1240,7 +1280,11 @@ games.chain = (function () {
   }
   function mission() { return { meta: `Chain ${li + 1} of ${CHAINS.length}`, text: L.text, hint: L.hint, stars: P.chainDone[li] ? doneHTML('Built ✓') : '', nav: true, prevOk: li > 0, nextOk: li < CHAINS.length - 1 && !!P.chainDone[li] }; }
   $('fReset').onclick = () => { sfx.click(); build(); };
-  return { scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.chainLevel, 0, CHAINS.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _next: () => { const t = tokens.find(t => t.userData.idx === n && !t.userData.placed); if (t) pick(t); }, _wrong: () => { const t = tokens.find(t => t.userData.idx !== n && !t.userData.placed); if (t) pick(t); }, _state: () => ({ li, n, total: L.items.length, won }) };
+  // Curio app: Show me puts each living thing in its place along the food chain.
+  async function show() {
+    while (!won && n < L.items.length && !modalOpen) { await until(() => !busy, 3000); const t = tokens.find(t => t.userData.idx === n && !t.userData.placed); if (!t) return; pick(t); await wait(500); }
+  }
+  return { show, scene, camera, update, fit, tap, mission, enter() {}, exit() {}, boot: () => setLevel(clamp(P.chainLevel, 0, CHAINS.length - 1)), prev: () => setLevel(li - 1), next: () => setLevel(li + 1), _next: () => { const t = tokens.find(t => t.userData.idx === n && !t.userData.placed); if (t) pick(t); }, _wrong: () => { const t = tokens.find(t => t.userData.idx !== n && !t.userData.placed); if (t) pick(t); }, _state: () => ({ li, n, total: L.items.length, won }) };
 })();
 /* =====================================================================
    SHELL: tabs, mission card, picking, loop
@@ -1253,9 +1297,13 @@ function renderMission() {
   $('mHint').dataset.src = m.hint || ''; $('mHint').textContent = m.hint || ''; $('mHint').hidden = !keep; $('mHintBtn').hidden = !m.hint; $('mHintBtn').textContent = keep ? 'Hide hint' : 'Show hint';
   $('mStars').innerHTML = m.stars || ''; $('mNav').hidden = !m.nav;
   if (m.nav) { $('mPrev').disabled = !m.prevOk; $('mNext').disabled = !m.nextOk; }
+  syncShow();
 }
+// Curio app: Show me sits beside the hint once the hint is open; the shell shows a reward ad before it runs.
+function syncShow() { const g = games[P.tab]; $('mShow').hidden = SHOWING || !g || !g.show || $('mHint').hidden || !$('mHint').textContent; $('mShow').textContent = window.curioTR ? '▶ करके दिखाओ (विज्ञापन)' : '▶ Show me (ad)'; }
+$('mShow').onclick = () => { const g = games[P.tab]; if (!g || !g.show || SHOWING) return; const go = () => { SHOWING = true; syncShow(); Promise.resolve().then(() => g.show()).catch(() => {}).then(() => { SHOWING = false; syncShow(); }); }; if (CURIO && CURIO.showMe) CURIO.showMe(go); else go(); };
 // Curio: opening a hint goes through the shell (free hints, then an optional ad).
-$('mHintBtn').onclick = () => { const h = $('mHint'); const flip = () => { h.hidden = !h.hidden; $('mHintBtn').textContent = h.hidden ? 'Show hint' : 'Hide hint'; }; if (h.hidden && CURIO && CURIO.hint) CURIO.hint(flip); else flip(); };
+$('mHintBtn').onclick = () => { const h = $('mHint'); const flip = () => { h.hidden = !h.hidden; $('mHintBtn').textContent = h.hidden ? 'Show hint' : 'Hide hint'; syncShow(); }; if (h.hidden && CURIO && CURIO.hint) CURIO.hint(flip); else flip(); };
 $('mPrev').onclick = () => { sfx.click(); games[P.tab].prev && games[P.tab].prev(); };
 $('mNext').onclick = () => { sfx.click(); games[P.tab].next && games[P.tab].next(); };
 function setTab(t) {

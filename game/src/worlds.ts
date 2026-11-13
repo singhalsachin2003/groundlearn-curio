@@ -51,6 +51,7 @@ const KIDUI = `html body .nav{display:inline-flex;flex:none;white-space:nowrap}
 html body .nav button{width:44px;height:44px;border-radius:12px;font-size:22px;margin-left:6px}
 html body #mHintBtn{min-height:44px;padding:0 16px;border:2px solid var(--ink);border-radius:999px;background:#fff1bf;box-shadow:0 2px 0 var(--ink);text-decoration:none;font-size:15px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
 html body #mHintBtn::before{content:"💡"}
+html body #mShow{min-height:44px;padding:0 16px;border-radius:999px;background:#d9f2ff;font-size:15px;font-weight:700}
 html body #mHintBtn.nudge{animation:kid-nudge 1.2s ease-in-out infinite}@keyframes kid-nudge{0%,60%,100%{transform:none}70%{transform:rotate(-6deg) scale(1.08)}85%{transform:rotate(6deg) scale(1.08)}}
 html body .step{width:44px;height:44px;border-radius:12px;font-size:22px}
 html body .btn{min-height:44px}
