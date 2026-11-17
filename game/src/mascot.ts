@@ -29,7 +29,8 @@ function arms(m: Mood) {
 /* ---------- Sheru's wardrobe: things bought with coins earned in the game ---------- */
 export type Slot = 'hat' | 'face' | 'neck';
 export interface Outfit { hat?: string; face?: string; neck?: string }
-export const WEAR: { id: string; slot: Slot; cost: number; en: string; hi: string }[] = [
+/** `streak` items cannot be bought: Sheru gets them as gifts for playing that many days in a row. */
+export const WEAR: { id: string; slot: Slot; cost: number; en: string; hi: string; streak?: number }[] = [
   { id: 'bow', slot: 'neck', cost: 50, en: 'Bow tie', hi: 'बो टाई' },
   { id: 'party', slot: 'hat', cost: 60, en: 'Party hat', hi: 'पार्टी टोपी' },
   { id: 'specs', slot: 'face', cost: 60, en: 'Glasses', hi: 'चश्मा' },
@@ -41,6 +42,9 @@ export const WEAR: { id: string; slot: Slot; cost: number; en: string; hi: strin
   { id: 'goggles', slot: 'face', cost: 120, en: 'Lab goggles', hi: 'लैब का चश्मा' },
   { id: 'cape', slot: 'neck', cost: 150, en: 'Hero cape', hi: 'हीरो का लबादा' },
   { id: 'crown', slot: 'hat', cost: 250, en: 'Crown', hi: 'मुकुट' },
+  { id: 'starshades', slot: 'face', cost: 0, streak: 3, en: 'Star shades', hi: 'तारा चश्मा' },
+  { id: 'flame', slot: 'hat', cost: 0, streak: 7, en: 'Flame hat', hi: 'आग वाली टोपी' },
+  { id: 'rainbow', slot: 'neck', cost: 0, streak: 14, en: 'Rainbow scarf', hi: 'इंद्रधनुष मफ़लर' },
 ];
 let outfit: Outfit = {};
 /** What Sheru wears wherever he is drawn from now on (the current player's choice). */
@@ -50,12 +54,14 @@ function hat(id?: string) {
   if (id === 'party') return `<path d="M60-16L44 14h32z" fill="#ff5fa2" stroke="${K}" stroke-width="2.5" stroke-linejoin="round"/><path d="M52 0l12 6M48 8l20 6" stroke="#ffd23f" stroke-width="3"/><circle cx="60" cy="-17" r="5" fill="#ffd23f" stroke="${K}" stroke-width="2"/>`;
   if (id === 'cap') return `<path d="M36 18q24-34 48 0z" fill="#3f6dff" stroke="${K}" stroke-width="2.5" stroke-linejoin="round"/><path d="M78 15q16-2 22 6q-12 2-22-2z" fill="#2c4fc4" stroke="${K}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="60" cy="1" r="3" fill="#ffd23f"/>`;
   if (id === 'safari') return `<path d="M40 14q20-30 40 0z" fill="#d9b47a" stroke="${K}" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="60" cy="15" rx="34" ry="6.5" fill="#c79d5d" stroke="${K}" stroke-width="2.5"/><path d="M42 10h36" stroke="#7a4b1c" stroke-width="4"/>`;
+  if (id === 'flame') return `<path d="M60-22Q76-4 71 6Q83 3 79 19H41Q38 4 51 2Q49 10 55 11Q46-5 60-22z" fill="#ff7a1a" stroke="${K}" stroke-width="2.5" stroke-linejoin="round"/><path d="M60-6Q68 4 65 12Q72 10 70 19H50Q49 11 56 9Q55 3 60-6z" fill="#ffd23f"/>`;
   if (id === 'crown') return `<path d="M40 18L37-4l12 10L60-8l11 14l12-10l-3 22z" fill="#ffd23f" stroke="${K}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="60" cy="8" r="3.4" fill="#e2553f"/><circle cx="47" cy="11" r="2.6" fill="#3fd6ff"/><circle cx="73" cy="11" r="2.6" fill="#3fd6ff"/>`;
   return '';
 }
 function face(id?: string) {
   if (id === 'specs') return `<g fill="rgba(255,255,255,.35)" stroke="${K}" stroke-width="2.6"><circle cx="48" cy="46" r="9"/><circle cx="72" cy="46" r="9"/></g><path d="M57 46h6" stroke="${K}" stroke-width="2.6"/>`;
   if (id === 'shades') return `<g fill="${K}"><rect x="37" y="39" width="20" height="13" rx="5"/><rect x="63" y="39" width="20" height="13" rx="5"/></g><path d="M56 43h8" stroke="${K}" stroke-width="3"/><path d="M41 43l5-2M67 43l5-2" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7"/>`;
+  if (id === 'starshades') return `<path d="M33 45h54" stroke="${K}" stroke-width="3"/><g fill="#ffd23f" stroke="${K}" stroke-width="2.4" stroke-linejoin="round"><polygon points="48.0,33.0 51.5,41.1 60.4,42.0 53.7,47.9 55.6,56.5 48.0,52.0 40.4,56.5 42.3,47.9 35.6,42.0 44.5,41.1"/><polygon points="72.0,33.0 75.5,41.1 84.4,42.0 77.7,47.9 79.6,56.5 72.0,52.0 64.4,56.5 66.3,47.9 59.6,42.0 68.5,41.1"/></g>`;
   if (id === 'goggles') return `<path d="M33 45h54" stroke="#5d6079" stroke-width="5"/><g fill="rgba(120,220,255,.55)" stroke="${K}" stroke-width="2.6"><rect x="36" y="37" width="22" height="17" rx="7"/><rect x="62" y="37" width="22" height="17" rx="7"/></g>`;
   return '';
 }
@@ -63,6 +69,7 @@ function neckBack(id?: string) { return id === 'cape' ? `<path d="M38 80q-22 20-
 function neck(id?: string) {
   if (id === 'bow') return `<path d="M60 88l-13-7v14zM60 88l13-7v14z" fill="#e2553f" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/><circle cx="60" cy="88" r="3.6" fill="#ffd23f" stroke="${K}" stroke-width="2"/>`;
   if (id === 'scarf') return `<path d="M40 83q20 12 40 0v8q-20 12-40 0z" fill="#3fb37a" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/><path d="M70 90l4 20h-10l-2-18z" fill="#3fb37a" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/><path d="M64 103h9" stroke="#fff" stroke-width="2.5"/>`;
+  if (id === 'rainbow') return `<path d="M40 83q20 12 40 0v3q-20 12-40 0z" fill="#e2553f"/><path d="M40 86q20 12 40 0v3q-20 12-40 0z" fill="#ffd23f"/><path d="M40 89q20 12 40 0v3q-20 12-40 0z" fill="#3f6dff"/><path d="M40 83q20 12 40 0v9q-20 12-40 0z" fill="none" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/><path d="M70 91l4 20h-10l-2-19z" fill="#3f6dff" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/><path d="M64 100h10M65 105h9" stroke="#ffd23f" stroke-width="2.5"/>`;
   if (id === 'medal') return `<path d="M50 82l10 16l10-16" fill="none" stroke="#3f6dff" stroke-width="4.5"/><circle cx="60" cy="101" r="8" fill="#ffd23f" stroke="${K}" stroke-width="2.2"/><path d="M60 96.5l1.5 3h3.2l-2.6 2l1 3.2l-3.1-2l-3.1 2l1-3.2l-2.6-2h3.2z" fill="#b26a00"/>`;
   if (id === 'cape') return `<path d="M44 84q16 8 32 0" fill="none" stroke="#e2553f" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="88" r="3.4" fill="#ffd23f" stroke="${K}" stroke-width="1.8"/>`;
   return '';

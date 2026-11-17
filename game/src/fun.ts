@@ -4,6 +4,9 @@ import type { Profile } from './state';
 
 export const today = () => new Date().toISOString().slice(0, 10);
 const yesterday = () => new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+const dayBefore = () => new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
+/** One missed day never breaks a streak: it only ends after two days away. */
+const alive = (d?: string) => d === today() || d === yesterday() || d === dayBefore();
 
 type Extra = Profile & { streak?: number; best?: number; lastDay?: string; badges?: Record<string, number>; stickers?: string[] };
 
@@ -11,11 +14,13 @@ type Extra = Profile & { streak?: number; best?: number; lastDay?: string; badge
 export function markPlayed(p: Profile): number {
   const x = p as Extra, d = today();
   if (x.lastDay === d) return 0;
-  x.streak = x.lastDay === yesterday() ? (x.streak || 0) + 1 : 1;
+  x.streak = alive(x.lastDay) ? (x.streak || 0) + 1 : 1;
   x.best = Math.max(x.best || 0, x.streak); x.lastDay = d;
   return x.streak;
 }
-export const streakOf = (p: Profile) => { const x = p as Extra; return x.lastDay === today() || x.lastDay === yesterday() ? x.streak || 0 : 0; };
+export const streakOf = (p: Profile) => { const x = p as Extra; return alive(x.lastDay) ? x.streak || 0 : 0; };
+/** Sheru's streak gifts: an outfit and a few coins at 3, 7 and 14 days in a row. */
+export const STREAK_GIFTS = [{ days: 3, id: 'starshades', coins: 20 }, { days: 7, id: 'flame', coins: 40 }, { days: 14, id: 'rainbow', coins: 60 }];
 
 /** Badge level for a share of a subject finished: 0 none, 1 bronze, 2 silver, 3 gold. */
 export const badgeFor = (share: number) => (share >= 1 ? 3 : share >= 0.6 ? 2 : share >= 0.25 ? 1 : 0);

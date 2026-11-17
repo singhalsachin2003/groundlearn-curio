@@ -12,7 +12,7 @@ import { EXAMPLES_HI } from './examples_hi';
 import { saveParentEmail, validEmail } from './subscribe';
 import { LICENSES } from './licenses';
 import { HERO, FACTS, factOfDay } from './home';
-import { sfx, type Fx, today, hintUse, hintCounts, markPlayed, streakOf, badgeFor, raiseBadge, badgesOf, BADGE_ICON, BADGE_COINS, STICKERS, STICKER_COST, stickersOf, addSticker, confetti, music } from './fun';
+import { sfx, type Fx, today, hintUse, hintCounts, markPlayed, streakOf, badgeFor, raiseBadge, STREAK_GIFTS, badgesOf, BADGE_ICON, BADGE_COINS, STICKERS, STICKER_COST, stickersOf, addSticker, confetti, music } from './fun';
 import { dailyFor, dailyProgress, dailyText, labsFor } from './daily';
 
 export const PRIVACY_URL = 'https://groundlearn.com/curio/privacy';
@@ -155,6 +155,11 @@ function rewardDiff(world: WorldId, oldRaw: string | null, newRaw: string | null
 /** A day counts toward the streak once the player earns something. */
 function played(p: Profile) {
   const n = markPlayed(p); saveShell();
+  const gift = STREAK_GIFTS.find(g => n >= g.days && !(p.wearOwn || []).includes(g.id));
+  if (gift) {
+    const w = WEAR.find(x => x.id === gift.id)!; p.wearOwn = [...(p.wearOwn || []), w.id]; p.wear = { ...(p.wear || {}), [w.slot]: w.id }; addCoins(p, gift.coins); setOutfit(p.wear);
+    setTimeout(() => { toast(t('streakGift').replace('{n}', String(gift.days)).replace('{item}', nm(w)).replace('{c}', String(gift.coins))); confetti(reduceMotion); fx('chest'); refreshPills(); const hb = document.getElementById('hBuddy'); if (hb) hb.innerHTML = mascot('cheer'); }, 1600);
+  }
   if (n > 1) setTimeout(() => toast(`🔥 ${n} ${t('streakDays')}`), 900);
 }
 /** Bronze, silver and gold per island zone, for a quarter, 60% and all of it. */
@@ -615,11 +620,11 @@ function journal() {
   const ownW = p.wearOwn || [], wearing = p.wear || {};
   const wardrobe = `<div class="wardrobe"><div class="ward-lion" id="jLion">${mascot('happy', '', wearing)}</div><div class="ward-items">${WEAR.map(w => ownW.includes(w.id)
     ? `<button class="wear got" data-wear="${w.id}" aria-pressed="${wearing[w.slot] === w.id}"><span class="wi">${mascot('happy', '', { [w.slot]: w.id })}</span><small>${esc(nm(w))}</small></button>`
-    : `<button class="wear" data-wear="${w.id}"><span class="wi">${mascot('happy', '', { [w.slot]: w.id })}</span><small>${esc(nm(w))}</small><em><i class="coin" aria-hidden="true"></i>${w.cost}</em></button>`).join('')}</div></div>`;
+    : `<button class="wear" data-wear="${w.id}"><span class="wi">${mascot('happy', '', { [w.slot]: w.id })}</span><small>${esc(nm(w))}</small><em>${w.streak ? `🔥 ${w.streak}` : `<i class="coin" aria-hidden="true"></i>${w.cost}`}</em></button>`).join('')}</div></div>`;
   const own = stickersOf(p);
   const book = `<div class="stickers">${STICKERS.map(st => own.includes(st) ? `<span class="stk got">${st}</span>` : `<button class="stk" data-stk="${st}" aria-label="${t('stickerBuy')}"><b>${st}</b><small><i class="coin" aria-hidden="true"></i>${STICKER_COST}</small></button>`).join('')}</div>`;
   const streak = streakOf(p);
-  sheet('journal', `<h2>${t('journalTitle')}</h2>${streak ? `<p class="streakline">🔥 ${streak} ${t(streak === 1 ? 'streakDay' : 'streakDays')}</p>` : ''}<h3>${t('badgesTitle')}</h3>${badges}<h3>${t('wardTitle')}</h3><p class="muted">${t('wardNote')}</p>${wardrobe}<h3>${t('stickersTitle')} · ${own.length}/${STICKERS.length}</h3><p class="muted">${t('stickersNote').replace('{cost}', String(STICKER_COST))}</p>${book}<h3>${t('labsTitle')}</h3><div class="jlist">${rows}</div><div class="row-btns"><button class="btn" id="jRules">ℹ️ ${t('rulesBtn')}</button><button class="btn" id="jReset">↺ ${t('resetBtn')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
+  sheet('journal', `<h2>${t('journalTitle')}</h2>${streak ? `<p class="streakline">🔥 ${streak} ${t(streak === 1 ? 'streakDay' : 'streakDays')}${STREAK_GIFTS.find(g => g.days > streak) ? ` · ${t('streakNext').replace('{n}', String(STREAK_GIFTS.find(g => g.days > streak)!.days))}` : ''}</p>` : ''}<h3>${t('badgesTitle')}</h3>${badges}<h3>${t('wardTitle')}</h3><p class="muted">${t('wardNote')}</p>${wardrobe}<h3>${t('stickersTitle')} · ${own.length}/${STICKERS.length}</h3><p class="muted">${t('stickersNote').replace('{cost}', String(STICKER_COST))}</p>${book}<h3>${t('labsTitle')}</h3><div class="jlist">${rows}</div><div class="row-btns"><button class="btn" id="jRules">ℹ️ ${t('rulesBtn')}</button><button class="btn" id="jReset">↺ ${t('resetBtn')}</button><button class="btn primary" data-close>${t('close')}</button></div>`);
   $('#jRules').onclick = () => rules();
   document.querySelectorAll<HTMLElement>('[data-stk]').forEach(b => b.onclick = () => {
     if (p.coins < STICKER_COST) { toast(t('stickerNeed').replace('{cost}', String(STICKER_COST)), 'bad'); return; }
@@ -629,6 +634,7 @@ function journal() {
   document.querySelectorAll<HTMLElement>('[data-wear]').forEach(b => b.onclick = () => {
     const w = WEAR.find(x => x.id === b.dataset.wear)!; p.wearOwn = p.wearOwn || []; p.wear = p.wear || {};
     if (!p.wearOwn.includes(w.id)) {
+      if (w.streak) { toast(t('streakLocked').replace('{n}', String(w.streak)), 'bad'); return; }
       if (p.coins < w.cost) { toast(t('stickerNeed').replace('{cost}', String(w.cost)), 'bad'); return; }
       addCoins(p, -w.cost); p.wearOwn.push(w.id); p.wear[w.slot] = w.id; confetti(reduceMotion);
     } else if (p.wear[w.slot] === w.id) delete p.wear[w.slot]; else p.wear[w.slot] = w.id;
