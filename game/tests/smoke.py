@@ -161,7 +161,7 @@ async def run_vp(b, name, w, h):
         prog = await pg.inner_text(f'.sheet [data-lab="{lab}"] .cnt'); check(prog.startswith(want), f'{lab} progress {prog}')
     await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     # Round 4 Tinkerer labs (hosted in the second Inventor world): solve every level, answer the bonus question.
-    for lab, n in (('groups', 6), ('ladoo', 6), ('symmetry', 6), ('water', 6), ('magnet', 5), ('life', 6)):
+    for lab, n in (('groups', 6), ('ladoo', 6), ('symmetry', 6), ('water', 6), ('magnet', 5), ('life', 6), ('senses', 5), ('plants', 5), ('materials', 5), ('shapes', 5), ('forces', 5), ('coins', 5)):
         await pg.click('#hAll', force=True); await pg.click(f'.sheet [data-lab="{lab}"]'); await pg.wait_for_timeout(1800); await dismiss(pg)
         if lab == 'groups': await shot('17b-groups')
         for i in range(n):
