@@ -145,7 +145,7 @@ function rewardDiff(world: WorldId, oldRaw: string | null, newRaw: string | null
       if (!was.has(item) && !p.disc.includes(key)) { p.disc.push(key); gained += RULES.coins.discovery; notes.push(t('newDiscovery')); moved.add(lab); }
     }
   }
-  if (gained > 0) { addCoins(p, gained); toast(`+${gained} ${t('plusCoins')} · ${notes[0]}`); played(p); }
+  if (gained > 0) { addCoins(p, gained); toast(`+${gained} ${t('plusCoins')} · ${notes[0]}`); played(p); if (notes.includes(t('levelDone'))) setTimeout(() => offerDouble(p, gained), 900); }
   if (notes.includes(t('levelDone'))) { confetti(reduceMotion, true); fx('win'); } else if (gained > 0) fx('coin'); // side bursts: keep the quiz in the middle clear
   if (dailyProgress(p, moved)) setTimeout(() => toast(`+${RULES.coins.daily} ${t('plusCoins')} · ${t('curioDay')} ✓`), 700);
   refreshPills();
@@ -315,6 +315,33 @@ function buddyTap() {
   fx('tap');
   buddySay(lines[cheerIx++ % lines.length], cheerIx % 2 ? 'cheer' : 'wave');
 }
+/** Opt-in "double my coins": a rewarded ad the child chooses. Never for the youngest band, never past the daily cap; Ad-free families get it free. */
+function canDouble(p: Profile) {
+  if (p.band === 'explorer') return false;
+  if (S.adFree) return true;
+  return S.adsForHearts && (p.dblDay === today() ? p.dblN || 0 : 0) < RULES.doubleAdsPerDay;
+}
+function doubleCoins(p: Profile, n: number, btn: HTMLButtonElement, done: () => void) {
+  const pay = () => { addCoins(p, n); toast(t('dblGot').replace('{n}', String(n))); fx('coin'); confetti(reduceMotion); refreshPills(); done(); };
+  if (S.adFree) { pay(); return; }
+  const id = ++adId; btn.disabled = true; btn.textContent = t('adLoading');
+  const off = (m: { t: string; id?: number; ok?: boolean }) => {
+    if (m.t !== 'rewarded' || m.id !== id) return;
+    if (m.ok) { p.dblN = (p.dblDay === today() ? p.dblN || 0 : 0) + 1; p.dblDay = today(); saveShell(); pay(); }
+    else { toast(t('adFailed'), 'bad'); btn.disabled = false; btn.textContent = t('dblBtn').replace('{n}', String(n)); }
+  };
+  onNative(off as never); send({ t: 'rewarded', id });
+}
+let dblChip: HTMLElement | null = null;
+function clearChip() { dblChip?.remove(); dblChip = null; }
+/** After a level is finished in a lab: a small, optional chip for a few seconds. Ignoring it changes nothing. */
+function offerDouble(p: Profile, n: number) {
+  clearChip(); if (n < RULES.doubleMin || !canDouble(p)) return;
+  const b = document.createElement('button'); b.className = 'btn primary dbl-chip'; b.textContent = t('dblBtn').replace('{n}', String(n)); dblChip = b;
+  b.onclick = () => doubleCoins(p, n, b, clearChip);
+  $('#app').appendChild(b); setTimeout(() => { if (dblChip === b && !b.disabled) clearChip(); }, 12000);
+}
+
 function chestSheet() {
   const p = active(); if (!p) return;
   const ready = chestReady(p), n = p.chestN || 0, week = RULES.chest, at = n % week.length;
@@ -331,10 +358,16 @@ function chestSheet() {
     document.querySelectorAll('.chest-track li')[at]?.classList.replace('now', 'got'); go.remove();
     const hc = document.getElementById('hChest'); if (hc) { hc.innerHTML = chestSvg(true); hc.classList.replace('ready', 'open'); }
     confetti(reduceMotion); refreshPills();
+    if (canDouble(p)) {
+      const d = document.createElement('button'); d.className = 'btn'; d.id = 'chDbl'; d.textContent = t('dblBtn').replace('{n}', String(c));
+      d.onclick = () => doubleCoins(p, c, d, () => { d.remove(); $('#chMsg').textContent = t('chestGot').replace('{n}', String(c * 2)) + ' ' + t('chestTomorrow'); });
+      document.querySelector('#sheet .row-btns, .sheet .row-btns')?.prepend(d);
+    }
   };
 }
 
 function hub() {
+  clearChip();
   const p = active(); if (!p) return players();
   setOutfit(p.wear);
   closeSheet();

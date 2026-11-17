@@ -37,6 +37,9 @@ export interface Profile {
   wear?: { hat?: string; face?: string; neck?: string };
   /** The week (see weekId) whose weekend mystery lab has been unwrapped. */
   mystWeek?: string;
+  /** Opt-in "double my coins" ads watched today (capped by RULES.doubleAdsPerDay). */
+  dblDay?: string;
+  dblN?: number;
 }
 
 export interface Shell {
@@ -65,6 +68,10 @@ export const RULES = {
   /** Hints: a few free each day, then an optional rewarded ad (never needed: hints stay free once the ad cap is hit or ads are off). */
   freeHintsPerDay: 3,
   adHintsPerDay: 10,
+  /** Opt-in "double my coins" ads (level rewards and the daily chest) per child per day. */
+  doubleAdsPerDay: 5,
+  /** A level's reward must be at least this many coins before the double offer appears. */
+  doubleMin: 20,
   coins: { correct: 10, level: 20, star: 5, discovery: 15, daily: 10, mystery: 20 },
   /** Daily treasure chest: coins for chest 1 to 7, then the week repeats. Always shown up front, never random. */
   chest: [15, 15, 25, 20, 20, 30, 60],
