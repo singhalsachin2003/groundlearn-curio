@@ -316,3 +316,7 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 /* tell a friend (Parent Corner) */
 .tell{background:#fff8e1;border:2px solid #f0d58a;border-radius:16px;padding:12px 14px}.tell h3{margin:0 0 4px}.tell .btn{margin-top:8px;min-height:44px}
 .homefoot{flex-wrap:wrap;row-gap:0}
+.prow{grid-template-columns:34px 1fr auto auto auto}
+.repgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.repgrid>div{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:8px 4px}.repgrid b{display:block;font-size:20px}.repgrid small{display:block;font-size:11px}
+.repbar{display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin:6px 0;font-size:14px}.repbar i{display:block;height:12px;border-radius:8px;background:rgba(0,0,0,.12);overflow:hidden}.repbar u{display:block;height:100%;background:var(--accent,#1f9d74);border-radius:8px}
+.rep ul{margin:4px 0;padding-left:20px}.rep h3{margin:14px 0 4px}

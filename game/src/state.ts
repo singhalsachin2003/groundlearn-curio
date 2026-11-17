@@ -40,6 +40,8 @@ export interface Profile {
   /** Opt-in "double my coins" ads watched today (capped by RULES.doubleAdsPerDay). */
   dblDay?: string;
   dblN?: number;
+  /** Quiz answers per subject: [right, total]. Feeds the parent report. */
+  quiz?: Record<string, [number, number]>;
 }
 
 export interface Shell {

@@ -105,8 +105,9 @@ export function start(el: HTMLElement) {
       if (hintCounts(p).ads >= RULES.adHintsPerDay) { toast(t('showCap'), 'bad'); return; }
       hintAsk(p, open, true);
     },
-    answer(correct: boolean) {
+    answer(correct: boolean, lab?: string) {
       const p = active(); if (!p) return;
+      const sj = LABS.find(l => l.id === lab)?.subject; if (sj) { const q = (p.quiz ||= {}); const c = (q[sj] ||= [0, 0]); c[1]++; if (correct) c[0]++; saveShell(); }
       if (correct) { addCoins(p, RULES.coins.correct); toast(`+${RULES.coins.correct} ${t('plusCoins')} · ${t('correct')}`); }
       else if (p.band !== 'explorer') { loseHeart(p); toast(`−1 ❤️ ${t('lostHeart')}`, 'bad'); }
       if (!correct && p.band !== 'explorer' && ++missesThisVisit === 2) setTimeout(() => { toast(`💡 ${t('hintNudge')}`); try { document.querySelector<HTMLIFrameElement>('.world-frame')?.contentDocument?.getElementById('mHintBtn')?.classList.add('nudge'); } catch { /* the world is closing */ } }, 1400);
@@ -714,6 +715,27 @@ function gate(then: () => void) {
   setTimeout(() => ($('#gIn') as HTMLInputElement)?.focus(), 50);
 }
 
+function report(p: Profile) {
+  const mine = labsFor(p.band), prog = (l: Lab) => labProgress(l, readSlot(p.id, l.world));
+  const fin = mine.filter(l => prog(l) >= l.progress.total), open = mine.filter(l => prog(l) < l.progress.total);
+  const subs = (['colour', 'chem', 'phy', 'math', 'bio'] as const).map(s => { const ls = mine.filter(l => l.subject === s); const d = ls.reduce((a, l) => a + Math.min(prog(l), l.progress.total), 0), tot = ls.reduce((a, l) => a + l.progress.total, 0); return { s, n: ls.filter(l => prog(l) >= l.progress.total).length, c: ls.length, f: tot ? d / tot : 0 }; }).filter(x => x.c);
+  const quiz = p.quiz || {}, qs = Object.entries(quiz).filter(([, v]) => v[1] >= 3).map(([s, v]) => ({ s, r: v[0] / v[1] })).sort((a, b) => b.r - a.r);
+  const qr = Object.values(quiz).reduce((a, v) => a + v[0], 0), qt = Object.values(quiz).reduce((a, v) => a + v[1], 0), pct = qt ? Math.round(100 * qr / qt) : 0;
+  const best = (p as Profile & { best?: number }).best || 0, st = streakOf(p), nm = p.name || t(p.band);
+  const nxt = open.slice(0, 3).map(l => `<li>${l.icon} ${esc(l.name[S.lang])}</li>`).join('');
+  const text = t('repText').replace('{n}', nm).replace('{t}', String(mine.length)).replace('{f}', String(fin.length)).replace('{l}', String(Object.keys(p.levels).length)).replace('{s}', String(st)).replace('{a}', String(pct));
+  sheet('report', `<h2>${p.avatar} ${esc(nm)} · ${t('repTitle')}</h2>
+    <div class="rep">
+      <div class="repgrid"><div><b>${fin.length}/${mine.length}</b><small>${t('repLabs')}</small></div><div><b>${Object.keys(p.levels).length}</b><small>${t('repLevels')}</small></div><div><b>🔥 ${st}</b><small>${t('repStreak')} · ${t('repBest')} ${best}</small></div></div>
+      <h3>${t('repSubj')}</h3>${subs.map(x => `<div class="repbar"><span>${t(('subj_' + x.s) as 'subj_math')} <small>${x.n}/${x.c}</small></span><i><u style="width:${Math.round(x.f * 100)}%"></u></i></div>`).join('')}
+      <h3>${t('repQuiz')}</h3>${qt ? `<p><b>${pct}%</b> ${t('repRight')} (${qr}/${qt})</p>${qs.length > 1 ? `<p>👍 ${t('repStrong')}: <b>${t(('subj_' + qs[0].s) as 'subj_math')}</b><br>💪 ${t('repPractice')}: <b>${t(('subj_' + qs[qs.length - 1].s) as 'subj_math')}</b></p>` : ''}` : `<p class="muted">${t('repNoQuiz')}</p>`}
+      <h3>${t('repNext')}</h3>${nxt ? `<ul>${nxt}</ul>` : `<p>${t('repAllDone')}</p>`}
+    </div>
+    <div class="row-btns"><button class="btn" id="repShare">📤 ${t('repShare')}</button><button class="btn primary" id="repBack">${t('close')}</button></div>`);
+  $('#repShare').onclick = () => send({ t: 'share', text });
+  $('#repBack').onclick = () => parentCorner();
+}
+
 function parentCorner() {
   const toggle = (id: string, on: boolean) => `<button class="tog" id="${id}" role="switch" aria-checked="${on}">${on ? t('on') : t('off')}</button>`;
   const plist = S.profiles.map(p => {
@@ -723,6 +745,7 @@ function parentCorner() {
     const up = nxt && mine.length && done / mine.length >= 0.75 ? `<div class="moveup">🎉 ${t('moveUp')} <button class="btn small" data-up="${p.id}">${t('moveUpGo')}</button></div>` : '';
     return `${up ? '' : ''}<div class="prow"><span class="av">${p.avatar}</span><span class="pt"><b>${esc(p.name || t(p.band))}</b><small>${t('discovered')}: ${found} · ${lv} ${t('levelsDone')} · ${p.coins} ${t('plusCoins')}</small></span>
       <select data-band-of="${p.id}" aria-label="${t('ageBand')}">${BANDS.map(b => `<option value="${b.id}" ${b.id === p.band ? 'selected' : ''}>${t(b.ages)}</option>`).join('')}</select>
+      <button class="btn small" data-rep="${p.id}">${t('repBtn')}</button>
       <button class="btn small" data-reset="${p.id}">↺ ${t('resetBtn')}</button>
       <button class="btn small" data-rm="${p.id}">${t('remove')}</button></div>${up}`;
   }).join('');
@@ -754,6 +777,7 @@ function parentCorner() {
   document.querySelectorAll<HTMLElement>('[data-rm]').forEach(b => b.onclick = () => { if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = t('removeConfirm'); b.classList.add('danger'); return; } removeProfile(b.dataset.rm!); if (active()) { hub(); parentCorner(); } else players(); });
   $('#pcRules').onclick = () => rules();
   document.querySelectorAll<HTMLElement>('[data-reset]').forEach(b => b.onclick = () => { const p = S.profiles.find(x => x.id === b.dataset.reset); if (p) resetAsk(p); });
+  document.querySelectorAll<HTMLElement>('[data-rep]').forEach(b => b.onclick = () => { const p = S.profiles.find(x => x.id === b.dataset.rep); if (p) report(p); });
   $('#pcPrivacy').onclick = () => send({ t: 'openUrl', url: PRIVACY_URL });
   $('#pcTell').onclick = () => send({ t: 'share', text: t('tellText') }); // already behind the parent gate
   $('#pcLic').onclick = () => sheet('licences', `<h2>${t('licences')}</h2>${LICENSES.map(l => `<h3>${esc(l.name)}</h3><pre class="lic">${esc(l.text)}</pre>`).join('')}<div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
