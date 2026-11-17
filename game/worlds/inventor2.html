@@ -91,6 +91,7 @@ svg.pizza path{cursor:pointer;stroke:#7a3b13;stroke-width:2;transition:fill .15s
 .magbar{font-size:54px;line-height:1;filter:drop-shadow(0 5px 0 rgba(0,0,0,.35))}
 .mitems{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
 .mitem{display:flex;flex-direction:column;align-items:center;gap:2px;background:linear-gradient(#fffdf6,#f6ecd6);border:3px solid var(--ink);border-radius:16px;padding:8px 4px;min-height:84px;box-shadow:0 3px 0 rgba(0,0,0,.45)}
+.sgrid{display:grid;grid-template-columns:repeat(var(--cols,2),1fr);gap:10px;width:min(96%,440px)}.tcard{display:flex;flex-direction:column;align-items:center;gap:4px;border:3px solid var(--ink);border-radius:18px;padding:10px 6px;min-height:104px;font:inherit;color:var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.35);cursor:pointer;background:#fffdf6}.tcard .te{font-size:36px;line-height:1}.tcard b{font-size:14px;line-height:1.15;text-align:center}.tcard .bin{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:2px}.tcard .chip{background:#fff;border:2px solid var(--ink);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.tcard.has{box-shadow:0 4px 0 rgba(0,0,0,.35),inset 0 0 0 3px rgba(255,255,255,.7)}.tcard.c0{background:#ffe3e0}.tcard.c1{background:#dff1ff}.tcard.c2{background:#e4f7d9}.tcard.c3{background:#fff2c9}.tcard.c4{background:#efe1ff}.itiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.itile{display:flex;flex-direction:column;align-items:center;gap:0;min-width:84px;min-height:74px;padding:6px 8px;background:linear-gradient(#fffdf6,#f6ecd6);border:3px solid var(--ink);border-radius:16px;font:inherit;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.3);cursor:pointer}.itile .ie{font-size:32px;line-height:1.1}.itile small{font-size:12px;font-weight:700}.itile.sel{background:#ffe08a;transform:translateY(-3px)}.itile:disabled{opacity:.35;box-shadow:none}
 .coinbox{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-content:center;min-height:100px;padding:8px}.cn{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe98a,#ffc21a);border:3px solid #a8730a;font:800 14px sans-serif;color:#5a3d00;box-shadow:0 3px 0 rgba(0,0,0,.35);cursor:pointer}.coinb{min-width:64px}
 .mitem span{font-size:34px;line-height:1.1}.mitem small{font-size:12px;font-weight:700;line-height:1.15}
 .mitem.on{background:#ffe08a;border-color:#b26a00}.mitem.stuck{background:#c8f3df;border-color:var(--mint)}.mitem.bad{background:#ffd7cf;border-color:var(--coral)}
@@ -854,7 +855,26 @@ MOUNT.magnet = function (lv) {
 MOUNT.life = function (lv) { MOUNT.water(lv); };
 
 /* ---------------- Curio app: six more Tinkerer labs. They reuse the match and tap-to-choose boards above. ---------------- */
-MOUNT.senses = MOUNT.plants = function (lv) { MOUNT.cell(lv); };
+/* Match board: big picture tiles to drop into labelled cards. */
+MOUNT.senses = MOUNT.plants = function (lv) {
+  var sel = null, got = 0, need = lv.items.length, EM = /\s*(\p{Extended_Pictographic}[‍️\p{Extended_Pictographic}]*)\s*$/u;
+  function split(a) { var x = T(a), m = x.match(EM); return m ? { txt: x.slice(0, m.index).trim(), em: m[1] } : { txt: x, em: '' }; }
+  var cols = lv.targets.length >= 4 ? 2 : lv.targets.length;
+  $('stage').innerHTML = '<div class="sgrid" style="--cols:' + cols + '">' + lv.targets.map(function (tt, i) { var d = split(tt[1]); return '<button class="tcard c' + (i % 5) + '" data-w="' + tt[0] + '">' + (d.em ? '<span class="te">' + d.em + '</span>' : '') + '<b>' + esc(d.txt) + '</b><span class="bin"></span></button>'; }).join('') + '</div>';
+  $('ctrl').innerHTML = '<div class="itiles" id="its">' + lv.items.map(function (it) { var d = split(it[1]); return '<button class="itile" data-id="' + it[0] + '" aria-pressed="false">' + (d.em ? '<span class="ie">' + d.em + '</span>' : '') + '<small>' + esc(d.txt) + '</small></button>'; }).join('') + '</div><span class="note">' + T(['Tap a picture, then tap where it belongs.', 'एक चित्र छुओ, फिर वहाँ छुओ जहाँ वह जाता है।']) + '</span>';
+  document.querySelectorAll('.itile').forEach(function (b) { b.onclick = function () { if (b.disabled) return; sel = b.dataset.id; document.querySelectorAll('.itile').forEach(function (x) { var on = x === b; x.classList.toggle('sel', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); }); sfx.pop(); }; });
+  function place(w, id) {
+    var card = document.querySelector('.tcard[data-w="' + w + '"]'), tile = document.querySelector('.itile[data-id="' + id + '"]');
+    if (!card || !tile || tile.disabled) return;
+    if (id.charAt(0) !== w) { sfx.no(); card.classList.add('shake'); setTimeout(function () { card.classList.remove('shake'); }, 400); return; }
+    sfx.pop(); tile.disabled = true; tile.classList.remove('sel'); sel = null;
+    var d = split(lv.items.filter(function (x) { return x[0] === id; })[0][1]);
+    card.querySelector('.bin').insertAdjacentHTML('beforeend', '<span class="chip">' + (d.em || '') + ' ' + esc(d.txt) + '</span>'); card.classList.add('has');
+    got++; if (got >= need) setTimeout(solved, 500);
+  }
+  document.querySelectorAll('.tcard').forEach(function (b) { b.onclick = function () { if (sel) place(b.dataset.w, sel); }; });
+  solver = function () { lv.items.forEach(function (it) { place(it[0].charAt(0), it[0]); }); };
+};
 MOUNT.materials = MOUNT.shapes = MOUNT.forces = function (lv) { MOUNT.magnet(lv); };
 MOUNT.coins = function (lv) {
   var pile = [];
