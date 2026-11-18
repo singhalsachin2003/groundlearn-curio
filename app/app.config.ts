@@ -12,6 +12,23 @@ const config: ExpoConfig = {
   icon: './assets/icon.png',
   userInterfaceStyle: 'dark',
   backgroundColor: '#141c35',
+  ios: {
+    bundleIdentifier: 'com.groundlearn.curio',
+    // iPad too: young children often play on a family iPad. The game is a full-screen
+    // WebView that follows the window size, and orientation is 'default' (all four),
+    // which iPad multitasking requires. Needs 13" iPad screenshots in App Store Connect.
+    supportsTablet: true,
+    config: { usesNonExemptEncryption: false },
+    privacyManifests: {
+      NSPrivacyTracking: false,
+      NSPrivacyAccessedAPITypes: [
+        { NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryUserDefaults', NSPrivacyAccessedAPITypeReasons: ['CA92.1'] },
+        { NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryFileTimestamp', NSPrivacyAccessedAPITypeReasons: ['C617.1'] },
+        { NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategorySystemBootTime', NSPrivacyAccessedAPITypeReasons: ['35F9.1'] },
+        { NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryDiskSpace', NSPrivacyAccessedAPITypeReasons: ['E174.1'] },
+      ],
+    },
+  },
   android: {
     package: 'com.groundlearn.curio',
     versionCode: 1,
@@ -26,6 +43,8 @@ const config: ExpoConfig = {
     predictiveBackGestureEnabled: false,
   },
   plugins: [
+    // iosAppId is Google's sample id. The iOS ad model is not decided yet (Apple's Kids
+    // Category rules: see the iOS launch plan); set the real id only if iOS keeps ads.
     ['react-native-google-mobile-ads', { androidAppId: ADMOB_APP_ID, iosAppId: 'ca-app-pub-3940256099942544~1458002511' }],
     // Expo SDK 58 turns on R8 code shrinking by default, and it strips the WorkManager
     // database the Google ads SDK opens at startup: the app crashed before showing anything.

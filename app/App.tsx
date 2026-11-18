@@ -1,7 +1,7 @@
 // Curio Island: a thin native shell around the game, which runs in a full-screen WebView.
 // The shell keeps saves, shows ads, sells the Ad-free upgrade and handles the back button.
 import { useCallback, useEffect, useRef, useState, type ComponentType, type Ref } from 'react';
-import { BackHandler, Linking, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Linking, Platform, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
@@ -122,10 +122,12 @@ function App() {
       case 'banner': setBanner(adFree.current ? 'off' : m.mode); break;
       case 'rewarded': { const a = ads(); setAdCover(true); const ok = adFree.current || !a ? false : await a.showRewarded(); setAdCover(false); toGame({ t: 'rewarded', id: m.id, ok }); break; }
       case 'buyAdFree': { const b = billing(); const r = b ? await b.buyAdFree() : { ok: false, message: 'Purchases are not available right now.' }; if (r.ok) setAdFree(true); toGame({ t: 'purchase', ok: r.ok, message: r.message }); break; }
-      case 'restore': { const b = billing(); const ok = b ? await b.restoreAdFree() : false; if (ok) setAdFree(true); toGame({ t: 'purchase', ok, message: ok ? undefined : 'No earlier purchase was found on this Google account.' }); break; }
+      case 'restore': { const b = billing(); const ok = b ? await b.restoreAdFree() : false; if (ok) setAdFree(true); toGame({ t: 'purchase', ok, message: ok ? undefined : `No earlier purchase was found on this ${Platform.OS === 'ios' ? 'Apple Account' : 'Google account'}.` }); break; }
       case 'openUrl': if (OPEN_OK.test(m.url)) Linking.openURL(m.url).catch(() => {}); break;
       case 'share': if (typeof m.text === 'string' && m.text.length < 600 && (!m.png || m.png.length < 3_000_000)) void shareOut(m.text, m.png); break;
-      case 'exit': BackHandler.exitApp(); break;
+      // Android's back button on the first screen. iOS has no back button, and Apple does
+      // not allow an app to close itself, so there it does nothing.
+      case 'exit': if (Platform.OS === 'android') BackHandler.exitApp(); break;
     }
   }, [toGame, setAdFree]);
 
@@ -144,6 +146,7 @@ function App() {
             javaScriptEnabled
             domStorageEnabled
             mediaPlaybackRequiresUserAction={false}
+            allowsInlineMediaPlayback
             setSupportMultipleWindows={false}
             overScrollMode="never"
             textZoom={100}

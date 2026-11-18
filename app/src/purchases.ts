@@ -1,4 +1,4 @@
-// The one-time Ad-free purchase through Google Play Billing, via RevenueCat.
+// The one-time Ad-free purchase through Google Play Billing or Apple in-app purchase, via RevenueCat.
 import Purchases, { PRODUCT_CATEGORY, type CustomerInfo } from 'react-native-purchases';
 import { CONFIG } from './config';
 
@@ -36,11 +36,11 @@ export async function buyAdFree(): Promise<{ ok: boolean; message?: string }> {
     if (err.userCancelled) return { ok: false };
     // UPI and some cards in India confirm later: the payment is pending, not failed.
     // The customer-info listener switches Ad-free on as soon as Google confirms it.
-    if (err.code === C.PAYMENT_PENDING_ERROR) return { ok: false, message: 'Payment is being processed. Ad-free will switch on as soon as Google confirms it.' };
+    if (err.code === C.PAYMENT_PENDING_ERROR) return { ok: false, message: `Payment is being processed. Ad-free will switch on as soon as ${CONFIG.storeName} confirms it.` };
     // Already bought on this Google account (for example on another phone): restore it.
     if (err.code === C.PRODUCT_ALREADY_PURCHASED_ERROR) {
       const ok = await restoreAdFree();
-      return ok ? { ok: true } : { ok: false, message: 'This purchase is already on your Google account. Try Restore purchase.' };
+      return ok ? { ok: true } : { ok: false, message: `This purchase is already on your ${CONFIG.storeAccount}. Try Restore purchase.` };
     }
     return { ok: false, message: 'The purchase did not go through. Please try again.' };
   }
