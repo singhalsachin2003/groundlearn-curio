@@ -15,7 +15,7 @@ export type ToNative =
   | { t: 'exit' };
 
 export type FromNative =
-  | { t: 'adFree'; value: boolean; price?: string }
+  | { t: 'adFree'; value: boolean; price?: string; was?: string }
   | { t: 'rewarded'; id: number; ok: boolean }
   | { t: 'purchase'; ok: boolean; message?: string }
   /** The 7-day trial's end as the store reports it (0 = never started). */

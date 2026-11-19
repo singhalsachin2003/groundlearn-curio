@@ -240,6 +240,8 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .lab .tag.done{background:#fff;font-size:15px;padding:1px 6px;border-color:#b26a00}
 .lab .tag.lock{background:#fff;font-size:14px;padding:1px 6px;letter-spacing:0}
 .pc .trial{font-weight:700}
+/* Sale: the regular price struck through before the sale price. */
+s.was{text-decoration-thickness:2px;opacity:.7;font-weight:600;margin-right:2px}
 .lab.complete{background:linear-gradient(#fffdf2,#fff3c9)}
 @keyframes tagpulse{50%{transform:rotate(6deg) scale(1.1)}}
 .subjhead{display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px;padding:6px 12px;border-radius:12px;font-family:var(--f-display);font-size:18px;border-left:8px solid var(--sc);background:color-mix(in srgb,var(--sc) 16%,#fff)}

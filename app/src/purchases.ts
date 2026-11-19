@@ -1,6 +1,6 @@
 // The one-time purchase through Google Play Billing (Ad-free) or Apple in-app purchase (the whole island, plus the
 // free 7-day trial), via RevenueCat.
-import Purchases, { PRODUCT_CATEGORY, type CustomerInfo } from 'react-native-purchases';
+import Purchases, { PRODUCT_CATEGORY, type CustomerInfo, type PurchasesStoreProduct } from 'react-native-purchases';
 import { CONFIG } from './config';
 
 let configured = false;
@@ -12,25 +12,38 @@ export function trialEnd(info: CustomerInfo): number {
   return taken.length ? Math.min(...taken) + CONFIG.trialDays * 86_400_000 : 0;
 }
 
-/** Set up billing. Calls back with the Ad-free state now and whenever it changes. */
-export async function initPurchases(onChange: (adFree: boolean, price?: string) => void, onTrial?: (end: number) => void) {
+/** What the app sells right now: the unlock in RevenueCat's current offering (the sale product during a sale, otherwise
+ * the regular one), plus the regular price to strike through when the sale price is lower. Both prices come from the
+ * store, so they are in the buyer's own currency. Without offerings it sells the regular product. */
+async function forSale(): Promise<{ product: PurchasesStoreProduct | null; was?: string }> {
+  const [regular] = await Purchases.getProducts([CONFIG.adFreeProductId], PRODUCT_CATEGORY.NON_SUBSCRIPTION);
+  let sell: PurchasesStoreProduct | null = regular ?? null;
+  try {
+    const cur = (await Purchases.getOfferings()).current;
+    const p = cur?.lifetime?.product ?? cur?.availablePackages[0]?.product;
+    if (p && (p.identifier === CONFIG.adFreeProductId || p.identifier === CONFIG.saleProductId)) sell = p;
+  } catch { /* no offerings: sell the regular product */ }
+  const was = sell && regular && sell.identifier !== regular.identifier && sell.currencyCode === regular.currencyCode && sell.price < regular.price ? regular.priceString : undefined;
+  return { product: sell, was };
+}
+
+/** Set up billing. Calls back with the unlock state now and whenever it changes, and with the price to show
+ * (and the struck-through regular price during a sale). */
+export async function initPurchases(onChange: (adFree: boolean, price?: string, was?: string) => void, onTrial?: (end: number) => void) {
   if (!CONFIG.revenueCatKey) return; // not set up yet (development build)
   Purchases.configure({ apiKey: CONFIG.revenueCatKey });
   configured = true;
   Purchases.addCustomerInfoUpdateListener(info => { onChange(owns(info)); onTrial?.(trialEnd(info)); });
   try {
-    const [info, products] = await Promise.all([
-      Purchases.getCustomerInfo(),
-      Purchases.getProducts([CONFIG.adFreeProductId], PRODUCT_CATEGORY.NON_SUBSCRIPTION),
-    ]);
-    onChange(owns(info), products[0]?.priceString); onTrial?.(trialEnd(info));
+    const [info, sale] = await Promise.all([Purchases.getCustomerInfo(), forSale()]);
+    onChange(owns(info), sale.product?.priceString, sale.was); onTrial?.(trialEnd(info));
   } catch { /* offline: keep the last known state */ }
 }
 
 export async function buyAdFree(): Promise<{ ok: boolean; message?: string }> {
   if (!configured) return { ok: false, message: 'Purchases are not set up in this build.' };
   try {
-    const [product] = await Purchases.getProducts([CONFIG.adFreeProductId], PRODUCT_CATEGORY.NON_SUBSCRIPTION);
+    const { product } = await forSale(); // the sale product during a sale, so the charge matches the price shown
     if (!product) return { ok: false, message: 'This purchase is not available right now.' };
     const { customerInfo } = await Purchases.purchaseStoreProduct(product);
     if (owns(customerInfo)) return { ok: true };

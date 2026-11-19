@@ -45,6 +45,10 @@ let trialAsked = false;
 let lastOut = 0, lastAd = 0, adsShown = 0, levelThisVisit = false, bannerMode = 'off', bannerTimer = 0;
 /** Shown until the store reports the real price (Ad-free on Android, the whole-island unlock on iOS; both ₹149). */
 let price = '₹149';
+/** During a sale: the regular price, shown struck through before the sale price. Empty otherwise. */
+let wasPrice = '';
+/** The price as shown on buy buttons: "<s>₹149</s> ₹99" during a sale, else just the price. */
+const priceHtml = () => wasPrice ? `<s class="was">${esc(wasPrice)}</s> ${esc(price)}` : esc(price);
 let island: Island | null = null;
 const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -85,7 +89,7 @@ export function start(el: HTMLElement) {
   });
 
   onNative(m => {
-    if (m.t === 'adFree') { S.adFree = m.value; syncBanner(!$('#islandHost').hidden); if (m.price) price = m.price; saveShell(); refreshPills(); if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
+    if (m.t === 'adFree') { S.adFree = m.value; syncBanner(!$('#islandHost').hidden); if (m.price) { price = m.price; wasPrice = m.was || ''; } saveShell(); refreshPills(); if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
     if (m.t === 'purchase' && !m.ok && m.message) toast(m.message);
     // A purchase or trial that did not go through: redraw Parent Corner so its buttons work again.
     if (m.t === 'purchase' && !m.ok) { trialAsked = false; if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
@@ -648,9 +652,9 @@ function fullSection() {
   const when = new Date(end).toLocaleDateString(getLang() === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'long' });
   const trial = end > now ? `<p class="trial">⏳ ${t('trialLeft').replace('{n}', left === 1 ? t('trialDay') : t('trialDays').replace('{n}', String(left))).replace('{date}', esc(when))}</p>`
     : end ? `<p class="muted">${t('trialOver')}</p>`
-    : `<p class="muted">${t('trialNote').replace('{price}', esc(price))}</p><div class="row-btns left"><button class="btn" id="pcTrial">${t('trialStart')}</button></div>`;
+    : `<p class="muted">${t('trialNote').replace('{price}', priceHtml())}</p><div class="row-btns left"><button class="btn" id="pcTrial">${t('trialStart')}</button></div>`;
   return `<section><h3>${t('fullTitle')}</h3>${S.adFree ? `<p>${t('fullOwned')}</p>`
-    : `<p class="muted">${t('fullFree')}</p>${trial}<p class="muted">${t('fullNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('fullBuy')} · ${esc(price)}</button></div>`}
+    : `<p class="muted">${t('fullFree')}</p>${trial}<p class="muted">${t('fullNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('fullBuy')} · ${priceHtml()}</button></div>`}
     <button class="link" id="pcRestore">${t('restore')}</button></section>`;
 }
 
@@ -811,7 +815,7 @@ function parentCorner() {
   }).join('');
   sheet('parent', `<h2>${t('parentCorner')}</h2>
     <div class="pc">
-      ${locksOn ? fullSection() : adsOn || S.adFree ? `<section><h3>${t('adFree')}</h3>${S.adFree ? `<p>${t('adFreeOwned')}</p>` : `<p class="muted">${t('adFreeNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('adFreeBuy')} · ${esc(price)}</button></div>`}
+      ${locksOn ? fullSection() : adsOn || S.adFree ? `<section><h3>${t('adFree')}</h3>${S.adFree ? `<p>${t('adFreeOwned')}</p>` : `<p class="muted">${t('adFreeNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('adFreeBuy')} · ${priceHtml()}</button></div>`}
         <button class="link" id="pcRestore">${t('restore')}</button></section>` : ''}
       ${adsOn ? `<section class="kv"><span><b>${t('adHearts')}</b><small>${t('adHeartsNote')}</small></span>${toggle('pcAdH', S.adsForHearts)}</section>` : ''}
       <section class="kv"><span><b>${t('sound')}</b></span>${toggle('pcSound', S.sound)}</section>

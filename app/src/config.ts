@@ -15,6 +15,10 @@ export const CONFIG = {
   /** Store product id of the one-time purchase (a non-consumable): Ad-free on Play, the whole island on the App Store
    * (which also keeps the island ad-free, so the game treats both alike). */
   adFreeProductId: Platform.OS === 'ios' ? 'curio_full_island' : 'curio_ad_free',
+  /** The same unlock at the sale price (₹99), on the same entitlement. Selling it is switched on in RevenueCat, not in
+   * the app: make the "sale" offering (one Lifetime package with this product) the current offering, and switch back
+   * to "default" (the regular product) when the sale ends. The app then shows the regular price struck through. */
+  saleProductId: Platform.OS === 'ios' ? 'curio_full_island_sale' : 'curio_ad_free_sale',
   /** RevenueCat entitlement unlocked by that product. */
   adFreeEntitlement: Platform.OS === 'ios' ? 'full_island' : 'ad_free',
   /** What switches on once that purchase goes through, for messages. */

@@ -81,6 +81,7 @@ function App() {
   const [banner, setBanner] = useState<'off' | 'space' | 'ad'>('off');
   const [adCover, setAdCover] = useState(false); // one ad at a time: no banner while an interstitial is up
   const price = useRef<string | undefined>(undefined);
+  const wasPrice = useRef<string | undefined>(undefined); // the regular price, struck through during a sale
 
   const toGame = useCallback((m: object) => {
     web.current?.injectJavaScript(`window.curioNative && window.curioNative.receive(${JSON.stringify(m)}); true;`);
@@ -103,10 +104,10 @@ function App() {
     return () => clearTimeout(t);
   }, []);
 
-  const setAdFree = useCallback((v: boolean, p?: string) => {
-    adFree.current = v; if (p) price.current = p; if (v) setBanner('off');
+  const setAdFree = useCallback((v: boolean, p?: string, was?: string) => {
+    adFree.current = v; if (p) { price.current = p; wasPrice.current = was; } if (v) setBanner('off');
     AsyncStorage.setItem(ADFREE_KEY, v ? '1' : '0').catch(() => {});
-    toGame({ t: 'adFree', value: v, price: price.current });
+    toGame({ t: 'adFree', value: v, price: price.current, was: wasPrice.current });
   }, [toGame]);
 
   useEffect(() => {
@@ -118,7 +119,7 @@ function App() {
     let m: FromGame; try { m = JSON.parse(e.nativeEvent.data); } catch { return; }
     switch (m.t) {
       case 'ready':
-        toGame({ t: 'adFree', value: adFree.current, price: price.current });
+        toGame({ t: 'adFree', value: adFree.current, price: price.current, was: wasPrice.current });
         try { billing()?.initPurchases(setAdFree, end => toGame({ t: 'trial', end })).catch(e => reportError(e, 'Purchases')); } catch (e) { reportError(e, 'Purchases'); }
         break;
       case 'save': AsyncStorage.setItem(SAVE_KEY, JSON.stringify(m.data)).catch(() => {}); break;
