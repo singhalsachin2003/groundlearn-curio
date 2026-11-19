@@ -127,11 +127,12 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .seg{display:flex;gap:4px;flex-direction:row !important}
 .seg button{border:2px solid var(--ink);border-radius:10px;padding:6px 10px;font-weight:600}
 .seg button[aria-pressed="true"]{background:var(--marigold)}
-.prow{display:grid;grid-template-columns:34px 1fr auto auto;gap:8px;align-items:center}
+/* A player row in Parent Corner: avatar and name on top; the age band and buttons on their own line under the name. */
+.prow{display:grid;grid-template-columns:34px 1fr;gap:6px 8px;align-items:center}
+.prow .pact{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .prow .av{font-size:26px}
 .prow .pt{display:flex;flex-direction:column;min-width:0}
 .prow select{border:2px solid var(--ink);border-radius:10px;padding:5px;background:var(--card);color:var(--ink);font-size:13px}
-@media (max-width:420px){ .prow{grid-template-columns:30px 1fr;} .prow select,.prow .btn{grid-column:2} }
 
 /* ---------- toasts ---------- */
 .toasts{position:fixed;left:0;right:0;top:calc(var(--top) + 66px);z-index:60;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
@@ -320,7 +321,6 @@ s.was{text-decoration-thickness:2px;opacity:.7;font-weight:600;margin-right:2px}
 /* tell a friend (Parent Corner) */
 .tell{background:#fff8e1;border:2px solid #f0d58a;border-radius:16px;padding:12px 14px}.tell h3{margin:0 0 4px}.tell .btn{margin-top:8px;min-height:44px}
 .homefoot{flex-wrap:wrap;row-gap:0}
-.prow{grid-template-columns:34px 1fr auto auto auto}
 .repgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.repgrid>div{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:8px 4px}.repgrid b{display:block;font-size:20px}.repgrid small{display:block;font-size:11px}
 .repbar{display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin:6px 0;font-size:14px}.repbar i{display:block;height:12px;border-radius:8px;background:rgba(0,0,0,.12);overflow:hidden}.repbar u{display:block;height:100%;background:var(--accent,#1f9d74);border-radius:8px}
 .rep ul{margin:4px 0;padding-left:20px}.rep h3{margin:14px 0 4px}

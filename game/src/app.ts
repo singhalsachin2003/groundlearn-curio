@@ -808,10 +808,10 @@ function parentCorner() {
     const nxt = NEXT[p.band], mine = labsFor(p.band), done = mine.filter(l => labProgress(l, readSlot(p.id, l.world)) >= l.progress.total).length;
     const up = nxt && mine.length && done / mine.length >= 0.75 ? `<div class="moveup">🎉 ${t('moveUp')} <button class="btn small" data-up="${p.id}">${t('moveUpGo')}</button></div>` : '';
     return `${up ? '' : ''}<div class="prow"><span class="av">${p.avatar}</span><span class="pt"><b>${esc(p.name || t(p.band))}</b><small>${t('discovered')}: ${found} · ${lv} ${t('levelsDone')} · ${p.coins} ${t('plusCoins')}</small></span>
-      <select data-band-of="${p.id}" aria-label="${t('ageBand')}">${BANDS.map(b => `<option value="${b.id}" ${b.id === p.band ? 'selected' : ''}>${t(b.ages)}</option>`).join('')}</select>
+      <span class="pact"><select data-band-of="${p.id}" aria-label="${t('ageBand')}">${BANDS.map(b => `<option value="${b.id}" ${b.id === p.band ? 'selected' : ''}>${t(b.ages)}</option>`).join('')}</select>
       <button class="btn small" data-rep="${p.id}">${t('repBtn')}</button>
       <button class="btn small" data-reset="${p.id}">↺ ${t('resetBtn')}</button>
-      <button class="btn small" data-rm="${p.id}">${t('remove')}</button></div>${up}`;
+      <button class="btn small" data-rm="${p.id}">${t('remove')}</button></span></div>${up}`;
   }).join('');
   sheet('parent', `<h2>${t('parentCorner')}</h2>
     <div class="pc">
