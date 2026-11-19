@@ -15,7 +15,7 @@ const config: ExpoConfig = {
   name: 'Curio Island',
   slug: 'curio-island',
   owner: 'singhalsachin2003s-team',
-  version: '0.1.0',
+  version: '0.2.0',
   orientation: 'default',
   icon: './assets/icon.png',
   userInterfaceStyle: 'dark',
