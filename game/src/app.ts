@@ -43,7 +43,8 @@ const openToday = (lab: string) => { const p = active(); return !!p && dailyFor(
 const labOpen = (lab: string) => unlocked() || openToday(lab);
 let trialAsked = false;
 let lastOut = 0, lastAd = 0, adsShown = 0, levelThisVisit = false, bannerMode = 'off', bannerTimer = 0;
-let price = '₹99';
+/** Shown until the store reports the real price: Ad-free on Android, the whole-island unlock on iOS. */
+let price = locksOn ? '₹149' : '₹99';
 let island: Island | null = null;
 const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
