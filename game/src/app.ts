@@ -1,6 +1,7 @@
 // The app shell: choose a player, the island hub, coins and hearts, the Journal,
 // the parent gate and Parent Corner, and entering or leaving a world.
 import { t, setLang, getLang, type Key } from './i18n';
+import { applyUiScale, uiScale } from './scale';
 import { LABS, COMING, NEW_LABS, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
 import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
 import { send, onNative, inApp } from './native';
@@ -40,6 +41,7 @@ const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-re
 
 /* =================================================================== boot */
 export function start(el: HTMLElement) {
+  applyUiScale(); window.addEventListener('resize', applyUiScale);
   root = el; setLang(S.lang);
   root.innerHTML = `
     <div id="islandHost" class="island-host" hidden></div>
@@ -471,7 +473,7 @@ function showIsland(on: boolean) {
 function fitIsland() {
   if (!island || $('#islandHost').hidden) return;
   const w = innerWidth, h = innerHeight, top = $('.topbar').getBoundingClientRect().bottom + 8, foot = $('#hubFoot').getBoundingClientRect().top - 8;
-  island.fit(w, h, top, h - foot);
+  island.fit(w, h, top, h - foot, uiScale());
 }
 window.addEventListener('resize', () => requestAnimationFrame(fitIsland));
 

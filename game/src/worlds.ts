@@ -87,7 +87,9 @@ const GLOW: Record<WorldId, string> = {
   inventor2: drift('✨', '21%') + 'html body #stage:not(:has(canvas)){background:radial-gradient(80% 70% at 50% 40%,rgba(255,255,255,.11),rgba(255,255,255,.03));border:2px solid rgba(255,255,255,.14);border-radius:22px;padding:10px;box-sizing:border-box}',
 };
 
-const BOOT = `(function(){var P=window.parent;window.THREE=P.curioTHREE;window.curio=P.curioWorld;
+// On a tablet the world's iframe is laid out at 1/scale and scaled up (see scale.ts), so
+// canvases are told the real pixel density and stay sharp instead of being stretched.
+const BOOT = `(function(){var P=window.parent;try{var U=parseFloat(P.getComputedStyle(P.document.documentElement).getPropertyValue('--ui'))||1;if(U>1){var D=Math.min(3,(P.devicePixelRatio||1)*U);Object.defineProperty(window,'devicePixelRatio',{configurable:true,get:function(){return D}});}}catch(e){}window.THREE=P.curioTHREE;window.curio=P.curioWorld;
 var ready=Promise.race([P.curioInstallFonts(document,FontFace),new Promise(function(r){setTimeout(r,2500)})]);
 document.addEventListener('DOMContentLoaded',function(){ready.then(function(){if(P.curioLang==='hi'&&document.getElementById('mMeta')){var nt=document.getElementById('noTR');var mk=!nt?P.curioMakeTR:(nt.getAttribute('data-tk')?P.curioMakeTK:null);if(mk){window.curioTR=mk();window.curioTR.observe(document);}}var s=document.getElementById('curio-main');var n=document.createElement('script');n.textContent=s.textContent;document.body.appendChild(n);if(P.curioWorldReady)P.curioWorldReady();});});})();`;
 

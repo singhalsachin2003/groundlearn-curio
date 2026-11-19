@@ -46,7 +46,7 @@ function prop(id: ZoneId, colour: number): THREE.Object3D {
 /** Things that appear on the island as the player finishes labs, in order. */
 export const GROWTH = ['flowers', 'boat', 'lighthouse', 'rainbow', 'balloon', 'windmill', 'butterflies', 'star'] as const;
 
-export interface Island { setStickers(list: string[]): void; setGrowth(stage: number, popNew: boolean): void; setZones(z: ZoneState[]): void; fit(w: number, h: number, top: number, bottom: number): void; pause(p: boolean): void; dispose(): void }
+export interface Island { setStickers(list: string[]): void; setGrowth(stage: number, popNew: boolean): void; setZones(z: ZoneState[]): void; fit(w: number, h: number, top: number, bottom: number, ui?: number): void; pause(p: boolean): void; dispose(): void }
 
 export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, reduceMotion: boolean): Island {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -170,7 +170,7 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
 
   // fitting the camera between the top bar and the bottom card
   const view = { w: 1, h: 1, top: 0, bottom: 0 };
-  function fit(w: number, h: number, top: number, bottom: number) {
+  function fit(w: number, h: number, top: number, bottom: number, ui = 1) {
     Object.assign(view, { w, h, top, bottom });
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.setViewOffset(w, h, 0, (bottom - top) / 2, w, h); camera.updateProjectionMatrix();
@@ -184,8 +184,10 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
     base.copy(camera.position);
     // keep the haze behind the island whatever the camera distance
     (scene.fog as THREE.Fog).near = hi + 8; (scene.fog as THREE.Fog).far = hi + 40;
-    // bigger signs when the island is drawn small (phones in portrait)
-    signScale = portrait ? 1.6 : 1; refDist = hi; scaleSigns();
+    // Bigger signs when the island is drawn small (phones in portrait). The island fills the
+    // width in portrait, so on a tablet the boost shrinks back towards the tablet's UI scale;
+    // in landscape the signs grow with the UI scale, like the rest of the hub.
+    signScale = portrait ? Math.min(1.6, Math.max(1, 1.6 * 520 * ui / w)) : Math.min(1.6, ui); refDist = hi; scaleSigns();
   }
   // Signs keep the same size on screen whether the workshop is at the front or the back of the island.
   let refDist = 10; const sp = new THREE.Vector3();

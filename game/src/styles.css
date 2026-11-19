@@ -320,3 +320,10 @@ h2{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.2}
 .repgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.repgrid>div{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:8px 4px}.repgrid b{display:block;font-size:20px}.repgrid small{display:block;font-size:11px}
 .repbar{display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin:6px 0;font-size:14px}.repbar i{display:block;height:12px;border-radius:8px;background:rgba(0,0,0,.12);overflow:hidden}.repbar u{display:block;height:100%;background:var(--accent,#1f9d74);border-radius:8px}
 .rep ul{margin:4px 0;padding-left:20px}.rep h3{margin:14px 0 4px}
+/* ---------- tablets: one UI scale (--ui, set in scale.ts) ---------- */
+/* Shell panels are zoomed; the 3D island canvas is not, it already fills the screen. */
+.screen,.sheet-wrap,.toasts,.worldbar,.btn.dbl-chip{zoom:var(--ui,1)}
+/* A world is laid out at 1/scale and scaled up, so it keeps its phone layout at tablet size. */
+.world-host .world-frame{width:calc(100% / var(--ui,1));height:calc(100% / var(--ui,1));transform:scale(var(--ui,1));transform-origin:0 0}
+/* The lab name sits over bright worlds too (Colour Studio): give it its own dark chip. */
+.worldbar .wlab{background:rgba(20,28,53,.55);padding:4px 12px;border-radius:999px}
