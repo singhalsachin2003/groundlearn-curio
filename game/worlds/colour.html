@@ -580,7 +580,11 @@ function toggleTorch(k) {
   const id = matchLight(S.torches);
   if (id && !S.found.has(id)) discover(id, new THREE.Vector3(0, 2.5, -2.9));
 }
+/* Curio app: the free version asks the island before a level starts or a discovery is kept (see app.ts levelOpen / findOpen). */
+function lvGate(lab, i) { var c = window.curio; return c && c.levelOpen ? c.levelOpen(lab, i) : i; }
+function findGate(lab, have) { var c = window.curio; return !(c && c.findOpen) || c.findOpen(lab, have); }
 function discover(id, pos) {
+  if (!findGate('colour', S.found.size)) return;
   const d = D[id], wasGoal = currentGoal() === id;
   S.found.add(id); persist();
   sfx.tada();

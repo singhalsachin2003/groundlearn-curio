@@ -90,6 +90,10 @@ body.nightbg{background:radial-gradient(120% 90% at 50% 0%,#0b0f24 0%,#04060f 70
 (function () {
 'use strict';
 var par = window.parent || window, CUR = window.curio || null;
+/* Curio app: the free version asks the island before a level starts or a discovery is kept (see app.ts levelOpen / findOpen). */
+function lvGate(lab, i) { var c = window.curio; return c && c.levelOpen ? c.levelOpen(lab, i) : i; }
+function findGate(lab, have) { var c = window.curio; return !(c && c.findOpen) || c.findOpen(lab, have); }
+
 var HI = par && par.curioLang === 'hi';
 var KEY = 'curio-explorer-v1';
 var save = {}; try { save = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { save = {}; }
@@ -311,7 +315,7 @@ function glow() { if (busy || !hinter) return; hinter().forEach(function (q) { v
 function idle() { clearTimeout(idleT); idleT = setTimeout(glow, 20000); }
 (function () { var no = sfx.no; sfx.no = function () { no.apply(sfx, arguments); misses++; idle(); if (misses >= 2) setTimeout(glow, 1500); }; })();
 document.addEventListener('pointerdown', idle, true);
-function start(i) { cur = i; busy = false; hinter = null; misses = 0; dots(); $('scene').innerHTML = ''; $('tray').innerHTML = ''; G.run(i); mixTray(); idle(); }
+function start(i) { i = lvGate(tab, i); cur = i; busy = false; hinter = null; misses = 0; dots(); $('scene').innerHTML = ''; $('tray').innerHTML = ''; G.run(i); mixTray(); idle(); }
 
 function runFizz(i) {
   var r = FIZZ[i], sel = [];

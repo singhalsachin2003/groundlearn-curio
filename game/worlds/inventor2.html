@@ -117,6 +117,10 @@ svg.pizza path{cursor:pointer;stroke:#7a3b13;stroke-width:2;transition:fill .15s
 (function () {
 'use strict';
 var par = window.parent || window, CUR = window.curio || null, HI = par && par.curioLang === 'hi';
+/* Curio app: the free version asks the island before a level starts or a discovery is kept (see app.ts levelOpen / findOpen). */
+function lvGate(lab, i) { var c = window.curio; return c && c.levelOpen ? c.levelOpen(lab, i) : i; }
+function findGate(lab, have) { var c = window.curio; return !(c && c.findOpen) || c.findOpen(lab, have); }
+
 var KEY = 'curio-inventor2-v1', save = {};
 try { save = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { save = {}; }
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
@@ -417,6 +421,7 @@ var teardown = null, solver = null, finished = false;
 
 /* ---------------- shell ---------------- */
 function setLevel(i) {
+  i = lvGate(tab, i);
   if (teardown) { try { teardown(); } catch (e) {} teardown = null; }
   cur = Math.max(0, Math.min(levels.length - 1, i)); finished = false; solver = null;
   $('mMeta').textContent = T(L.name) + ' · ' + (HI ? 'स्तर ' : 'Level ') + (cur + 1) + ' / ' + levels.length + (done[cur] ? ' ✓' : '');

@@ -9,8 +9,18 @@ export const CONFIG = {
   /** How the store and the buyer's account read in a sentence. */
   storeAccount: Platform.OS === 'ios' ? 'Apple Account' : 'Google account',
   storeName: Platform.OS === 'ios' ? 'Apple' : 'Google',
-  /** Store product id of the one-time Ad-free purchase (a non-consumable; same id on Play and the App Store). */
-  adFreeProductId: 'curio_ad_free',
+  /** iOS is the free version: the first 2 levels of every lab, a 7-day trial and a one-time
+   * "whole island" unlock. Android keeps every level open, with ads and the Ad-free purchase. */
+  locked: Platform.OS === 'ios',
+  /** Store product id of the one-time purchase (a non-consumable): Ad-free on Play, the whole island on the App Store
+   * (which also keeps the island ad-free, so the game treats both alike). */
+  adFreeProductId: Platform.OS === 'ios' ? 'curio_full_island' : 'curio_ad_free',
   /** RevenueCat entitlement unlocked by that product. */
-  adFreeEntitlement: 'ad_free',
+  adFreeEntitlement: Platform.OS === 'ios' ? 'full_island' : 'ad_free',
+  /** What switches on once that purchase goes through, for messages. */
+  unlockReady: Platform.OS === 'ios' ? 'The whole island will open' : 'Ad-free will switch on',
+  /** iOS only: the free "7-day Trial", a free non-consumable (App Store guideline 3.1.1 allows time-based trials this way).
+   * The store records when it was taken, so the trial cannot restart by reinstalling. Empty on Android. */
+  trialProductId: Platform.OS === 'ios' ? 'curio_trial_7day' : '',
+  trialDays: 7,
 };

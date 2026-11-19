@@ -376,6 +376,9 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 stage.appendChild(renderer.domElement);
 window.__curioDispose = () => { try { renderer.forceContextLoss(); renderer.dispose(); } catch (e) {} };
 const CURIO = window.curio || null;
+/* Curio app: the free version asks the island before a level starts or a discovery is kept (see app.ts levelOpen / findOpen). */
+function lvGate(lab, i) { var c = window.curio; return c && c.levelOpen ? c.levelOpen(lab, i) : i; }
+function findGate(lab, have) { var c = window.curio; return !(c && c.findOpen) || c.findOpen(lab, have); }
 // Tries: labs with no questions still have a goal. Each level gives a few free tries; each extra miss costs a heart.
 const TRIES = {};
 // Curio app: "Show me" plays a level's solution. While it runs, moves cost nothing.
@@ -652,6 +655,7 @@ games.forge = (function () {
   }
   function discover(c) {
     const m = c.mol, mi = missionIndex(), wasMission = mi >= 0 && MISSIONS[mi].t.includes(m.id);
+    if (!findGate('forge', P.forgeFound.size)) return;
     P.forgeFound.add(m.id); persist(); sfx.tada();
     const cen = new THREE.Vector3(); c.forEach(a => cen.add(a.p)); cen.divideScalar(c.length);
     burst(scene, cen, [0xffb423, 0xff4a4a, 0x3f6dff, 0xffffff, 0x5fe0b7], 60, 3, 1.6, 1);
@@ -1039,6 +1043,7 @@ games.react = (function () {
   function discover(id, delay) {
     const r = RXD[id]; if (!r) return;
     if (P.rxFound.has(id)) { if (!B.f['seen' + id]) { B.f['seen' + id] = 1; toast(`${r.name}: you have found this one.`); } return; }
+    if (!findGate('react', P.rxFound.size)) return;
     P.rxFound.add(id); persist();
     const eq = eqFor(id), mi = missionIndex();
     setTimeout(() => {
@@ -1191,6 +1196,7 @@ games.genes = (function () {
   }
   function removePlant(p) { scene.remove(p.mesh); scene.remove(p.tag); p.tag.material.map.dispose(); p.tag.material.dispose(); plants.splice(plants.indexOf(p), 1); sel = sel.filter(x => x !== p); }
   function setLevel(i) {
+    i = lvGate('genes', i);
     li = clamp(i, 0, GL.length - 1); P.geneLevel = li; persist();
     [...plants].forEach(removePlant); sel = []; last = null; crossedMystery = false; uid = 0;
     mystery = Math.random() < 0.5 ? 'TT' : 'Tt';
@@ -1379,6 +1385,7 @@ games.launch = (function () {
   const view = { w: 1, h: 1, top: 0, bottom: 0 };
 
   function setLevel(i) {
+    i = lvGate('launch', i);
     li = clamp(i, 0, LV.length - 1); lv = LV[li]; pl = PL[lv.planet]; P.launchLevel = li; persist(); resetTries('launch');
     scene.background.set(pl.sky); groundMat.color.set(pl.ground);
     const far = lv.zone ? lv.zone[1] : lv.tx;
@@ -1619,6 +1626,7 @@ games.light = (function () {
   const Y = new THREE.Vector3(0, 1, 0);
   function clearWorld() { while (world.children.length) { const c = world.children.pop(); disposeTree(c); } }
   function setLevel(i) {
+    i = lvGate('light', i);
     li = clamp(i, 0, LIGHT.length - 1); L = LIGHT[li]; P.lightLevel = li; persist(); resetTries('light');
     clearWorld(); angs = L.mirrors.map(m => m.a); mirrors = []; crystals = []; sel = L.mirrors.findIndex(m => !m.lock); moves = 0; solvedNow = false;
     // fewest 15° turns that solve it
@@ -1786,6 +1794,7 @@ games.graph = (function () {
   }
   const onLine = ([x, y]) => Math.abs(m * x + c - y) < 1e-6;
   function setLevel(i) {
+    i = lvGate('graph', i);
     li = clamp(i, 0, GRAPH.length - 1); G = GRAPH[li]; P.graphLevel = li; persist(); resetTries('graph');
     gems.splice(0).forEach(g => { scene.remove(g); g.geometry.dispose(); g.material.dispose(); });
     while (tri.children.length) disposeTree(tri.children.pop());
@@ -1941,6 +1950,7 @@ games.circuit = (function () {
   const np = i => new THREE.Vector3((L.nodes[i][0] - center.x) * S, 0.02, (L.nodes[i][1] - center.z) * S);
   const isSlot = k => !!L.edges[k].slot;
   function setLevel(i) {
+    i = lvGate('circuit', i);
     li = clamp(i, 0, CIRC.length - 1); L = CIRC[li]; P.circLevel = li; persist(); resetTries('circuit');
     const xs = L.nodes.map(n => n[0]), zs = L.nodes.map(n => n[1]);
     center.set((Math.min(...xs) + Math.max(...xs)) / 2, 0, (Math.min(...zs) + Math.max(...zs)) / 2);
@@ -2232,6 +2242,7 @@ games.body = (function () {
   let mi = 0, M = BODY[0], at = 'vc', st = {}, path = [], mistakes = 0, busy = false, msg = '', won = false;
   const view = { w: 1, h: 1, top: 0, bottom: 0 };
   function setLevel(i) {
+    i = lvGate('body', i);
     mi = clamp(i, 0, BODY.length - 1); M = BODY[mi]; P.bodyLevel = mi; persist();
     at = M.start; st = Object.assign({}, M.cell || {}); path = [at]; mistakes = 0; busy = false; won = false; msg = '';
     const blood = M.kind === 'blood';
@@ -2392,6 +2403,7 @@ games.eco = (function () {
   let li = 0, L = ECO[0], D0 = 20, T0 = 0, run = null, seasonShown = 0, result = null, cur = [80, 20, 0], solved = false;
   const view = { w: 1, h: 1, top: 0, bottom: 0 };
   function setLevel(i) {
+    i = lvGate('eco', i);
     li = clamp(i, 0, ECO.length - 1); L = ECO[li]; P.ecoLevel = li; persist(); resetTries('eco');
     D0 = L.D; T0 = L.T; run = null; result = null; seasonShown = 0; cur = [L.G, L.D, L.T]; solved = false;
     $('eDIn').value = D0; $('eTIn').value = T0; $('eDIn').disabled = !!L.lockD; $('eTIn').disabled = !!L.lockT;
@@ -2537,6 +2549,7 @@ games.mach = (function () {
   const OPTS = { lever: Array.from({ length: 37 }, (_, i) => +(-1.8 + i * 0.1).toFixed(1)), seesaw: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2], ramp: [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5] };
   function opts() { return OPTS[Lv.type] || []; }
   function setLevel(i) {
+    i = lvGate('mach', i);
     li = clamp(i, 0, MACH.length - 1); Lv = MACH[li]; P.machLevel = li; persist(); resetTries('mach'); busy = false; solved = false;
     Object.entries(groups).forEach(([k, g]) => { g.visible = k === Lv.type; });
     const o = opts(); val = Lv.type === 'lever' ? o.indexOf(0) : Lv.type === 'seesaw' ? 0 : Lv.type === 'ramp' ? 0 : 0; n = 1; bucketY = 0.9;
@@ -2749,6 +2762,7 @@ games.nets = (function () {
   function setTheta(t) { theta = t; hinges.forEach(h => { h.rotation.set(0, 0, 0); h.rotation[h.userData.ax] = h.userData.s * t; }); }
   function canonNow() { return canon(cells); }
   function setLevel(i) {
+    i = lvGate('nets', i);
     li = clamp(i, 0, NETS.length - 1); L = NETS[li]; P.netsLevel = li; persist(); busy = false;
     if (L.preset) { cells = L.preset.map(p => p.slice()); }
     pips = cells.map(() => 0); fixed = cells.map(() => false);
@@ -2945,6 +2959,7 @@ games.balance = (function () {
     });
   }
   function setLevel(i) {
+    i = lvGate('balance', i);
     bi = clamp(i, 0, LVB.length - 1); lvb = LVB[bi]; P.balLevel = bi; persist(); resetTries('balance');
     cur = clone(lvb); hist = []; work = [{ c: clone(cur), note: '' }]; won = false;
     layout('L'); layout('R'); renderUI(); if (P.tab === 'balance') renderMission();

@@ -4,7 +4,7 @@ import { t, setLang, getLang, type Key } from './i18n';
 import { applyUiScale, uiScale } from './scale';
 import { LABS, COMING, NEW_LABS, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
 import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
-import { send, onNative, inApp, isIOS, adsOn } from './native';
+import { send, onNative, inApp, isIOS, adsOn, locksOn } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
 import { mascot, chestSvg, setOutfit, MASCOT, WEAR, type Mood } from './mascot';
 import { createIsland, ZONE_OF, GROWTH, type Island, type ZoneId, type ZoneState } from './island';
@@ -36,6 +36,12 @@ let current: { lab: Lab; world: WorldId; pid: string } | null = null;
 const sessionStart = Date.now();
 /** Reward ads may be offered: this build has ads and a grown-up has not turned them off. */
 const rewardsOn = () => adsOn && S.adsForHearts;
+/** Every level is open: not the free version (iOS), or the island is unlocked, or the 7-day trial is running. */
+const unlocked = () => !locksOn || S.adFree || Date.now() < (S.trialEnd || 0);
+/** The Curio of the day's lab is fully open on its day, even in the free version. */
+const openToday = (lab: string) => { const p = active(); return !!p && dailyFor(p)?.lab === lab; };
+const labOpen = (lab: string) => unlocked() || openToday(lab);
+let trialAsked = false;
 let lastOut = 0, lastAd = 0, adsShown = 0, levelThisVisit = false, bannerMode = 'off', bannerTimer = 0;
 let price = '₹99';
 let island: Island | null = null;
@@ -80,6 +86,13 @@ export function start(el: HTMLElement) {
   onNative(m => {
     if (m.t === 'adFree') { S.adFree = m.value; syncBanner(!$('#islandHost').hidden); if (m.price) price = m.price; saveShell(); refreshPills(); if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
     if (m.t === 'purchase' && !m.ok && m.message) toast(m.message);
+    // A purchase or trial that did not go through: redraw Parent Corner so its buttons work again.
+    if (m.t === 'purchase' && !m.ok) { trialAsked = false; if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
+    if (m.t === 'trial') {
+      S.trialEnd = m.end; saveShell();
+      if (trialAsked && m.end > Date.now()) { trialAsked = false; toast(`⏳ ${t('trialStarted')}`); }
+      if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner();
+    }
     if (m.t === 'back') onBack();
   });
 
@@ -109,6 +122,17 @@ export function start(el: HTMLElement) {
       if (!S.adsForHearts) { toast(t('showOff'), 'bad'); return; }
       if (hintCounts(p).ads >= RULES.adHintsPerDay) { toast(t('showCap'), 'bad'); return; }
       hintAsk(p, open, true);
+    },
+    /** A world asks before starting a level (0-based). Returns the level to start: the one asked for, or, in the
+     * free version, the last free level with a friendly lock sheet on top. */
+    levelOpen(lab: string, i: number): number {
+      if (i < RULES.freeLevels || labOpen(lab)) return i;
+      lockSheet(lab, 'level'); return RULES.freeLevels - 1;
+    },
+    /** A discovery lab asks before recording a new discovery; `have` = how many it has already. */
+    findOpen(lab: string, have: number): boolean {
+      if (have < RULES.freeFinds || labOpen(lab)) return true;
+      lockSheet(lab, 'found'); return false;
     },
     answer(correct: boolean, lab?: string) {
       const p = active(); if (!p) return;
@@ -232,7 +256,8 @@ function newPlayer() {
 
 function labCard(lab: Lab, p: Profile) {
   const save = readSlot(p.id, lab.world), n = labProgress(lab, save), tot = lab.progress.total;
-  const tag = n >= tot ? `<span class="tag done" aria-label="${t('labDone')}">⭐</span>` : !n && NEW_LABS.has(lab.id) ? `<span class="tag new">${t('labNew')}</span>` : '';
+  const locked = locksOn && n < tot && n >= (lab.progress.kind === 'found' ? RULES.freeFinds : RULES.freeLevels) && !labOpen(lab.id);
+  const tag = n >= tot ? `<span class="tag done" aria-label="${t('labDone')}">⭐</span>` : locked ? `<span class="tag lock" aria-label="${t('lockTag')}">🔒</span>` : !n && NEW_LABS.has(lab.id) ? `<span class="tag new">${t('labNew')}</span>` : '';
   return `<button class="lab s-${lab.subject}${n >= tot ? ' complete' : ''}" data-lab="${lab.id}">${tag}
     <span class="ic">${lab.icon}</span><b>${esc(nm(lab.name))}</b><small>${esc(nm(lab.blurb))}</small>
     <span class="bar"><i style="width:${Math.round(100 * n / tot)}%"></i></span><span class="cnt">${n}/${tot} ${lab.progress.kind === 'found' ? t('found') : t('levelsDone')}</span></button>`;
@@ -602,6 +627,32 @@ function outOfHearts() {
   };
 }
 
+/** The free version's friendly stop. The child can replay the free levels (or keep exploring), go back to the
+ * island, or fetch a grown-up; the unlock itself is only behind the parent gate. */
+function lockSheet(labId: string, kind: 'level' | 'found') {
+  if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'lock') return;
+  const lab = LABS.find(l => l.id === labId), name = lab ? `${lab.icon} ${nm(lab.name)}` : '';
+  const body = (kind === 'level' ? t('lockBody') : t('lockFound').replace('{n}', String(RULES.freeFinds))).replace('{lab}', esc(name));
+  sheet('lock', `<div class="big-ic">🔒</div><h2>${t('lockTitle')}</h2><p>${body}</p><p class="muted">⭐ ${t('lockDaily')}</p>
+    <div class="col-btns"><button class="btn primary" data-close>${t(kind === 'level' ? 'lockReplay' : 'keepExploring')}</button>
+      <button class="btn" id="lkBack">${t('lockIsland')}</button><button class="btn" id="lkAsk">👪 ${t('grownUps')}</button></div>`);
+  $('#lkBack').onclick = () => { closeSheet(); leaveWorld(); };
+  $('#lkAsk').onclick = () => gate(parentCorner);
+}
+
+/** Parent Corner on the free version (iOS): what is free, the 7-day trial and the one-time unlock, all behind the parent gate.
+ * Before the trial starts it says how long it lasts, what locks again afterwards and what the unlock costs. */
+function fullSection() {
+  const end = S.trialEnd || 0, now = Date.now(), left = Math.max(1, Math.ceil((end - now) / 86_400_000));
+  const when = new Date(end).toLocaleDateString(getLang() === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'long' });
+  const trial = end > now ? `<p class="trial">⏳ ${t('trialLeft').replace('{n}', left === 1 ? t('trialDay') : t('trialDays').replace('{n}', String(left))).replace('{date}', esc(when))}</p>`
+    : end ? `<p class="muted">${t('trialOver')}</p>`
+    : `<p class="muted">${t('trialNote').replace('{price}', esc(price))}</p><div class="row-btns left"><button class="btn" id="pcTrial">${t('trialStart')}</button></div>`;
+  return `<section><h3>${t('fullTitle')}</h3>${S.adFree ? `<p>${t('fullOwned')}</p>`
+    : `<p class="muted">${t('fullFree')}</p>${trial}<p class="muted">${t('fullNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('fullBuy')} · ${esc(price)}</button></div>`}
+    <button class="link" id="pcRestore">${t('restore')}</button></section>`;
+}
+
 /** Out of free hints today: offer a short ad, or keep trying. Opt-in only; closing the sheet changes nothing. */
 function hintAsk(p: Profile, open: () => void, show = false) {
   sheet('hint', `<div class="big-ic${show ? ' lion' : ''}">${show ? mascot('think') : '💡'}</div><h2>${t(show ? 'showTitle' : 'hintTitle')}</h2><p>${show ? t('showBody') : t('hintBody').replace('{n}', String(RULES.freeHintsPerDay))}</p>
@@ -759,7 +810,7 @@ function parentCorner() {
   }).join('');
   sheet('parent', `<h2>${t('parentCorner')}</h2>
     <div class="pc">
-      ${adsOn || S.adFree ? `<section><h3>${t('adFree')}</h3>${S.adFree ? `<p>${t('adFreeOwned')}</p>` : `<p class="muted">${t('adFreeNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('adFreeBuy')} · ${esc(price)}</button></div>`}
+      ${locksOn ? fullSection() : adsOn || S.adFree ? `<section><h3>${t('adFree')}</h3>${S.adFree ? `<p>${t('adFreeOwned')}</p>` : `<p class="muted">${t('adFreeNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('adFreeBuy')} · ${esc(price)}</button></div>`}
         <button class="link" id="pcRestore">${t('restore')}</button></section>` : ''}
       ${adsOn ? `<section class="kv"><span><b>${t('adHearts')}</b><small>${t('adHeartsNote')}</small></span>${toggle('pcAdH', S.adsForHearts)}</section>` : ''}
       <section class="kv"><span><b>${t('sound')}</b></span>${toggle('pcSound', S.sound)}</section>
@@ -775,6 +826,7 @@ function parentCorner() {
     <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   document.getElementById('pcBuy')?.addEventListener('click', () => emailAsk());
   document.getElementById('pcRestore')?.addEventListener('click', () => send({ t: 'restore' }));
+  document.getElementById('pcTrial')?.addEventListener('click', e => { (e.currentTarget as HTMLButtonElement).disabled = true; trialAsked = true; send({ t: 'startTrial' }); });
   document.getElementById('pcAdH')?.addEventListener('click', () => { S.adsForHearts = !S.adsForHearts; saveShell(); parentCorner(); });
   $('#pcSound').onclick = () => { S.sound = !S.sound; saveShell(); music(!$('#islandHost').hidden && S.sound && S.music !== false); parentCorner(); };
   $('#pcVoice').onclick = () => { S.voice = S.voice === false; saveShell(); parentCorner(); };

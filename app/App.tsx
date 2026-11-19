@@ -21,6 +21,7 @@ let bannerMod: BannerMod | null | undefined;
 const bannerView = () => (bannerMod === undefined ? (bannerMod = load('Banner module', () => require('./src/Banner') as BannerMod)) : bannerMod);
 const billing = () => (buyMod === undefined ? (buyMod = load('Purchases module', () => require('./src/purchases') as PurchasesMod)) : buyMod);
 import { onCrash, reportError, LAST_ERROR_KEY } from './src/crash';
+import { CONFIG } from './src/config';
 import { Component, type ReactNode } from 'react';
 
 // The library's class typing collapses to `never` under current TypeScript; describe what we use.
@@ -34,7 +35,7 @@ const OPEN_OK = /^https:\/\/(www\.)?groundlearn\.com\//; // only our own pages, 
 
 type FromGame =
   | { t: 'ready' } | { t: 'save'; data: Record<string, string> } | { t: 'interstitial' } | { t: 'banner'; mode: 'off' | 'space' | 'ad' } | { t: 'rewarded'; id: number }
-  | { t: 'buyAdFree' } | { t: 'restore' } | { t: 'openUrl'; url: string } | { t: 'exit' }
+  | { t: 'buyAdFree' } | { t: 'startTrial' } | { t: 'restore' } | { t: 'openUrl'; url: string } | { t: 'exit' }
   | { t: 'share'; text: string; png?: string };
 
 /** Open Android's share sheet with a message, or with a picture (the certificate). The game only sends this from behind the parent gate. */
@@ -90,9 +91,10 @@ function App() {
     (async () => {
       const [save, af] = await Promise.all([AsyncStorage.getItem(SAVE_KEY), AsyncStorage.getItem(ADFREE_KEY)]);
       adFree.current = af === '1';
-      // The game also learns the platform (iOS has a lighter ad profile) and whether this build can show ads at all.
+      // The game also learns the platform (iOS has a lighter ad profile), whether this build can show ads at all,
+      // and whether it is the free version with the whole-island unlock (iOS).
       const adsOk = !!ads()?.available;
-      setBoot(`window.__CURIO_SAVE = ${save || '{}'}; window.__CURIO_PLATFORM = '${Platform.OS}'; window.__CURIO_ADS = ${adsOk}; true;`);
+      setBoot(`window.__CURIO_SAVE = ${save || '{}'}; window.__CURIO_PLATFORM = '${Platform.OS}'; window.__CURIO_ADS = ${adsOk}; window.__CURIO_LOCKS = ${CONFIG.locked}; true;`);
     })();
     try { NavigationBar.setVisibilityAsync('hidden').catch(() => {}); } catch (e) { reportError(e, 'Navigation bar'); }
     // Ads start a moment after launch so a problem there can never stop the app opening.
@@ -117,13 +119,14 @@ function App() {
     switch (m.t) {
       case 'ready':
         toGame({ t: 'adFree', value: adFree.current, price: price.current });
-        try { billing()?.initPurchases(setAdFree).catch(e => reportError(e, 'Purchases')); } catch (e) { reportError(e, 'Purchases'); }
+        try { billing()?.initPurchases(setAdFree, end => toGame({ t: 'trial', end })).catch(e => reportError(e, 'Purchases')); } catch (e) { reportError(e, 'Purchases'); }
         break;
       case 'save': AsyncStorage.setItem(SAVE_KEY, JSON.stringify(m.data)).catch(() => {}); break;
       case 'interstitial': if (!adFree.current) { setAdCover(true); if (!ads()?.showInterstitial(() => setAdCover(false))) setAdCover(false); } break;
       case 'banner': setBanner(adFree.current ? 'off' : m.mode); break;
       case 'rewarded': { const a = ads(); setAdCover(true); const ok = adFree.current || !a ? false : await a.showRewarded(); setAdCover(false); toGame({ t: 'rewarded', id: m.id, ok }); break; }
       case 'buyAdFree': { const b = billing(); const r = b ? await b.buyAdFree() : { ok: false, message: 'Purchases are not available right now.' }; if (r.ok) setAdFree(true); toGame({ t: 'purchase', ok: r.ok, message: r.message }); break; }
+      case 'startTrial': { const b = billing(); const r = b ? await b.startTrial() : { ok: false, end: 0, message: 'Purchases are not available right now.' }; if (r.end) toGame({ t: 'trial', end: r.end }); if (!r.ok) toGame({ t: 'purchase', ok: false, message: r.message }); break; }
       case 'restore': { const b = billing(); const ok = b ? await b.restoreAdFree() : false; if (ok) setAdFree(true); toGame({ t: 'purchase', ok, message: ok ? undefined : `No earlier purchase was found on this ${Platform.OS === 'ios' ? 'Apple Account' : 'Google account'}.` }); break; }
       case 'openUrl': if (OPEN_OK.test(m.url)) Linking.openURL(m.url).catch(() => {}); break;
       case 'share': if (typeof m.text === 'string' && m.text.length < 600 && (!m.png || m.png.length < 3_000_000)) void shareOut(m.text, m.png); break;

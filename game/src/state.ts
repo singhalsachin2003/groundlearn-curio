@@ -58,6 +58,8 @@ export interface Shell {
   seenRules?: boolean;
   /** 'given' or 'skipped' once a grown-up has answered the email question (the address itself is never kept on the device). */
   parentEmail?: 'given' | 'skipped';
+  /** When the free 7-day trial ends (ms since 1970), as the store reports it; 0 or missing = never started. iOS only. */
+  trialEnd?: number;
 }
 
 /** Tunable numbers from the plan. Change here, nowhere else. */
@@ -80,6 +82,9 @@ export const RULES = {
   ads: { quietStartSec: 180, gapSec: 180, levelGapSec: 150, maxPerSession: 8 },
   /** iOS (Apple Kids Category) is lighter: full-screen ads only after a finished level, further apart, fewer per session; no banner, no double-coins ad. */
   adsIos: { levelGapSec: 300, maxPerSession: 4 },
+  /** Free version (iOS until the island is unlocked or during the trial): levels per lab, and discoveries per discovery lab. */
+  freeLevels: 2,
+  freeFinds: 5,
 };
 
 const SHELL_KEY = 'gl:shell';

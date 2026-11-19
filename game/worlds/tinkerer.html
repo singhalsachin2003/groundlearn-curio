@@ -325,6 +325,9 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 stage.appendChild(renderer.domElement);
 window.__curioDispose = () => { try { renderer.forceContextLoss(); renderer.dispose(); } catch (e) {} };
 const CURIO = window.curio || null;
+/* Curio app: the free version asks the island before a level starts or a discovery is kept (see app.ts levelOpen / findOpen). */
+function lvGate(lab, i) { var c = window.curio; return c && c.levelOpen ? c.levelOpen(lab, i) : i; }
+function findGate(lab, have) { var c = window.curio; return !(c && c.findOpen) || c.findOpen(lab, have); }
 // Tries: labs with no questions still have a goal. Each level gives a few free tries; each extra miss costs a heart.
 const TRIES = {};
 // Curio app: "Show me" plays a level's solution. While it runs, moves cost nothing.
@@ -596,7 +599,7 @@ games.atom = (function () {
       primary: last ? { label: 'Done' } : { label: 'Next molecule', fn: () => setLevel(li + 1) }, secondary: last ? null : { label: 'Stay here', fn: () => {} }
     }), reduce ? 0 : 700);
   }
-  function setLevel(i) {
+  function setLevel(i) { i = lvGate('atom', i);
     li = clamp(i, 0, ATOM.length - 1); P.atomLevel = li; persist(); resetTries('atom'); clearAll(); renderMission(); status();
   }
   function update(dt, now) {
@@ -763,7 +766,7 @@ games.kitchen = (function () {
         const a = Math.random() * 6.28, rr = Math.random() * 0.75; m.position.set(Math.cos(a) * rr, 0.25 + Math.random() * Math.max(0.5, liqH - 0.3), Math.sin(a) * rr); m.userData = { ph: Math.random() * 6, y0: m.position.y }; stuff.add(m);
       }
     } else { sfx.no(); wobble = performance.now(); }
-    const fresh = r.id && !P.kitchenFound.has(r.id);
+    const fresh = r.id && !P.kitchenFound.has(r.id) && findGate('kitchen', P.kitchenFound.size);
     if (fresh) { P.kitchenFound.add(r.id); persist(); }
     $('kRead').innerHTML = `<b>${r.title}</b> ${r.text}`;
     renderUI(); renderMission();
@@ -907,7 +910,7 @@ games.mirror = (function () {
       primary: last ? { label: 'Done' } : { label: 'Next level', fn: () => setLevel(li + 1) }, secondary: last ? null : { label: 'Stay here', fn: () => {} }
     }), reduce ? 0 : 700);
   }
-  function setLevel(i) {
+  function setLevel(i) { i = lvGate('mirror', i);
     li = clamp(i, 0, MIR.length - 1); L = MIR[li]; P.mirrorLevel = li; persist(); resetTries('mirror'); placed = new Map(); won = false; buildBoard(); retrace(); renderMission();
   }
   function cell(x, y) {
@@ -1052,7 +1055,7 @@ games.coord = (function () {
       primary: last ? { label: 'Done' } : { label: 'Next picture', fn: () => setLevel(li + 1) }, secondary: last ? null : { label: 'Stay here', fn: () => {} }
     }), reduce ? 0 : 900);
   }
-  function setLevel(i) {
+  function setLevel(i) { i = lvGate('coord', i);
     li = clamp(i, 0, PICS.length - 1); pic = PICS[li]; pts = flatPts(pic); P.coordLevel = li; persist(); n = 0; sel = null; won = false; ring.visible = false; ghost.visible = false; build(); renderMission();
   }
   function tap(ray) {
@@ -1172,7 +1175,7 @@ games.pea = (function () {
       primary: last ? { label: 'Done' } : { label: 'Next cross', fn: () => setLevel(li + 1) }, secondary: last ? null : { label: 'Stay here', fn: () => {} }
     }), reduce ? 0 : 700);
   }
-  function setLevel(i) { li = clamp(i, 0, PEA.length - 1); L = PEA[li]; P.peaLevel = li; persist(); resetTries('pea'); p1 = p2 = null; crossed = null; won = false; busy = false; draw(); renderUI(); renderMission(); }
+  function setLevel(i) { i = lvGate('pea', i); li = clamp(i, 0, PEA.length - 1); L = PEA[li]; P.peaLevel = li; persist(); resetTries('pea'); p1 = p2 = null; crossed = null; won = false; busy = false; draw(); renderUI(); renderMission(); }
   function update() {}
   function fit(w, h, top, bottom) {
     Object.assign(view, { w, h, top, bottom });
@@ -1271,7 +1274,7 @@ games.chain = (function () {
       primary: last ? { label: 'Done' } : { label: 'Next chain', fn: () => setLevel(li + 1) }, secondary: last ? null : { label: 'Stay here', fn: () => {} }
     }), reduce ? 0 : 600);
   }
-  function setLevel(i) { li = clamp(i, 0, CHAINS.length - 1); L = CHAINS[li]; P.chainLevel = li; persist(); build(); renderMission(); fit(view.w, view.h, view.top, view.bottom); }
+  function setLevel(i) { i = lvGate('chain', i); li = clamp(i, 0, CHAINS.length - 1); L = CHAINS[li]; P.chainLevel = li; persist(); build(); renderMission(); fit(view.w, view.h, view.top, view.bottom); }
   function update() {}
   function fit(w, h, top, bottom) {
     Object.assign(view, { w, h, top, bottom });
