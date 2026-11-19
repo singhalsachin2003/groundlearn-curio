@@ -1,4 +1,4 @@
-// Messages between the game (this web page) and the Android app around it.
+// Messages between the game (this web page) and the Android or iOS app around it.
 // In a plain browser there is no app, so ads and purchases are simulated for testing.
 
 export type ToNative =
@@ -22,6 +22,14 @@ export type FromNative =
 interface RNWebView { postMessage(s: string): void }
 const rn = (window as unknown as { ReactNativeWebView?: RNWebView }).ReactNativeWebView;
 export const inApp = !!rn;
+
+// Set by the app before the page loads (App.tsx boot script).
+const W = window as unknown as { __CURIO_PLATFORM?: string; __CURIO_ADS?: boolean };
+/** Running inside the iOS app: a lighter ad profile (Apple Kids Category). */
+export const isIOS = W.__CURIO_PLATFORM === 'ios';
+/** False when the app around the game cannot show ads (the iOS build until its kids-certified
+ * network is added): every ad offer and the Ad-free upgrade are then hidden. In a browser, ads are simulated. */
+export const adsOn = W.__CURIO_ADS !== false;
 
 const handlers: ((m: FromNative) => void)[] = [];
 export function onNative(fn: (m: FromNative) => void) { handlers.push(fn); }

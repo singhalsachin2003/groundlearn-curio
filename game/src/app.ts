@@ -4,7 +4,7 @@ import { t, setLang, getLang, type Key } from './i18n';
 import { applyUiScale, uiScale } from './scale';
 import { LABS, COMING, NEW_LABS, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
 import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
-import { send, onNative, inApp } from './native';
+import { send, onNative, inApp, isIOS, adsOn } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
 import { mascot, chestSvg, setOutfit, MASCOT, WEAR, type Mood } from './mascot';
 import { createIsland, ZONE_OF, GROWTH, type Island, type ZoneId, type ZoneState } from './island';
@@ -34,6 +34,8 @@ let root: HTMLElement;
 let frame: HTMLIFrameElement | null = null;
 let current: { lab: Lab; world: WorldId; pid: string } | null = null;
 const sessionStart = Date.now();
+/** Reward ads may be offered: this build has ads and a grown-up has not turned them off. */
+const rewardsOn = () => adsOn && S.adsForHearts;
 let lastOut = 0, lastAd = 0, adsShown = 0, levelThisVisit = false, bannerMode = 'off', bannerTimer = 0;
 let price = '₹99';
 let island: Island | null = null;
@@ -93,7 +95,7 @@ export function start(el: HTMLElement) {
     /** A world asks before showing a hint. Free hints first; then an optional ad; hints never become unavailable. */
     hint(open: () => void) {
       const p = active();
-      if (!p || S.adFree || p.band === 'explorer' || !S.adsForHearts) { open(); return; }
+      if (!p || S.adFree || p.band === 'explorer' || !rewardsOn()) { open(); return; }
       const c = hintCounts(p);
       if (c.free < RULES.freeHintsPerDay) { hintUse(p, 'free'); saveShell(); open(); if (c.free + 1 === RULES.freeHintsPerDay) toast(t('hintLastFree')); return; }
       if (c.ads >= RULES.adHintsPerDay) { open(); return; }
@@ -102,7 +104,8 @@ export function start(el: HTMLElement) {
     /** "Show me" plays the level's solution. It always costs a reward ad (never a free hint), except for families who bought Ad-free. */
     showMe(open: () => void) {
       const p = active();
-      if (!p || S.adFree) { open(); return; }
+      // A build without ads cannot ask for one, so "Show me" is simply free there.
+      if (!p || S.adFree || !adsOn) { open(); return; }
       if (!S.adsForHearts) { toast(t('showOff'), 'bad'); return; }
       if (hintCounts(p).ads >= RULES.adHintsPerDay) { toast(t('showCap'), 'bad'); return; }
       hintAsk(p, open, true);
@@ -327,7 +330,8 @@ function buddyTap() {
 function canDouble(p: Profile) {
   if (p.band === 'explorer') return false;
   if (S.adFree) return true;
-  return S.adsForHearts && (p.dblDay === today() ? p.dblN || 0 : 0) < RULES.doubleAdsPerDay;
+  // The lighter iOS profile has no "double my coins" ad.
+  return !isIOS && rewardsOn() && (p.dblDay === today() ? p.dblN || 0 : 0) < RULES.doubleAdsPerDay;
 }
 function doubleCoins(p: Profile, n: number, btn: HTMLButtonElement, done: () => void) {
   const pay = () => { addCoins(p, n); toast(t('dblGot').replace('{n}', String(n))); fx('coin'); confetti(reduceMotion); refreshPills(); done(); };
@@ -512,23 +516,25 @@ function leaveWorld() {
   maybeInterstitial(finished);
 }
 
-/** Ads only at natural breaks: leaving a lab (sooner after a finished level). None in the first minutes, spaced out, capped per session. */
+/** Ads only at natural breaks: leaving a lab (sooner after a finished level). None in the first minutes, spaced out, capped per session.
+ * iOS is lighter: only after a finished level, further apart and fewer per session. */
 function maybeInterstitial(afterLevel = false) {
-  if (S.adFree || !inApp) return;
+  if (S.adFree || !inApp || !adsOn) return;
+  if (isIOS && !afterLevel) return;
   const now = Date.now();
   if (now - sessionStart < RULES.ads.quietStartSec * 1000) return;
-  if (adsShown >= RULES.ads.maxPerSession) return;
-  const gap = (afterLevel ? RULES.ads.levelGapSec : RULES.ads.gapSec) * 1000;
+  if (adsShown >= (isIOS ? RULES.adsIos.maxPerSession : RULES.ads.maxPerSession)) return;
+  const gap = (isIOS ? RULES.adsIos.levelGapSec : afterLevel ? RULES.ads.levelGapSec : RULES.ads.gapSec) * 1000;
   if (lastAd && now - lastAd < gap) return;
   lastAd = now; adsShown++; send({ t: 'interstitial' });
 }
 
-/** A small banner under the island hub and Parent Corner only: never in a lab, never in the first minutes, never with Ad-free.
+/** A small banner under the island hub and Parent Corner only (Android; iOS has no banner): never in a lab, never in the first minutes, never with Ad-free.
  * Its space is kept from the moment the hub shows, so nothing moves under a child's finger when the ad arrives. */
 function syncBanner(hubShown: boolean) {
   clearTimeout(bannerTimer);
   const parentOpen = !$('#sheet').hidden && $('#sheet').dataset.kind === 'parent';
-  const want = (hubShown || parentOpen) && !S.adFree && inApp;
+  const want = (hubShown || parentOpen) && !S.adFree && inApp && adsOn && !isIOS;
   const wait = RULES.ads.quietStartSec * 1000 - (Date.now() - sessionStart);
   const mode: 'off' | 'space' | 'ad' = !want ? 'off' : wait > 0 ? 'space' : 'ad';
   if (want && wait > 0) bannerTimer = window.setTimeout(() => syncBanner(!$('#islandHost').hidden), wait + 500);
@@ -575,12 +581,12 @@ function heartsInfo() {
 let adId = 0;
 function outOfHearts() {
   const p = active(); if (!p) return; regen(p);
-  const left = adHeartsLeft(p), canAd = S.adsForHearts && !S.adFree && left > 0;
+  const left = adHeartsLeft(p), canAd = rewardsOn() && !S.adFree && left > 0;
   sheet('out', `<div class="big-ic lion">${mascot('sleep')}</div><h2>${t('outTitle')}</h2><p>${t('outBody')}</p><p class="muted">${t('chestRest')}</p>
     <p class="muted">${t('waitIn')} <b id="ohTimer">${mmss(msToNextHeart(p))}</b></p>
     <div class="col-btns">
       <button class="btn" id="ohBuy" ${p.coins < RULES.heartCost ? 'disabled' : ''}><i class="coin" aria-hidden="true"></i>${(p.coins < RULES.heartCost ? t('needCoins') : t('buyHeart')).replace('{cost}', String(RULES.heartCost))}</button>
-      ${S.adsForHearts && !S.adFree ? `<button class="btn" id="ohAd" ${canAd ? '' : 'disabled'}>▶ ${left > 0 ? `${t('watchAd')} (${left} ${t('adsLeft')})` : t('noAdsLeft')}</button>` : ''}
+      ${rewardsOn() && !S.adFree ? `<button class="btn" id="ohAd" ${canAd ? '' : 'disabled'}>▶ ${left > 0 ? `${t('watchAd')} (${left} ${t('adsLeft')})` : t('noAdsLeft')}</button>` : ''}
       <button class="btn primary" data-close>${t('keepExploring')}</button>
     </div>`);
   $('#ohBuy').onclick = () => { if (buyHeart(p)) { toast(`+1 ❤️ ${t('gotHeart')}`); refreshPills(); closeSheet(); } };
@@ -753,9 +759,9 @@ function parentCorner() {
   }).join('');
   sheet('parent', `<h2>${t('parentCorner')}</h2>
     <div class="pc">
-      <section><h3>${t('adFree')}</h3>${S.adFree ? `<p>${t('adFreeOwned')}</p>` : `<p class="muted">${t('adFreeNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('adFreeBuy')} · ${esc(price)}</button></div>`}
-        <button class="link" id="pcRestore">${t('restore')}</button></section>
-      <section class="kv"><span><b>${t('adHearts')}</b><small>${t('adHeartsNote')}</small></span>${toggle('pcAdH', S.adsForHearts)}</section>
+      ${adsOn || S.adFree ? `<section><h3>${t('adFree')}</h3>${S.adFree ? `<p>${t('adFreeOwned')}</p>` : `<p class="muted">${t('adFreeNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('adFreeBuy')} · ${esc(price)}</button></div>`}
+        <button class="link" id="pcRestore">${t('restore')}</button></section>` : ''}
+      ${adsOn ? `<section class="kv"><span><b>${t('adHearts')}</b><small>${t('adHeartsNote')}</small></span>${toggle('pcAdH', S.adsForHearts)}</section>` : ''}
       <section class="kv"><span><b>${t('sound')}</b></span>${toggle('pcSound', S.sound)}</section>
       <section class="kv"><span><b>${t('voice')}</b></span>${toggle('pcVoice', S.voice !== false)}</section>
       <section class="kv"><span><b>${t('musicLbl')}</b></span>${toggle('pcMusic', S.music !== false)}</section>
@@ -768,8 +774,8 @@ function parentCorner() {
     </div>
     <div class="row-btns"><button class="btn primary" data-close>${t('close')}</button></div>`);
   document.getElementById('pcBuy')?.addEventListener('click', () => emailAsk());
-  $('#pcRestore').onclick = () => send({ t: 'restore' });
-  $('#pcAdH').onclick = () => { S.adsForHearts = !S.adsForHearts; saveShell(); parentCorner(); };
+  document.getElementById('pcRestore')?.addEventListener('click', () => send({ t: 'restore' }));
+  document.getElementById('pcAdH')?.addEventListener('click', () => { S.adsForHearts = !S.adsForHearts; saveShell(); parentCorner(); });
   $('#pcSound').onclick = () => { S.sound = !S.sound; saveShell(); music(!$('#islandHost').hidden && S.sound && S.music !== false); parentCorner(); };
   $('#pcVoice').onclick = () => { S.voice = S.voice === false; saveShell(); parentCorner(); };
   $('#pcMusic').onclick = () => { S.music = S.music === false; saveShell(); music(!$('#islandHost').hidden && S.sound && S.music !== false); parentCorner(); };

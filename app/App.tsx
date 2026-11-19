@@ -90,7 +90,9 @@ function App() {
     (async () => {
       const [save, af] = await Promise.all([AsyncStorage.getItem(SAVE_KEY), AsyncStorage.getItem(ADFREE_KEY)]);
       adFree.current = af === '1';
-      setBoot(`window.__CURIO_SAVE = ${save || '{}'}; true;`);
+      // The game also learns the platform (iOS has a lighter ad profile) and whether this build can show ads at all.
+      const adsOk = !!ads()?.available;
+      setBoot(`window.__CURIO_SAVE = ${save || '{}'}; window.__CURIO_PLATFORM = '${Platform.OS}'; window.__CURIO_ADS = ${adsOk}; true;`);
     })();
     try { NavigationBar.setVisibilityAsync('hidden').catch(() => {}); } catch (e) { reportError(e, 'Navigation bar'); }
     // Ads start a moment after launch so a problem there can never stop the app opening.

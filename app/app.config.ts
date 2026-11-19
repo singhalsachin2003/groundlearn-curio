@@ -1,7 +1,15 @@
 import type { ExpoConfig } from 'expo/config';
+import { withInfoPlist, type ConfigPlugin } from 'expo/config-plugins';
 
 // Curio Island's AdMob app (singhalsachin2003@gmail.com).
 const ADMOB_APP_ID = 'ca-app-pub-4560268294594538~5396479019';
+
+/** Removes the Google Mobile Ads keys from the iOS Info.plist (AdMob is Android-only).
+ * Registered on the config itself, before the `plugins` list, so its mod runs after theirs. */
+const withoutIosAdMob: ConfigPlugin = c => withInfoPlist(c, mod => {
+  for (const k of ['GADApplicationIdentifier', 'GADDelayAppMeasurementInit', 'SKAdNetworkItems', 'NSUserTrackingUsageDescription']) delete mod.modResults[k];
+  return mod;
+});
 
 const config: ExpoConfig = {
   name: 'Curio Island',
@@ -43,9 +51,11 @@ const config: ExpoConfig = {
     predictiveBackGestureEnabled: false,
   },
   plugins: [
-    // iosAppId is Google's sample id. The iOS ad model is not decided yet (Apple's Kids
-    // Category rules: see the iOS launch plan); set the real id only if iOS keeps ads.
-    ['react-native-google-mobile-ads', { androidAppId: ADMOB_APP_ID, iosAppId: 'ca-app-pub-3940256099942544~1458002511' }],
+    // AdMob is Android-only. The iOS app is in Apple's Kids Category, where only
+    // kids-certified ad networks are allowed, so the SDK is not linked on iOS
+    // (react-native.config.js), the JS never imports it there (src/ads.ts) and
+    // withoutIosAdMob (applied at the bottom) removes the Info.plist keys the plugin adds.
+    ['react-native-google-mobile-ads', { androidAppId: ADMOB_APP_ID }],
     // Expo SDK 58 turns on R8 code shrinking by default, and it strips the WorkManager
     // database the Google ads SDK opens at startup: the app crashed before showing anything.
     ['expo-build-properties', {
@@ -59,4 +69,4 @@ const config: ExpoConfig = {
   ],
   extra: { eas: { projectId: 'ea37f0fa-bfc2-4133-816f-5065afa09f01' } },
 };
-export default config;
+export default withoutIosAdMob(config);

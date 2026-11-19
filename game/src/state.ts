@@ -78,6 +78,8 @@ export const RULES = {
   /** Daily treasure chest: coins for chest 1 to 7, then the week repeats. Always shown up front, never random. */
   chest: [15, 15, 25, 20, 20, 30, 60],
   ads: { quietStartSec: 180, gapSec: 180, levelGapSec: 150, maxPerSession: 8 },
+  /** iOS (Apple Kids Category) is lighter: full-screen ads only after a finished level, further apart, fewer per session; no banner, no double-coins ad. */
+  adsIos: { levelGapSec: 300, maxPerSession: 4 },
 };
 
 const SHELL_KEY = 'gl:shell';

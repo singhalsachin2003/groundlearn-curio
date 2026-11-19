@@ -1,57 +1,20 @@
-// Child-directed AdMob ads: non-personalised, G-rated, never at launch.
-// Interstitials only when the game asks (at a natural break); rewarded ads only when
-// the child taps "watch an ad for a heart".
-import mobileAds, { AdEventType, AgeRestrictedTreatment, InterstitialAd, MaxAdContentRating, RewardedAd, RewardedAdEventType } from 'react-native-google-mobile-ads';
-import { CONFIG } from './config';
+// No-ads build: used on iOS (and anywhere without an ads.<platform>.ts). Android picks
+// ads.android.ts (AdMob) instead; Metro prefers the platform file, so this one never
+// ships there and the iOS bundle never imports react-native-google-mobile-ads.
+//
+// iOS is published in Apple's Kids Category, where only kids-certified ad networks are
+// allowed (guideline 1.3). The planned network is SuperAwesome (AwesomeAds,
+// https://www.superawesome.com/superawesome-ad-standards). Until its placement ids
+// exist and a native module is added, iOS shows no ads at all and every ad request
+// answers "not available", so the game hides ad offers instead of showing dead buttons.
 
-const REQUEST = { requestNonPersonalizedAdsOnly: true };
-let ready = false;
-let interstitial: InterstitialAd | null = null;
-let interstitialLoaded = false;
+/** Whether this build can show ads at all. The game hides ad offers when false. */
+export const available = false;
 
-export async function initAds() {
-  if (ready) return;
-  await mobileAds().setRequestConfiguration({
-    maxAdContentRating: MaxAdContentRating.G,
-    ageRestrictedTreatment: AgeRestrictedTreatment.CHILD,
-  });
-  await mobileAds().initialize();
-  ready = true;
-  loadInterstitial();
-}
+export async function initAds() {}
 
-function loadInterstitial() {
-  interstitial = InterstitialAd.createForAdRequest(CONFIG.interstitialId, REQUEST);
-  interstitialLoaded = false;
-  interstitial.addAdEventListener(AdEventType.LOADED, () => { interstitialLoaded = true; });
-  interstitial.addAdEventListener(AdEventType.CLOSED, () => loadInterstitial());
-  interstitial.addAdEventListener(AdEventType.ERROR, () => { interstitialLoaded = false; setTimeout(loadInterstitial, 60_000); });
-  interstitial.load();
-}
+/** Nothing to show: callers carry on as if the ad was skipped. */
+export function showInterstitial(_onDone?: () => void): boolean { return false; }
 
-/** Show the waiting interstitial if one is ready; otherwise skip quietly. */
-export function showInterstitial(onDone?: () => void): boolean {
-  if (!ready || !interstitial || !interstitialLoaded) return false;
-  interstitialLoaded = false;
-  const ad = interstitial, off = ad.addAdEventListener(AdEventType.CLOSED, () => { off(); onDone?.(); });
-  ad.show().catch(() => { off(); onDone?.(); loadInterstitial(); });
-  return true;
-}
-
-/** Load and show a rewarded ad. Resolves true only if the child watched it to the reward. */
-export function showRewarded(): Promise<boolean> {
-  return new Promise(resolve => {
-    if (!ready) { resolve(false); return; }
-    const ad = RewardedAd.createForAdRequest(CONFIG.rewardedId, REQUEST);
-    let earned = false, done = false;
-    const finish = (ok: boolean) => { if (done) return; done = true; clearTimeout(timer); unsub.forEach(u => u()); resolve(ok); };
-    const timer = setTimeout(() => finish(false), 15_000); // no fill: give up rather than keep the child waiting
-    const unsub = [
-      ad.addAdEventListener(RewardedAdEventType.LOADED, () => { clearTimeout(timer); ad.show().catch(() => finish(false)); }),
-      ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => { earned = true; }),
-      ad.addAdEventListener(AdEventType.CLOSED, () => finish(earned)),
-      ad.addAdEventListener(AdEventType.ERROR, () => finish(false)),
-    ];
-    ad.load();
-  });
-}
+/** No rewarded ads in this build: the child never gets a reward for an ad that cannot play. */
+export function showRewarded(): Promise<boolean> { return Promise.resolve(false); }
