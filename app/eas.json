@@ -5,5 +5,8 @@
     "preview": { "distribution": "internal", "android": { "buildType": "apk" }, "env": { "EXPO_PUBLIC_TEST_ADS": "1" } },
     "production": { "autoIncrement": true, "android": { "buildType": "app-bundle" } }
   },
-  "submit": { "production": { "android": { "track": "internal", "releaseStatus": "draft" } } }
+  "submit": {
+    "production": { "android": { "track": "internal", "releaseStatus": "draft" } },
+    "closed": { "android": { "track": "alpha", "releaseStatus": "draft" } }
+  }
 }
