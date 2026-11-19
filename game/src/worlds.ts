@@ -87,6 +87,44 @@ const GLOW: Record<WorldId, string> = {
   inventor2: drift('✨', '21%') + 'html body #stage:not(:has(canvas)){background:radial-gradient(80% 70% at 50% 40%,rgba(255,255,255,.11),rgba(255,255,255,.03));border:2px solid rgba(255,255,255,.14);border-radius:22px;padding:10px;box-sizing:border-box}',
 };
 
+// Phones in landscape: the worlds were laid out for a tall screen, so on a short wide one the
+// cards covered the scene. Put the cards in a column on the left and the scene beside them.
+const SIDE_Q = '@media (orientation:landscape) and (max-height:520px)';
+const BENCH_SIDE = `html body{--side:min(50vw,440px)}
+html body #stage{left:var(--side)}
+html body .hud{right:auto;width:var(--side);box-sizing:border-box}
+html body .hud-top .mission{max-width:none;padding:8px 12px 10px}
+html body .mission p,html body #mText{font-size:15px;line-height:1.35}
+html body .hud-bottom{align-items:stretch}
+html body .dock{width:100%;padding:8px 10px 10px;gap:7px}
+html body .dock .btn{min-height:40px;padding-block:6px}
+html body .hud-top .mission{max-height:calc(62vh - 62px);max-height:calc(62dvh - 62px);overflow-y:auto;overscroll-behavior:contain}
+html body .dock{max-height:calc(100vh - var(--mtop,200px) - 22px);max-height:calc(100dvh - var(--mtop,200px) - 22px);overflow-y:auto;overscroll-behavior:contain}`;
+const SIDE: Record<WorldId, string> = {
+  inventor: BENCH_SIDE,
+  tinkerer: BENCH_SIDE,
+  colour: `html body{--side:min(44vw,400px)}
+html body #stage{left:var(--side)}
+html body .hud{right:auto;width:var(--side);box-sizing:border-box}
+html body .hud-bottom{align-items:stretch}
+html body .mixbar{max-width:none}
+html body .actions{justify-content:flex-start}`,
+  inventor2: `html body{--side:min(50vw,440px)}
+html body #app{display:grid;grid-template-columns:var(--side) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);column-gap:14px;row-gap:8px;padding-top:calc(env(safe-area-inset-top,0px) + 62px)}
+html body #mission{grid-column:1;grid-row:1;max-width:none}
+html body #ctrl{grid-column:1;grid-row:2;max-width:none;overflow-y:auto;align-self:start;max-height:100%}
+html body #stage{grid-column:2;grid-row:1 / span 2;max-width:none;height:100%;align-self:stretch}
+html body #stage canvas{width:auto;height:auto;max-width:100%;max-height:100%}`,
+  explorer: `html body #app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:16px;align-items:center;justify-items:center;padding-top:calc(env(safe-area-inset-top,0px) + 58px)}
+html body #top{grid-column:1;grid-row:1;max-width:none;min-height:44px}
+html body #goal{grid-column:1;grid-row:2;margin:4px 0 0;font-size:20px;padding:6px 14px}
+html body #goal b{font-size:34px}
+html body #tray{grid-column:1;grid-row:3;align-self:center;gap:10px}
+html body #scene{grid-column:2;grid-row:1 / span 3;height:100%;margin:0}
+html body .big{width:84px;height:84px;font-size:42px}
+html body .big small{font-size:11px}`,
+};
+
 // On a tablet the world's iframe is laid out at 1/scale and scaled up (see scale.ts), so
 // canvases are told the real pixel density and stay sharp instead of being stretched.
 const BOOT = `(function(){var P=window.parent;try{var U=parseFloat(P.getComputedStyle(P.document.documentElement).getPropertyValue('--ui'))||1;if(U>1){var D=Math.min(3,(P.devicePixelRatio||1)*U);Object.defineProperty(window,'devicePixelRatio',{configurable:true,get:function(){return D}});}}catch(e){}window.THREE=P.curioTHREE;window.curio=P.curioWorld;
@@ -100,7 +138,7 @@ export function worldDoc(id: WorldId): string {
   const at = src.indexOf('<script>');
   if (at < 0) throw new Error('world has no main script: ' + id);
   src = src.slice(0, at) + '<script type="text/curio" id="curio-main">' + src.slice(at + '<script>'.length);
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><script>${BOOT}<\/script><style>${id === 'colour' ? '' : POLISH}${GLOW[id]}${KID_WORLDS.includes(id) ? KIDUI : ''}${HIDE[id]}</style></head><body>${src}</body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><script>${BOOT}<\/script><style>${id === 'colour' ? '' : POLISH}${GLOW[id]}${KID_WORLDS.includes(id) ? KIDUI : ''}${HIDE[id]}${SIDE_Q}{${SIDE[id]}}</style></head><body>${src}</body></html>`;
 }
 
 export interface WorldWindow extends Window { __curioDispose?: () => void; __curio?: unknown }

@@ -1321,7 +1321,10 @@ $('soundBtn').onclick = () => { P.sound = !P.sound; persist(); renderSound(); sf
 function fit() {
   const w = stage.clientWidth || innerWidth, h = stage.clientHeight || innerHeight;
   renderer.setSize(w, h, false);
-  const top = $('hudTop').getBoundingClientRect().bottom + 6, bottom = h - $('hudBottom').getBoundingClientRect().top + 6;
+  // Curio: phones in landscape put the cards beside the bench (worlds.ts), so the scene uses the full height below the app's top bar.
+  const side = matchMedia('(orientation:landscape) and (max-height:520px)').matches;
+  const top = side ? 62 : $('hudTop').getBoundingClientRect().bottom + 6, bottom = side ? 8 : h - $('hudBottom').getBoundingClientRect().top + 6;
+  if (side) document.documentElement.style.setProperty('--mtop', Math.round($('hudTop').getBoundingClientRect().bottom) + 'px'); // the controls fill the space under the mission card
   Object.values(games).forEach(g => g.fit(w, h, top, bottom));
 }
 window.addEventListener('resize', fit);

@@ -186,8 +186,9 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
     (scene.fog as THREE.Fog).near = hi + 8; (scene.fog as THREE.Fog).far = hi + 40;
     // Bigger signs when the island is drawn small (phones in portrait). The island fills the
     // width in portrait, so on a tablet the boost shrinks back towards the tablet's UI scale;
-    // in landscape the signs grow with the UI scale, like the rest of the hub.
-    signScale = portrait ? Math.min(1.6, Math.max(1, 1.6 * 520 * ui / w)) : Math.min(1.6, ui); refDist = hi; scaleSigns();
+    // in landscape the signs grow with the UI scale, like the rest of the hub, and get the
+    // phone boost back on a phone held sideways, where the island is drawn small again.
+    signScale = portrait ? Math.min(1.6, Math.max(1, 1.6 * 520 * ui / w)) : (h < 520 ? 2.2 : Math.min(1.6, ui)); refDist = hi; scaleSigns();
   }
   // Signs keep the same size on screen whether the workshop is at the front or the back of the island.
   let refDist = 10; const sp = new THREE.Vector3();
