@@ -1,11 +1,13 @@
 """App Store screenshots for Curio Island: iPhone 6.9" (1320x2868) and iPad 13" (2752x2064 landscape).
-Run after `npm run build`: python3 -I scripts/store_screenshots.py <out-dir> iphone,ipad
+Run after `npm run build`: python3 -I scripts/store_screenshots.py <out-dir> iphone,ipad   (Play: a-phone,a-tab7,a-tab10)
 Then copy the picks into app/store/screenshots-ios/{iphone,ipad}/ (see the README there)."""
 import sys, pathlib, asyncio, json
 from playwright.async_api import async_playwright
 DIST = (pathlib.Path(__file__).resolve().parent.parent / 'dist' / 'index.html').read_text()
 OUT = pathlib.Path(sys.argv[1]); OUT.mkdir(parents=True, exist_ok=True)
-DEV = {'iphone': (440, 956, 3), 'ipad': (1376, 1032, 2)}
+DEV = {'iphone': (440, 956, 3), 'ipad': (1376, 1032, 2),
+       # Play: phone 1080x1920, 7" tablet 1920x1200, 10" tablet 2560x1600 (landscape, the way the labs play best)
+       'a-phone': (540, 960, 2), 'a-tab7': (960, 600, 2), 'a-tab10': (1280, 800, 2)}
 
 async def profile(pg, band, name):
     await pg.click('#pAdd'); await pg.fill('#npName', name); await pg.click(f'[data-band="{band}"]'); await pg.click('#npGo')
@@ -24,7 +26,7 @@ async def seed(pg):
     await pg.wait_for_timeout(1500)
 
 async def lab(pg, lab, show_ms=None, before=None):
-    await pg.click('#hAll', force=True); await pg.wait_for_selector(f'.sheet [data-lab="{lab}"]')
+    await pg.evaluate("document.getElementById('hAll').click()"); await pg.wait_for_selector(f'.sheet [data-lab="{lab}"]')
     await pg.click(f'.sheet [data-lab="{lab}"]'); await pg.wait_for_timeout(3500)
     await pg.evaluate("(() => { const w = document.getElementById('sheet'); if (!w.hidden) w.querySelector('[data-close]')?.click(); })()")
     if before: await pg.evaluate(before)
@@ -40,25 +42,25 @@ async def run(b, dev):
     w, h, s = DEV[dev]
     pg = await b.new_page(viewport={'width': w, 'height': h}, device_scale_factor=s, has_touch=True)
     errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
-    await pg.add_init_script("window.__CURIO_PLATFORM = 'ios'; window.__CURIO_ADS = false; window.__CURIO_LOCKS = true;")
+    await pg.add_init_script("window.__CURIO_PLATFORM = 'android'; window.__CURIO_ADS = false; window.__CURIO_LOCKS = false;" if dev.startswith('a-') else "window.__CURIO_PLATFORM = 'ios'; window.__CURIO_ADS = false; window.__CURIO_LOCKS = true;")
     await pg.route('https://curio.test/', lambda r: r.fulfill(body=DIST, content_type='text/html'))
     await pg.goto('https://curio.test/'); await pg.wait_for_selector('#obNext')
     for _ in range(2): await pg.click('#obNext')
     await pg.click('#ruOk')
     async def shot(n): await pg.screenshot(path=str(OUT / f'{dev}-{n}.png'), timeout=120000)
-    await profile(pg, 'inventor', 'Manan'); await seed(pg); await shot('hub')
-    await pg.click('#hAll', force=True); await pg.wait_for_timeout(700); await shot('all'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
+    await profile(pg, 'inventor', 'Alex'); await seed(pg); await shot('hub')
+    await pg.evaluate("document.getElementById('hAll').click()"); await pg.wait_for_timeout(700); await shot('all'); await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     for name, ms in [('forge', 2600), ('launch', 1500), ('circuit', 2200), ('light', 2000), ('body', None), ('genes', None)]:
         await lab(pg, name, ms); await shot(name); await back(pg)
     await lab(pg, 'colour'); await shot('colour'); await back(pg)
     await lab(pg, 'fraction'); await shot('fraction'); await back(pg)
     await lab(pg, 'moon'); await shot('moon'); await back(pg)
-    await pg.click('#hWho', force=True)
-    await pg.wait_for_selector('#pAdd'); await profile(pg, 'explorer', 'Aanya'); await seed(pg); await shot('hub-explorer')
+    await pg.evaluate("document.getElementById('hWho').click()")
+    await pg.wait_for_selector('#pAdd'); await profile(pg, 'explorer', 'Sam'); await seed(pg); await shot('hub-explorer')
     for name in ['fizz', 'seesaw', 'baby', 'count']:
         await lab(pg, name); await shot(name); await back(pg)
-    await pg.click('#hWho', force=True); await pg.wait_for_selector('#pAdd')
-    await profile(pg, 'tinkerer', 'Kabir'); await seed(pg); await shot('hub-tinkerer')
+    await pg.evaluate("document.getElementById('hWho').click()"); await pg.wait_for_selector('#pAdd')
+    await profile(pg, 'tinkerer', 'Jamie'); await seed(pg); await shot('hub-tinkerer')
     for name, ms in [('atom', None), ('mirror', 1800), ('coord', None), ('coins', None)]:
         await lab(pg, name, ms); await shot(name); await back(pg)
     print(dev, 'errors:', errs[:3]); await pg.close()
