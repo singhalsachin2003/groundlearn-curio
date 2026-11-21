@@ -4,7 +4,7 @@ import { t, setLang, getLang, type Key } from './i18n';
 import { applyUiScale, uiScale } from './scale';
 import { LABS, COMING, NEW_LABS, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
 import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
-import { send, onNative, inApp, isIOS, adsOn, locksOn } from './native';
+import { send, onNative, inApp, isIOS, isWeb, realAds, adsOn, locksOn } from './native';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang, loadWorld, preloadWorlds } from './worlds';
 import { mascot, chestSvg, setOutfit, MASCOT, WEAR, type Mood } from './mascot';
 import { createIsland, ZONE_OF, GROWTH, type Island, type ZoneId, type ZoneState } from './island';
@@ -563,8 +563,8 @@ function leaveWorld() {
 /** Ads only at natural breaks: leaving a lab (sooner after a finished level). None in the first minutes, spaced out, capped per session.
  * iOS is lighter: only after a finished level, further apart and fewer per session. */
 function maybeInterstitial(afterLevel = false) {
-  if (S.adFree || !inApp || !adsOn) return;
-  if (isIOS && !afterLevel) return;
+  if (S.adFree || !realAds || !adsOn) return;
+  if ((isIOS || isWeb) && !afterLevel) return; // web: only after a finished level, like iOS
   const now = Date.now();
   if (now - sessionStart < RULES.ads.quietStartSec * 1000) return;
   if (adsShown >= (isIOS ? RULES.adsIos.maxPerSession : RULES.ads.maxPerSession)) return;
@@ -578,7 +578,7 @@ function maybeInterstitial(afterLevel = false) {
 function syncBanner(hubShown: boolean) {
   clearTimeout(bannerTimer);
   const parentOpen = !$('#sheet').hidden && $('#sheet').dataset.kind === 'parent';
-  const want = (hubShown || parentOpen) && !S.adFree && inApp && adsOn && !isIOS;
+  const want = (hubShown || parentOpen) && !S.adFree && realAds && adsOn && !isIOS;
   const wait = RULES.ads.quietStartSec * 1000 - (Date.now() - sessionStart);
   const mode: 'off' | 'space' | 'ad' = !want ? 'off' : wait > 0 ? 'space' : 'ad';
   if (want && wait > 0) bannerTimer = window.setTimeout(() => syncBanner(!$('#islandHost').hidden), wait + 500);
@@ -848,7 +848,7 @@ function parentCorner() {
   }).join('');
   sheet('parent', `<h2>${t('parentCorner')}</h2>
     <div class="pc">
-      ${locksOn ? fullSection() : adsOn || S.adFree ? `<section><h3>${t('adFree')}</h3>${S.adFree ? `<p>${t('adFreeOwned')}</p>` : `<p class="muted">${t('adFreeNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('adFreeBuy')} · ${priceHtml()}</button></div>`}
+      ${locksOn ? fullSection() : !isWeb && (adsOn || S.adFree) ? `<section><h3>${t('adFree')}</h3>${S.adFree ? `<p>${t('adFreeOwned')}</p>` : `<p class="muted">${t('adFreeNote')}</p><div class="row-btns left"><button class="btn primary" id="pcBuy">${t('adFreeBuy')} · ${priceHtml()}</button></div>`}
         <button class="link" id="pcRestore">${t('restore')}</button></section>` : ''}
       ${adsOn ? `<section class="kv"><span><b>${t('adHearts')}</b><small>${t('adHeartsNote')}</small></span>${toggle('pcAdH', S.adsForHearts)}</section>` : ''}
       <section class="kv"><span><b>${t('sound')}</b></span>${toggle('pcSound', S.sound)}</section>

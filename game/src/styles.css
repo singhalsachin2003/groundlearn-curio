@@ -348,3 +348,9 @@ s.was{text-decoration-thickness:2px;opacity:.7;font-weight:600;margin-right:2px}
   .bubble{font-size:12px;padding:6px 9px;margin-bottom:18px}
   .home{padding-top:0;gap:8px}.hero{width:96px;height:96px}.logo b{font-size:32px}
 }
+
+/* Web version only: the small ad banner under the island and Parent Corner (webads.ts). The game's
+   screens stop above it, so it never covers anything a child taps. */
+.web-banner{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;align-items:flex-start;padding:5px 0 calc(5px + env(safe-area-inset-bottom,0px));background:#0d1328;border-top:1px solid rgba(255,255,255,.08)}
+.web-banner[hidden]{display:none}
+.screen,.island-host,.sheet-wrap{bottom:var(--webBanner,0px)}

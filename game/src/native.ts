@@ -22,12 +22,14 @@ export type FromNative =
   | { t: 'trial'; end: number }
   | { t: 'back' };
 
+import { initWebAds, webInterstitial, webRewarded, webBanner, type WebAdsConfig } from './webads';
+
 interface RNWebView { postMessage(s: string): void }
 const rn = (window as unknown as { ReactNativeWebView?: RNWebView }).ReactNativeWebView;
 export const inApp = !!rn;
 
 // Set by the app before the page loads (App.tsx boot script).
-const W = window as unknown as { __CURIO_PLATFORM?: string; __CURIO_ADS?: boolean; __CURIO_LOCKS?: boolean };
+const W = window as unknown as { __CURIO_PLATFORM?: string; __CURIO_ADS?: boolean; __CURIO_LOCKS?: boolean; __CURIO_WEBADS?: WebAdsConfig };
 /** Running inside the iOS app: a lighter ad profile (Apple Kids Category). */
 export const isIOS = W.__CURIO_PLATFORM === 'ios';
 /** False when the app around the game cannot show ads (the iOS build until its kids-certified
@@ -35,6 +37,12 @@ export const isIOS = W.__CURIO_PLATFORM === 'ios';
 export const adsOn = W.__CURIO_ADS !== false;
 /** Free version with a one-time "whole island" unlock and a 7-day trial (the iOS app). Android and the browser keep every level open. */
 export const locksOn = W.__CURIO_LOCKS === true;
+/** The public web version (groundlearn.com/play/curio-island/). */
+export const isWeb = !rn && W.__CURIO_PLATFORM === 'web';
+/** Real ads can be shown: in the app, or on the web once an ad client is set (otherwise the web shows no ad offers). */
+const webAds = isWeb && adsOn && !!W.__CURIO_WEBADS?.client;
+export const realAds = !!rn || webAds;
+if (webAds) initWebAds(W.__CURIO_WEBADS!);
 
 const handlers: ((m: FromNative) => void)[] = [];
 export function onNative(fn: (m: FromNative) => void) { handlers.push(fn); }
@@ -45,6 +53,11 @@ function deliver(m: FromNative) { handlers.forEach(h => h(m)); }
 
 export function send(m: ToNative) {
   if (rn) { rn.postMessage(JSON.stringify(m)); return; }
+  if (webAds) {
+    if (m.t === 'interstitial') { webInterstitial(); return; }
+    if (m.t === 'banner') { webBanner(m.mode); return; }
+    if (m.t === 'rewarded') { webRewarded(ok => deliver({ t: 'rewarded', id: m.id, ok })); return; }
+  }
   // Browser stand-ins so every flow can be tried without a phone.
   if (m.t === 'rewarded') setTimeout(() => deliver({ t: 'rewarded', id: m.id, ok: true }), 1200);
   if (m.t === 'buyAdFree' || m.t === 'restore') setTimeout(() => { deliver({ t: 'adFree', value: m.t === 'buyAdFree' }); deliver({ t: 'purchase', ok: m.t === 'buyAdFree' }); }, 600);

@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
+import { WEB_ADS } from './web-ads.config';
 
 // App build (default): everything (three.js, fonts, worlds, voices) is inlined into one HTML
 // file, because the Android and iOS apps load the game from a string with no file server.
@@ -69,7 +70,7 @@ function webHead(): Plugin {
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <style>html,body{background:#141c35;margin:0}#app:empty::before{content:"Loading Curio Island…";display:grid;place-items:center;height:100vh;color:#f6ecd6;font:600 18px system-ui,sans-serif}</style>
-<script>window.__CURIO_PLATFORM='web';window.__CURIO_ADS=false;</script>`)
+<script>window.__CURIO_PLATFORM='web';window.__CURIO_ADS=${!!WEB_ADS.client};window.__CURIO_WEBADS=${JSON.stringify(WEB_ADS)};</script>`)
         .replace('<div id="app"></div>', `<div id="app"></div>
 <noscript><p style="color:#fff;font:16px system-ui;padding:24px">Curio Island needs JavaScript turned on. <a style="color:#ffd166" href="https://curioisland.groundlearn.com/">About Curio Island</a></p></noscript>
 <script>if('serviceWorker'in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});</script>`);
