@@ -83,9 +83,14 @@ async def run_vp(b, name, w, h):
     hearts = await pg.inner_text('#hHearts'); check(hearts.strip().startswith('❤️ 1'), 'bought a heart for 600 coins')
     coins = await pg.inner_text('#hCoins'); check(coins.strip() == '45', f'coins after buying = {coins.strip()}')
     for _ in range(1): await pg.evaluate("window.curioWorld.answer(false)")
-    await pg.evaluate("window.curioWorld.canAnswer()"); await pg.wait_for_selector('#ohAd')
-    await pg.click('#ohAd'); await pg.wait_for_timeout(1600)
-    hearts = await pg.inner_text('#hHearts'); check(hearts.strip().startswith('❤️ 1'), 'watched an ad for a heart (browser stand-in)')
+    await pg.evaluate("window.curioWorld.canAnswer()"); await pg.wait_for_selector('.sheet #ohBuy')
+    if WEB:
+        # Web version with ads switched off: no ad offer at all (and no free stand-in reward).
+        check(await pg.locator('#ohAd').count() == 0, 'web: no "watch an ad" offer while web ads are off')
+        await pg.evaluate("(() => { window.__shell.active().hearts = 1; document.querySelector('#sheet [data-close]')?.click(); })()")
+    else:
+        await pg.click('#ohAd'); await pg.wait_for_timeout(1600)
+        hearts = await pg.inner_text('#hHearts'); check(hearts.strip().startswith('❤️ 1'), 'watched an ad for a heart (browser stand-in)')
     # Parent gate then Parent Corner.
     await pg.click('#hParent'); q = await pg.inner_text('.gate-q')
     W = {w: i for i, w in enumerate(['zero','one','two','three','four','five','six','seven','eight','nine'])}
@@ -94,8 +99,12 @@ async def run_vp(b, name, w, h):
     parts = a_txt.split('-'); a = T[parts[0]] + (W[parts[1]] if len(parts) > 1 else 0)
     await pg.fill('#gIn', str(a * W[b_txt])); await pg.click('#gOk')
     await pg.wait_for_selector('#pcAdH'); await shot('6-parent')
-    await pg.click('#pcBuy'); await pg.wait_for_selector('#emSkip'); await shot('6b-email'); await pg.fill('#emIn', 'nope'); await pg.click('#emGo'); check(await pg.locator('#emErr').is_visible(), 'bad email is refused'); await pg.click('#emSkip'); await pg.wait_for_timeout(900)
-    txt = await pg.inner_text('.sheet'); check('Ad-free is on' in txt, 'Ad-free purchase (browser stand-in)')
+    if WEB:
+        check(await pg.locator('#pcBuy').count() == 0, 'web: no Ad-free purchase in Parent Corner')
+        await pg.evaluate("window.curioNative.receive({ t: 'adFree', value: true })")  # same state as the app path below
+    else:
+      await pg.click('#pcBuy'); await pg.wait_for_selector('#emSkip'); await shot('6b-email'); await pg.fill('#emIn', 'nope'); await pg.click('#emGo'); check(await pg.locator('#emErr').is_visible(), 'bad email is refused'); await pg.click('#emSkip'); await pg.wait_for_timeout(900)
+    if not WEB: txt = await pg.inner_text('.sheet'); check('Ad-free is on' in txt, 'Ad-free purchase (browser stand-in)')
     await pg.evaluate("document.querySelector('#sheet [data-close]').click()")
     # Second player in the Explorer band sees Colour Studio only.
     await pg.click('#hWho'); await pg.click('#pAdd'); await pg.fill('#npName', 'Tara'); await pg.click('[data-band="explorer"]'); await pg.click('#npGo')
