@@ -98,7 +98,7 @@ async def run_vp(b, name, w, h):
     a_txt, b_txt = q.split('×'); b_txt = b_txt.split('=')[0].strip(); a_txt = a_txt.strip()
     parts = a_txt.split('-'); a = T[parts[0]] + (W[parts[1]] if len(parts) > 1 else 0)
     await pg.fill('#gIn', str(a * W[b_txt])); await pg.click('#gOk')
-    await pg.wait_for_selector('#pcAdH'); await shot('6-parent')
+    await pg.wait_for_selector('#pcPrivacy' if WEB else '#pcAdH'); await shot('6-parent')
     if WEB:
         check(await pg.locator('#pcBuy').count() == 0, 'web: no Ad-free purchase in Parent Corner')
         await pg.evaluate("window.curioNative.receive({ t: 'adFree', value: true })")  # same state as the app path below
