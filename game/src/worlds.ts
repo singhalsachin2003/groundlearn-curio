@@ -3,18 +3,32 @@
 // three.js and fonts so the app works offline and stays small.
 import * as THREE_NS from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import colourSrc from '../worlds/colour.html?raw';
-import inventorSrc from '../worlds/inventor.html?raw';
-import tinkererSrc from '../worlds/tinkerer.html?raw';
-import explorerSrc from '../worlds/explorer.html?raw';
-import inventor2Src from '../worlds/inventor2.html?raw';
 import type { WorldId } from './labs';
 import { installFonts } from './fonts';
 import { makeTranslator } from './hi/translate';
 import { VO } from './vo';
 import { makeTinkererTranslator } from './hi/tinkerer';
 
-const SRC: Record<WorldId, string> = { colour: colourSrc, inventor: inventorSrc, tinkerer: tinkererSrc, explorer: explorerSrc, inventor2: inventor2Src };
+// Each world page is loaded when first needed. In the app's single-file build these
+// imports are inlined and resolve at once; on the web each world is its own small file.
+const LOAD: Record<WorldId, () => Promise<{ default: string }>> = {
+  colour: () => import('../worlds/colour.html?raw'),
+  inventor: () => import('../worlds/inventor.html?raw'),
+  tinkerer: () => import('../worlds/tinkerer.html?raw'),
+  explorer: () => import('../worlds/explorer.html?raw'),
+  inventor2: () => import('../worlds/inventor2.html?raw'),
+};
+const SRC: Partial<Record<WorldId, string>> = {};
+const pending: Partial<Record<WorldId, Promise<string>>> = {};
+/** Fetch a world's page (once). Retries on the next call if the network failed. */
+export function loadWorld(id: WorldId): Promise<string> {
+  if (SRC[id]) return Promise.resolve(SRC[id]!);
+  return (pending[id] ||= LOAD[id]().then(m => (SRC[id] = m.default), e => { delete pending[id]; throw e; }));
+}
+/** Warm every world in the background (after the island is showing) so opening a lab is instant. */
+export function preloadWorlds() {
+  (Object.keys(LOAD) as WorldId[]).forEach((id, i) => setTimeout(() => { loadWorld(id).catch(() => { /* tried again on open */ }); }, 400 * i));
+}
 
 // The prototypes expect a global THREE with OrbitControls attached, as the CDN build had.
 (window as unknown as Record<string, unknown>).curioTHREE = Object.assign({}, THREE_NS, { OrbitControls });
@@ -132,7 +146,9 @@ var ready=Promise.race([P.curioInstallFonts(document,FontFace),new Promise(funct
 document.addEventListener('DOMContentLoaded',function(){ready.then(function(){if(P.curioLang==='hi'&&document.getElementById('mMeta')){var nt=document.getElementById('noTR');var mk=!nt?P.curioMakeTR:(nt.getAttribute('data-tk')?P.curioMakeTK:null);if(mk){window.curioTR=mk();window.curioTR.observe(document);}}var s=document.getElementById('curio-main');var n=document.createElement('script');n.textContent=s.textContent;document.body.appendChild(n);if(P.curioWorldReady)P.curioWorldReady();});});})();`;
 
 export function worldDoc(id: WorldId): string {
-  let src = SRC[id]
+  let src = SRC[id];
+  if (src === undefined) throw new Error('world not loaded yet: ' + id);
+  src = src
     .replace(/<link[^>]*fonts\.g[^>]*>\s*/g, '')
     .replace(/<script src="https:\/\/cdn\.jsdelivr\.net[^"]*"><\/script>\s*/g, '');
   const at = src.indexOf('<script>');

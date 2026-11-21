@@ -4,6 +4,8 @@
   "scripts": {
     "setup": "npm --prefix game ci && npm --prefix app ci",
     "build:game": "npm --prefix game run build",
+    "build:web": "npm --prefix game run build:web",
+    "publish:web": "npm run build:web && node game/scripts/web-publish.mjs",
     "test:game": "python3 -I game/tests/smoke.py",
     "typecheck": "npm --prefix game run typecheck && npm --prefix app run typecheck",
     "start": "npm run build:game && npm --prefix app start"

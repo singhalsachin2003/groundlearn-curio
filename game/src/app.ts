@@ -5,7 +5,7 @@ import { applyUiScale, uiScale } from './scale';
 import { LABS, COMING, NEW_LABS, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
 import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
 import { send, onNative, inApp, isIOS, adsOn, locksOn } from './native';
-import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang } from './worlds';
+import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang, loadWorld, preloadWorlds } from './worlds';
 import { mascot, chestSvg, setOutfit, MASCOT, WEAR, type Mood } from './mascot';
 import { createIsland, ZONE_OF, GROWTH, type Island, type ZoneId, type ZoneState } from './island';
 import { EXAMPLES } from './examples';
@@ -73,6 +73,8 @@ export function start(el: HTMLElement) {
     <div id="toasts" class="toasts" aria-live="polite"></div>
     <div id="sheet" class="sheet-wrap" hidden><div class="sheet" role="dialog" aria-modal="true"></div></div>`;
   $('#wBack').onclick = () => leaveWorld();
+  // On the web each lab world is its own file: fetch them quietly once the island is up.
+  setTimeout(preloadWorlds, 2500);
   $('#wHelp').onclick = () => { if (current) example(current.lab); };
   $('#wCoins').onclick = () => coinsInfo();
   $('#wHearts').onclick = () => heartsInfo();
@@ -152,6 +154,7 @@ export function start(el: HTMLElement) {
   (window as unknown as Record<string, unknown>).__shell = { S, active, hub, storeWorldSave, mysterySheet, certPng }; // test hook
   setInterval(refreshPills, 1000);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !frame) onBack(); });
+  if (!inApp) browserBack();
   if (active()) hub(); else players();
   if (!S.seenRules) setTimeout(onboard, 400);
   send({ t: 'ready' });
@@ -512,8 +515,19 @@ function fitIsland() {
 window.addEventListener('resize', () => requestAnimationFrame(fitIsland));
 
 /* =================================================================== worlds */
+let opening = false;
+/** Open a lab. Its world page may still be downloading on the web, so wait for it first. */
 function enterWorld(lab: Lab) {
-  const p = active(); if (!p) return;
+  if (!active() || opening || current) return;
+  opening = true;
+  loadWorld(lab.world).then(
+    () => { opening = false; openWorld(lab); },
+    () => { opening = false; toast(t('netErr'), 'bad'); },
+  );
+}
+
+function openWorld(lab: Lab) {
+  const p = active(); if (!p || current) return;
   const patch: Record<string, unknown> = lab.world !== 'colour'
     ? { tab: lab.id, sound: S.sound, voice: S.voice !== false }
     : { mode: p.band, lang: S.lang, sound: S.sound };
@@ -573,11 +587,30 @@ function syncBanner(hubShown: boolean) {
 }
 
 function onBack() {
-  if (!$('#sheet').hidden) { closeSheet(); return; }
-  if (frame) { if (worldDialogOpen(frame)) worldEscape(frame); else leaveWorld(); return; }
-  if (active() && $('#screen').querySelector('.hub3d')) { players(); return; }
-  if ($('#screen').querySelector('.form') && S.profiles.length) { players(); return; }
-  send({ t: 'exit' });
+  if (!backStep()) send({ t: 'exit' });
+}
+
+/** One step back inside the game (close a panel, leave a lab, back to players). False when there is nowhere left to go. */
+function backStep(): boolean {
+  if (!$('#sheet').hidden) { closeSheet(); return true; }
+  if (frame) { if (worldDialogOpen(frame)) worldEscape(frame); else leaveWorld(); return true; }
+  if (active() && $('#screen').querySelector('.hub3d')) { players(); return true; }
+  if ($('#screen').querySelector('.form') && S.profiles.length) { players(); return true; }
+  return false;
+}
+
+/** In a browser, the Back button (or swipe) steps back inside the game like Android's Back
+ * button, instead of leaving the page mid-lab. A spare history entry is kept for it; browsers
+ * only honour one added after a tap, so it is re-armed on the next tap. */
+function browserBack() {
+  let armed = false;
+  const arm = () => { if (!armed) { armed = true; history.pushState({ curio: 1 }, ''); } };
+  window.addEventListener('pointerdown', arm, true);
+  window.addEventListener('popstate', () => {
+    if (!armed) return;
+    armed = false;
+    if (!backStep()) history.back();
+  });
 }
 
 /* =================================================================== coins and hearts */

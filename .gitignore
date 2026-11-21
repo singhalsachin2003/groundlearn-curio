@@ -2,3 +2,6 @@ node_modules/
 game/dist/
 .DS_Store
 *.log
+game/dist-web/
+game/public-web/vo/
+game/src/vo.web.gen.ts

@@ -1,11 +1,28 @@
 """Smoke test of the built game in headless Chromium.
-Run: python3 -I tests/smoke.py <out-dir>   (after `npm run build`)."""
+Run: python3 -I tests/smoke.py <out-dir>   (after `npm run build`).
+     python3 -I tests/smoke.py <out-dir> --web   (after `npm run build:web`: the split web build, served from /play/curio-island/)."""
 import sys, pathlib, asyncio, re
 from playwright.async_api import async_playwright
 
 HERE = pathlib.Path(__file__).resolve().parent
-DIST = (HERE.parent / 'dist' / 'index.html').read_text()
-OUT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else '/tmp/curio-shots'); OUT.mkdir(parents=True, exist_ok=True)
+WEB = '--web' in sys.argv
+ARGS = [a for a in sys.argv[1:] if a != '--web']
+DIST = None if WEB else (HERE.parent / 'dist' / 'index.html').read_text()
+WEB_DIR = HERE.parent / 'dist-web'
+URL = 'https://curio.test/play/curio-island/' if WEB else 'https://curio.test/'
+TYPES = {'.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.png': 'image/png', '.webmanifest': 'application/manifest+json'}
+OUT = pathlib.Path(ARGS[0] if ARGS else '/tmp/curio-shots'); OUT.mkdir(parents=True, exist_ok=True)
+
+async def serve(pg):
+    """App build: one HTML file. Web build: the files in dist-web, as the site will serve them."""
+    if not WEB:
+        await pg.route(URL, lambda r: r.fulfill(body=DIST, content_type='text/html')); return
+    async def handle(r):
+        rel = r.request.url.split('/play/curio-island/', 1)[1].split('?')[0] or 'index.html'
+        f = (WEB_DIR / rel).resolve()
+        if WEB_DIR.resolve() not in f.parents or not f.is_file(): await r.fulfill(status=404, body='not found'); return
+        await r.fulfill(body=f.read_bytes(), content_type=TYPES.get(f.suffix, 'application/octet-stream'))
+    await pg.route('https://curio.test/play/curio-island/**', handle)
 
 def check(cond, msg):
     if not cond: raise AssertionError(msg)
@@ -20,12 +37,12 @@ async def dismiss(pg):
     return False
 
 async def run_vp(b, name, w, h):
-    pg = await b.new_page(viewport={'width': w, 'height': h})
+    pg = await b.new_page(viewport={'width': w, 'height': h}, service_workers='block')
     errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
-    await pg.route('https://curio.test/', lambda r: r.fulfill(body=DIST, content_type='text/html'))
-    await pg.goto('https://curio.test/')
+    await serve(pg)
+    await pg.goto(URL)
     await pg.wait_for_timeout(500)
     async def shot(n):
         try: await pg.screenshot(path=str(OUT / f'{name}-{n}.png'), timeout=60000)
