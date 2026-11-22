@@ -208,7 +208,7 @@ function labPage(l: Lab) {
 <p class="hi" lang="hi">${esc(l.name.hi)} · ${esc(l.blurb.hi)}</p>
 <p class="lede">${esc(pg.about)}</p>
 <ul class="chips"><li class="subj" style="background:${s.color}">${esc(s.name)}</li><li>${esc(agesOf(l))}</li><li>${esc(countOf(l))}</li><li>English · हिंदी</li><li>Free, no sign-up</li></ul>
-<div class="btns"><a class="btn btn-sun" href="../../?lab=${l.id}">▶ Play ${esc(l.name.en)}</a><a class="btn btn-line" href="../">See all labs</a></div>
+<div class="btns"><a class="btn btn-sun" href="../../?lab=${l.id}">▶ Play ${esc(l.name.en)}</a><a class="btn btn-line" href="../../?lab=${l.id}&amp;lang=hi" lang="hi">▶ हिंदी में खेलो</a></div>
 <p class="mine" data-world="${l.world}" data-field="${l.progress.field}" data-total="${l.progress.total}"><span data-who="Playing as {who} in this browser" hidden></span> <span class="prog"></span></p>
 </div>
 ${shot(l.id) ? `<div class="phone"><img src="../img/${l.id}.webp" width="540" height="960" alt="A screen from the ${esc(l.name.en)} lab in Curio Island"></div>` : ''}
@@ -253,7 +253,7 @@ function libraryPage() {
 <p class="k">Curio Island · by GroundLearn</p>
 <h1>${LABS.length} hands-on science and maths labs</h1>
 <p class="lede">Mix colours, snap atoms, bend light, share ladoos and grow pea plants. Each lab is a short game with levels, a worked example and hints. Pick an age band to see the labs made for it.</p>
-<div class="btns"><a class="btn btn-sun" href="../">▶ Play free in your browser</a></div>
+<div class="btns"><a class="btn btn-sun" href="../">▶ Play free in your browser</a><a class="btn btn-line" href="../?lang=hi" lang="hi">▶ हिंदी में खेलो</a></div>
 <p class="mine"><span data-who="Showing progress for {who} in this browser" hidden></span></p>
 <div class="filters" role="group" aria-label="Age band">
 <button data-band="all" aria-pressed="true">All ages</button>

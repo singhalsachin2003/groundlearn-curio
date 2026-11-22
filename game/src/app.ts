@@ -55,7 +55,7 @@ const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-re
 /* =================================================================== boot */
 export function start(el: HTMLElement) {
   applyUiScale(); window.addEventListener('resize', applyUiScale);
-  root = el; setLang(S.lang);
+  root = el; if (isWeb) webLanguage(); setLang(S.lang);
   root.innerHTML = `
     <div id="islandHost" class="island-host" hidden></div>
     <main id="screen" class="screen"></main>
@@ -154,6 +154,7 @@ export function start(el: HTMLElement) {
   (window as unknown as Record<string, unknown>).__shell = { S, active, hub, storeWorldSave, mysterySheet, certPng }; // test hook
   setInterval(refreshPills, 1000);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !frame) onBack(); });
+  window.addEventListener('keydown', islandKeys);
   if (!inApp) browserBack();
   if (active()) hub(); else players();
   if (!S.seenRules) setTimeout(onboard, 400);
@@ -439,6 +440,7 @@ function hub() {
         ${daily}
         <button class="btn" id="hAll">🗺️ ${t('allWorkshops')}</button>
         <div class="hubrow"><button class="link hrules" id="hRules">ℹ️ ${t('rulesBtn')}</button>
+          ${canFullscreen() ? `<button class="pill hfull" id="hFull" aria-label="${t('fullScreen')}">⛶</button>` : ''}
           <button class="pill hmusic" id="hMusic" aria-pressed="${S.sound && S.music !== false}" aria-label="${t('musicLbl')}">${S.sound && S.music !== false ? '🎵' : '🔇'} ${t(S.sound && S.music !== false ? 'musicOn' : 'musicOff')}</button></div>
       </div>
     </div>`;
@@ -450,6 +452,9 @@ function hub() {
   $('#hParent').onclick = () => gate(parentCorner);
   $('#hAll').onclick = () => allWorkshops();
   $('#hRules').onclick = () => rules();
+  const full = document.getElementById('hFull'); if (full) full.onclick = () => toggleFullscreen();
+  // Computers: icon-only buttons show their name on hover.
+  document.querySelectorAll<HTMLElement>('#screen button[aria-label]:not([title])').forEach(b => b.title = b.getAttribute('aria-label')!);
   $('#hMusic').onclick = () => {
     // Turning music on also turns sound back on, since music cannot play with all sound off.
     const on = !(S.sound && S.music !== false); S.music = on; if (on) S.sound = true; saveShell();
@@ -470,6 +475,40 @@ function hub() {
   requestAnimationFrame(fitIsland);
   refreshPills();
   openLinkedLab(p);
+}
+
+/** Computers: on the island, ← → (or A D) walk between workshops, Enter or Space opens one,
+ * 1-5 open a workshop straight away, F toggles full screen on the web. */
+const KEY_ZONES: ZoneId[] = ['studio', 'kitchen', 'yard', 'garden', 'pond'];
+function islandKeys(e: KeyboardEvent) {
+  if (frame || !island || $('#islandHost').hidden || !$('#sheet').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  const tgt = e.target as HTMLElement | null;
+  if (tgt && /^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName)) return;
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'a' || k === 'd') {
+    e.preventDefault();
+    const id = island.focusStep(k === 'ArrowLeft' || k === 'a' ? -1 : 1);
+    toast(`${t(id)} · ${t('keyOpen')}`);
+  } else if ((k === 'Enter' || k === ' ') && tgt?.tagName !== 'BUTTON' && tgt?.tagName !== 'A') {
+    if (island.openFocused()) e.preventDefault();
+  } else if (/^[1-5]$/.test(k)) {
+    const id = KEY_ZONES[+k - 1]; island.focusZone(id); zoneSheet(id);
+  } else if (k === 'f' && canFullscreen()) toggleFullscreen();
+}
+/** Web: `?lang=hi` (from the lab pages) sets the language; on a first visit with no saves,
+ * a browser set to Hindi starts in Hindi. The players screen keeps its EN/हिं button. */
+function webLanguage() {
+  try {
+    const u = new URL(location.href), q = u.searchParams.get('lang');
+    if (q === 'hi' || q === 'en') {
+      S.lang = q; saveShell();
+      u.searchParams.delete('lang'); history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+    } else if (!S.profiles.length && /^hi\b/i.test(navigator.language || '')) S.lang = 'hi';
+  } catch { /* keep the saved language */ }
+}
+function canFullscreen() { return isWeb && !!document.fullscreenEnabled; }
+function toggleFullscreen() {
+  try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => { /* refused */ }); } catch { /* not supported */ }
 }
 
 /** The web lab pages link to `…/play/curio-island/?lab=<id>`: open that lab once a player is on

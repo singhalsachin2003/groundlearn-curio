@@ -46,7 +46,11 @@ function prop(id: ZoneId, colour: number): THREE.Object3D {
 /** Things that appear on the island as the player finishes labs, in order. */
 export const GROWTH = ['flowers', 'boat', 'lighthouse', 'rainbow', 'balloon', 'windmill', 'butterflies', 'star'] as const;
 
-export interface Island { setStickers(list: string[]): void; setGrowth(stage: number, popNew: boolean): void; setZones(z: ZoneState[]): void; fit(w: number, h: number, top: number, bottom: number, ui?: number): void; pause(p: boolean): void; dispose(): void }
+export interface Island {
+  /** Keyboard: move focus to the next workshop left (-1) or right (+1); returns its id. */ focusStep(d: number): ZoneId;
+  focusZone(id: ZoneId | null): void;
+  /** Keyboard: open the workshop in focus, as a tap would. False if none is in focus. */ openFocused(): boolean;
+  setStickers(list: string[]): void; setGrowth(stage: number, popNew: boolean): void; setZones(z: ZoneState[]): void; fit(w: number, h: number, top: number, bottom: number, ui?: number): void; pause(p: boolean): void; dispose(): void }
 
 export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, reduceMotion: boolean): Island {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -193,7 +197,7 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
   // Signs keep the same size on screen whether the workshop is at the front or the back of the island.
   let refDist = 10; const sp = new THREE.Vector3();
   function scaleSigns() {
-    zones.forEach(z => { if (!z.sign) return; z.sign.getWorldPosition(sp); z.sign.scale.copy(z.sign.userData.base).multiplyScalar(signScale * camera.position.distanceTo(sp) / refDist); });
+    zones.forEach((z, i) => { if (!z.sign) return; z.sign.getWorldPosition(sp); z.sign.scale.copy(z.sign.userData.base).multiplyScalar(signScale * (i === focused ? 1.3 : 1) * camera.position.distanceTo(sp) / refDist); });
   }
   const base = new THREE.Vector3();
   let signScale = 1;
@@ -228,6 +232,16 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
     if (zone) { zone.bump = 1; onTap(zone.id); }
   });
 
+  // Keyboard (computers): left/right walk between workshops in screen order, Enter opens the one in focus.
+  const ORDER = [...zones].sort((a, b) => a.group.position.x - b.group.position.x).map(z => zones.indexOf(z));
+  let focused = -1;
+  function focusStep(d: number): ZoneId {
+    const at = ORDER.indexOf(focused), next = at < 0 ? (d > 0 ? 0 : ORDER.length - 1) : (at + d + ORDER.length) % ORDER.length;
+    focused = ORDER[next]; zones[focused].bump = 1; scaleSigns(); return zones[focused].id;
+  }
+  function focusZone(id: ZoneId | null) { focused = id ? zones.findIndex(z => z.id === id) : -1; if (focused >= 0) zones[focused].bump = 1; scaleSigns(); }
+  function openFocused() { if (focused < 0) return false; zones[focused].bump = 1; onTap(zones[focused].id); return true; }
+
   let paused = false, raf = 0, last = performance.now(), time = 0;
   function frame(now: number) {
     raf = requestAnimationFrame(frame); if (paused) return;
@@ -251,7 +265,7 @@ export function createIsland(host: HTMLElement, onTap: (id: ZoneId) => void, red
   raf = requestAnimationFrame(frame);
 
   return {
-    setZones, setGrowth, setStickers, fit,
+    setZones, setGrowth, setStickers, fit, focusStep, focusZone, openFocused,
     pause(p: boolean) { paused = p; last = performance.now(); },
     dispose() {
       cancelAnimationFrame(raf);
