@@ -41,14 +41,23 @@ Add this paragraph once a build with Kidoz ads (app/modules/kidoz-ads) is live o
 
 ## 3. App Store Connect > App Privacy
 
-Answers for the build without ads. Before submitting a build with Kidoz ads, add the data types Kidoz lists on the "iOS Data Safety" page in its publisher dashboard (accounts.kidoz.net), with the purpose "Third-Party Advertising", not used for tracking.
+The first two rows of the second table are only for a build with Kidoz ads (app/modules/kidoz-ads); leave them out while the iOS app shows no ads.
 
 | Question | Answer |
 | --- | --- |
 | Do you or your third-party partners collect data from this app? | Yes |
 | Contact Info > Email Address | Collected. Purpose: Developer's Advertising or Marketing (news emails to the grown-up). Linked to the user: Yes. Used for tracking: No. |
 | Purchases > Purchase History | Collected (RevenueCat). Purpose: App Functionality. Linked to the user: No (random app-created ID only). Used for tracking: No. |
-| Identifiers, Location, Health, Financial Info, Contacts, User Content, Browsing/Search History, Usage Data, Diagnostics, Sensitive Info, Other | Not collected |
+| Identifiers, Location, Health, Financial Info, Contacts, User Content, Browsing/Search History, Usage Data, Diagnostics, Sensitive Info, Other | Not collected (but see the Kidoz rows below for a build with ads) |
+
+With Kidoz ads, add these two, exactly as Kidoz's "iOS Data Safety" page in its publisher dashboard (accounts.kidoz.net > iOS Data Safety, read 22 Nov 2026) sets them:
+
+| Data type | Answer |
+| --- | --- |
+| Location > Coarse Location (Kidoz) | Collected. Purpose: Developer's Advertising or Marketing only. Linked to the user: No. Used for tracking: No. |
+| Diagnostics > Other Diagnostic Data (Kidoz) | Collected. Purpose: Developer's Advertising or Marketing only. Linked to the user: No. Used for tracking: No. |
+
+Kidoz's reasons: the SDK collects a truncated IP address (city-level location at most, per COPPA), ad interactions (views, clicks, video playback, viewability) and ad diagnostics (performance, loading and playback errors), all sent over TLS, only to serve compliant ads. Everything else on Apple's list stays unticked for Kidoz, including Identifiers, Advertising Data, Product Interaction, Crash Data and Performance Data. The App Store page then shows "Data Linked to You: Contact Info" and "Data Not Linked to You: Purchases, Location, Diagnostics", with no "Data Used to Track You" section.
 | Tracking (App Tracking Transparency) | No tracking; no ATT prompt |
 | Privacy Policy URL | https://groundlearn.com/curio/privacy/ |
 
