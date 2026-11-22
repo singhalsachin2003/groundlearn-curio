@@ -469,6 +469,21 @@ function hub() {
   if (fresh || p.grown === undefined) { p.grown = st; saveShell(); }
   requestAnimationFrame(fitIsland);
   refreshPills();
+  openLinkedLab(p);
+}
+
+/** The web lab pages link to `…/play/curio-island/?lab=<id>`: open that lab once a player is on
+ * the island. If it is made for another age band, say so (a grown-up can add a player for it). */
+let linkedLab = (() => {
+  try { const u = new URL(location.href), id = u.searchParams.get('lab'); if (id) { u.searchParams.delete('lab'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); } return id; } catch { return null; }
+})();
+function openLinkedLab(p: Profile) {
+  if (!linkedLab) return;
+  const lab = LABS.find(l => l.id === linkedLab); linkedLab = null;
+  if (!lab) return;
+  if (labsFor(p.band).includes(lab)) { setTimeout(() => enterWorld(lab), 400); return; }
+  const band = (['explorer', 'tinkerer', 'inventor'] as const).find(b => labsFor(b).includes(lab));
+  toast(t('labOtherBand').replace('{lab}', lab.name[getLang()]).replace('{band}', band ? t(band) : ''), 'bad');
 }
 
 const ZONE_SUBJECT: Record<ZoneId, Lab['subject']> = { studio: 'colour', kitchen: 'chem', yard: 'phy', garden: 'math', pond: 'bio' };

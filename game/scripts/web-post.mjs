@@ -18,7 +18,8 @@ const files = [];
   }
 })(dist);
 
-const core = files.filter(f => !f.startsWith('vo/') && f !== 'sw.js' && f !== 'index.html');
+// The game itself. Voice clips are cached as they play; the lab pages (labs/) are ordinary web pages, not part of the offline game.
+const core = files.filter(f => !f.startsWith('vo/') && !f.startsWith('labs/') && f !== 'sw.js' && f !== 'index.html' && f !== 'sitemap.xml');
 const hash = createHash('sha1');
 for (const f of [...core, 'index.html']) hash.update(f).update(readFileSync(resolve(dist, f)));
 const version = hash.digest('hex').slice(0, 10);
@@ -33,18 +34,24 @@ self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('curio-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  // The page itself: try the network first so updates arrive, fall back to the cache offline.
+  const req = e.request, url = new URL(req.url), root = new URL('./', self.registration.scope).pathname;
+  if (req.method !== 'GET' || url.origin !== location.origin) return;
+  // The game page itself (with or without ?lab=): network first so updates arrive, cache when offline.
   if (req.mode === 'navigate') {
+    if (url.pathname !== root && url.pathname !== root + 'index.html') return; // lab pages: plain browsing
     e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put('./', copy)); return r; }).catch(() => caches.match('./')));
     return;
   }
-  // Everything else has a content hash in its name (or never changes): cache first.
-  e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => {
-    if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
-    return r;
-  })));
+  // Files with a content hash in their name, and voice clips, never change: cache first.
+  if (url.pathname.startsWith(root + 'assets/') || url.pathname.startsWith(root + 'vo/')) {
+    e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => {
+      if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
+      return r;
+    })));
+    return;
+  }
+  // Icons and the manifest: network first, cached copy offline. Anything else: plain browsing.
+  if (CORE.some(f => url.pathname === root + f)) e.respondWith(fetch(req).catch(() => caches.match(req)));
 });
 `;
 writeFileSync(resolve(dist, 'sw.js'), sw);

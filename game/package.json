@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build && node scripts/export-to-app.mjs",
-    "build:web": "node scripts/web-vo.mjs && tsc --noEmit && vite build --mode web && node scripts/web-post.mjs",
+    "build:web": "node scripts/web-vo.mjs && tsc --noEmit && vite build --mode web && node --experimental-strip-types --no-warnings scripts/web-labs.ts && node scripts/web-post.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
