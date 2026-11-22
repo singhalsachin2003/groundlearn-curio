@@ -354,3 +354,12 @@ s.was{text-decoration-thickness:2px;opacity:.7;font-weight:600;margin-right:2px}
 .web-banner{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;align-items:flex-start;padding:5px 0 calc(5px + env(safe-area-inset-bottom,0px));background:#0d1328;border-top:1px solid rgba(255,255,255,.08)}
 .web-banner[hidden]{display:none}
 .screen,.island-host,.sheet-wrap{bottom:var(--webBanner,0px)}
+
+/* Offline limit reached (offline.ts): covers everything, lifts by itself when the internet is back. */
+.offblock{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px;background:rgba(8,12,30,.88);backdrop-filter:blur(4px)}
+.offcard{max-width:420px;width:100%;background:var(--card,#fffaf0);color:var(--ink,#16234a);border-radius:24px;padding:26px 22px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.offcard .officon{font-size:46px;line-height:1;margin-bottom:10px}
+.offcard h2{margin:0 0 10px;font-size:22px;line-height:1.2}
+.offcard p{margin:0 0 12px;line-height:1.45}
+.offcard .offsmall{font-size:14px;opacity:.75}
+.offcard .btn{margin-top:6px;min-width:180px}

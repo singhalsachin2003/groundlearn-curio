@@ -55,6 +55,9 @@ export interface Shell {
   music?: boolean;
   adsForHearts: boolean;
   adFree: boolean;
+  /** Offline play used today by a free player (offline.ts): the day, and seconds used. */
+  offDay?: string;
+  offSec?: number;
   seenRules?: boolean;
   /** 'given' or 'skipped' once a grown-up has answered the email question (the address itself is never kept on the device). */
   parentEmail?: 'given' | 'skipped';
@@ -64,6 +67,8 @@ export interface Shell {
 
 /** Tunable numbers from the plan. Change here, nowhere else. */
 export const RULES = {
+  /** Free players without internet get this much play a day (seconds), then are asked to reconnect. */
+  offlineGraceSec: 600,
   maxHearts: 5,
   refillMin: 20,
   refillMinAdFree: 10,

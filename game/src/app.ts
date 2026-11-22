@@ -5,6 +5,7 @@ import { applyUiScale, uiScale } from './scale';
 import { LABS, COMING, NEW_LABS, WORLD_SAVE_KEY, LEVEL_FIELDS, FOUND_FIELDS, labProgress, type Band, type Lab, type WorldId } from './labs';
 import { S, RULES, active, addProfile, removeProfile, resetProgress, saveShell, readSlot, loadWorldSave, storeWorldSave, regen, msToNextHeart, loseHeart, gainHeart, buyHeart, adHeartsLeft, countAdHeart, addCoins, snapshot, onSave, type Profile } from './state';
 import { send, onNative, inApp, isIOS, isWeb, realAds, adsOn, locksOn } from './native';
+import { startOfflineGuard, refreshOfflineGuard } from './offline';
 import { mountWorld, unmountWorld, worldDialogOpen, worldEscape, setWorldLang, loadWorld, preloadWorlds } from './worlds';
 import { mascot, chestSvg, setOutfit, MASCOT, WEAR, type Mood } from './mascot';
 import { createIsland, ZONE_OF, GROWTH, type Island, type ZoneId, type ZoneState } from './island';
@@ -91,7 +92,7 @@ export function start(el: HTMLElement) {
   });
 
   onNative(m => {
-    if (m.t === 'adFree') { S.adFree = m.value; syncBanner(!$('#islandHost').hidden); if (m.price) { price = m.price; wasPrice = m.was || ''; } saveShell(); refreshPills(); if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
+    if (m.t === 'adFree') { S.adFree = m.value; refreshOfflineGuard(); syncBanner(!$('#islandHost').hidden); if (m.price) { price = m.price; wasPrice = m.was || ''; } saveShell(); refreshPills(); if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
     if (m.t === 'purchase' && !m.ok && m.message) toast(m.message);
     // A purchase or trial that did not go through: redraw Parent Corner so its buttons work again.
     if (m.t === 'purchase' && !m.ok) { trialAsked = false; if (!$('#sheet').hidden && $('#sheet').dataset.kind === 'parent') parentCorner(); }
@@ -156,6 +157,8 @@ export function start(el: HTMLElement) {
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !frame) onBack(); });
   window.addEventListener('keydown', islandKeys);
   if (!inApp) browserBack();
+  // Free players get 10 minutes a day without internet (ads pay for the game); Ad-free players are never limited.
+  startOfflineGuard(() => realAds && adsOn && !S.adFree, msg => toast(msg));
   if (active()) hub(); else players();
   if (!S.seenRules) setTimeout(onboard, 400);
   send({ t: 'ready' });
