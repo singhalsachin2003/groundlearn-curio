@@ -27,4 +27,9 @@ export const CONFIG = {
    * The store records when it was taken, so the trial cannot restart by reinstalling. Empty on Android. */
   trialProductId: Platform.OS === 'ios' ? 'curio_trial_7day' : '',
   trialDays: 7,
+  /** iOS only: Kidoz, the kids-certified ad network (Apple Kids Category). Publisher 15962 is GroundLearn's
+   * account at accounts.kidoz.net; the token is the SDK token from that account's page, and ships in the app
+   * like Kidoz's own sample. Lighter ads than Android: full-screen only after a finished level, rewarded ads
+   * only when a child chooses one, no banner. */
+  kidoz: Platform.OS === 'ios' ? { publisherId: '15962', securityToken: 'ELBXRBIS0XTApV7MVI9RQsHl1dnsqwHV' } : null,
 };

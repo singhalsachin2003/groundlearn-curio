@@ -4,10 +4,15 @@ import { withInfoPlist, type ConfigPlugin } from 'expo/config-plugins';
 // Curio Island's AdMob app (singhalsachin2003@gmail.com).
 const ADMOB_APP_ID = 'ca-app-pub-4560268294594538~5396479019';
 
-/** Removes the Google Mobile Ads keys from the iOS Info.plist (AdMob is Android-only).
+/** Kidoz's SKAdNetwork id (kid-safe ads on iOS, app/modules/kidoz-ads): the only ad network id the iOS app lists. */
+const KIDOZ_SKADNETWORK = 'v79kvwwj4g.skadnetwork';
+
+/** Removes the Google Mobile Ads keys from the iOS Info.plist (AdMob is Android-only) and leaves
+ * Kidoz's SKAdNetwork id as the only one (the AdMob plugin adds Google's long list).
  * Registered on the config itself, before the `plugins` list, so its mod runs after theirs. */
 const withoutIosAdMob: ConfigPlugin = c => withInfoPlist(c, mod => {
-  for (const k of ['GADApplicationIdentifier', 'GADDelayAppMeasurementInit', 'SKAdNetworkItems', 'NSUserTrackingUsageDescription']) delete mod.modResults[k];
+  for (const k of ['GADApplicationIdentifier', 'GADDelayAppMeasurementInit', 'NSUserTrackingUsageDescription']) delete mod.modResults[k];
+  mod.modResults.SKAdNetworkItems = [{ SKAdNetworkIdentifier: KIDOZ_SKADNETWORK }];
   return mod;
 });
 

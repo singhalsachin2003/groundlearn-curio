@@ -1,4 +1,4 @@
-// No-ads build: used on iOS (and anywhere without an ads.<platform>.ts). Android picks
+// No-ads build: used anywhere without an ads.<platform>.ts (iOS uses ads.ios.ts, Kidoz; Android picks
 // ads.android.ts (AdMob) instead; Metro prefers the platform file, so this one never
 // ships there and the iOS bundle never imports react-native-google-mobile-ads.
 //

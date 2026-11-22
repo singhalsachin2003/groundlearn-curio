@@ -35,13 +35,13 @@ submitting to the App Store, and bump "Last updated".
 >
 > **Parent email (optional).** As on Android, after the unlock purchase a grown-up may choose to share an email address for news about Curio Island and GroundLearn. It is never asked of a child and is never used for advertising, sold or shared.
 
-Add this paragraph only once kids-safe ads are live in the iOS app (until then the iOS app shows no ads):
+Add this paragraph once a build with Kidoz ads (app/modules/kidoz-ads) is live on the App Store (until then the iOS app shows no ads):
 
-> **Advertising on iPhone and iPad.** The free version may show a few ads from SuperAwesome (AwesomeAds), a network certified for children's apps. Its ads are contextual: they are chosen from the app's content, not from information about your child, and they are reviewed by people before they run. Full-screen ads appear only after a finished level. A child sees a reward ad only when they choose "Watch an ad". Unlocking the whole island removes ads. SuperAwesome receives only the technical information it needs to deliver an ad to the device. [SuperAwesome ad standards](https://www.superawesome.com/superawesome-ad-standards)
+> **Advertising on iPhone and iPad.** The free version may show a few ads from Kidoz, an ad network certified for children's apps (COPPA Safe Harbor through PRIVO) that follows Apple's Kids Category rules: its ads are contextual, chosen from the app's content and not from information about your child, and reviewed by people before they run. A full-screen ad appears only after a finished level, never in the first minutes. A child sees a reward ad only when they choose "Watch an ad" for a heart. There are no banner ads on iPhone and iPad. Unlocking the whole island removes ads. Kidoz receives only the technical information it needs to deliver an ad to the device; the app does not use Apple's advertising identifier and never asks to track. [Kidoz privacy policy](https://www.kidoz.net/privacy-policies)
 
 ## 3. App Store Connect > App Privacy
 
-Answers for the build without ads. Recheck against SuperAwesome's own App Privacy guidance when ads are added.
+Answers for the build without ads. Before submitting a build with Kidoz ads, add the data types Kidoz lists on the "iOS Data Safety" page in its publisher dashboard (accounts.kidoz.net), with the purpose "Third-Party Advertising", not used for tracking.
 
 | Question | Answer |
 | --- | --- |
