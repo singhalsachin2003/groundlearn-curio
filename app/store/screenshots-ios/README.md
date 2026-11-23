@@ -5,3 +5,5 @@
 
 Same eight scenes on both, in upload order: the island, Molecules, Colour Studio, Body, Launch, Mirror Maze (Tinkerer), Fizz Kitchen (Explorer), All workshops.
 They show the unlocked island (no lock badges). Regenerate with `game/scripts/store_screenshots.py`.
+
+- `iap-review.png`: review screenshot for the three in-app purchases (Parent Corner with the 7-day trial and the unlock).
