@@ -1,9 +1,45 @@
 {
-  "cli": { "version": ">= 16.0.0", "appVersionSource": "remote" },
-  "build": {
-    "development": { "developmentClient": true, "distribution": "internal", "android": { "buildType": "apk" }, "env": { "EXPO_PUBLIC_TEST_ADS": "1" } },
-    "preview": { "distribution": "internal", "android": { "buildType": "apk" }, "env": { "EXPO_PUBLIC_TEST_ADS": "1" } },
-    "production": { "autoIncrement": true, "android": { "buildType": "app-bundle" } }
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
   },
-  "submit": { "production": { "android": { "track": "internal", "releaseStatus": "draft" } } }
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_TEST_ADS": "1"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_TEST_ADS": "1"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      },
+      "ios": {
+        "ascAppId": "6838385970",
+        "appleTeamId": "V2456DGK34"
+      }
+    }
+  }
 }
