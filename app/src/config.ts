@@ -3,9 +3,8 @@
 import { Platform } from 'react-native';
 
 export const CONFIG = {
-  // Each store has its own RevenueCat key. The iOS one (appl_…) comes from EAS env
-  // until the App Store app exists in RevenueCat; without it iOS builds cannot sell.
-  revenueCatKey: Platform.OS === 'ios' ? (process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '') : 'goog_PEVLLGaTqOfSxQyoSfZOqeSQkoV',
+  // Each store has its own RevenueCat key (project Curio Island: "Curio Island (App Store)" and "(Play Store)").
+  revenueCatKey: Platform.OS === 'ios' ? 'appl_etwMWxmcmrvKzllsmyJOWosqryZ' : 'goog_PEVLLGaTqOfSxQyoSfZOqeSQkoV',
   /** How the store and the buyer's account read in a sentence. */
   storeAccount: Platform.OS === 'ios' ? 'Apple Account' : 'Google account',
   storeName: Platform.OS === 'ios' ? 'Apple' : 'Google',
