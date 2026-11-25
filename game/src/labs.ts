@@ -15,9 +15,11 @@ export interface Lab {
   progress: { field: string; total: number; kind: 'levels' | 'found' };
   /** Labs made for one age band only (the Tinkerer labs); the rest are open to older bands. */
   only?: Band;
+  /** Built and kept in the code, but shown as "coming soon" and not playable yet (see SOON_LABS). */
+  soon?: boolean;
 }
 
-export const LABS: Lab[] = [
+const ALL_LABS: Lab[] = [
   { id: 'colour', world: 'colour', subject: 'colour', icon: '🎨', name: { en: 'Colour Studio', hi: 'रंगों की कार्यशाला' }, blurb: { en: 'Mix paint and light', hi: 'रंग और रोशनी मिलाओ' }, progress: { field: 'found', total: 16, kind: 'found' } },
   { id: 'forge', world: 'inventor', subject: 'chem', icon: '⚛️', name: { en: 'Molecules', hi: 'अणु' }, blurb: { en: 'Build real molecules', hi: 'असली अणु बनाओ' }, progress: { field: 'forgeFound', total: 36, kind: 'found' } },
   { id: 'react', world: 'inventor', subject: 'chem', icon: '🧪', name: { en: 'Reactions', hi: 'अभिक्रियाएँ' }, blurb: { en: 'Mix, heat and test', hi: 'मिलाओ, गरम करो, जाँचो' }, progress: { field: 'rxFound', total: 17, kind: 'found' } },
@@ -67,12 +69,12 @@ export const LABS: Lab[] = [
   // Round 6: one new lab in every subject for each age band.
   { id: 'mix', world: 'explorer', only: 'explorer', subject: 'colour', icon: '🖌️', name: { en: 'Colour Mixing', hi: 'रंग मिलाओ' }, blurb: { en: 'Two colours make a new one', hi: 'दो रंगों से नया रंग' }, progress: { field: 'mixDone', total: 10, kind: 'levels' } },
   { id: 'states', world: 'explorer', only: 'explorer', subject: 'chem', icon: '🧊', name: { en: 'Solid or Liquid', hi: 'ठोस या तरल' }, blurb: { en: 'Sort what you see', hi: 'जो दिखे उसे छाँटो' }, progress: { field: 'statesDone', total: 10, kind: 'levels' } },
-  { id: 'float', world: 'explorer', only: 'explorer', subject: 'phy', icon: '🛟', name: { en: 'Float or Sink', hi: 'तैरेगा या डूबेगा' }, blurb: { en: 'Drop it in the water', hi: 'पानी में डालकर देखो' }, progress: { field: 'floatDone', total: 10, kind: 'levels' } },
+  { id: 'float', world: 'explorer', soon: true, only: 'explorer', subject: 'phy', icon: '🛟', name: { en: 'Float or Sink', hi: 'तैरेगा या डूबेगा' }, blurb: { en: 'Drop it in the water', hi: 'पानी में डालकर देखो' }, progress: { field: 'floatDone', total: 10, kind: 'levels' } },
   { id: 'count', world: 'explorer', only: 'explorer', subject: 'math', icon: '🔢', name: { en: 'Count Them', hi: 'गिनती करो' }, blurb: { en: 'How many can you see?', hi: 'कितने दिख रहे हैं?' }, progress: { field: 'countDone', total: 10, kind: 'levels' } },
-  { id: 'home', world: 'explorer', only: 'explorer', subject: 'bio', icon: '🏡', name: { en: 'Animal Homes', hi: 'जानवरों के घर' }, blurb: { en: 'Who lives where?', hi: 'कौन कहाँ रहता है?' }, progress: { field: 'homeDone', total: 10, kind: 'levels' } },
-  { id: 'magnet', world: 'inventor2', only: 'tinkerer', subject: 'phy', icon: '🧲', name: { en: 'Magnet Hunt', hi: 'चुंबक की खोज' }, blurb: { en: 'What will a magnet pull?', hi: 'चुंबक क्या खींचेगा?' }, progress: { field: 'magnetDone', total: 5, kind: 'levels' } },
-  { id: 'life', world: 'inventor2', only: 'tinkerer', subject: 'bio', icon: '🦋', name: { en: 'Life Cycles', hi: 'जीवन चक्र' }, blurb: { en: 'From egg to grown-up', hi: 'अंडे से बड़े होने तक' }, progress: { field: 'lifeDone', total: 6, kind: 'levels' } },
-  { id: 'ph', world: 'inventor2', subject: 'chem', icon: '🧫', name: { en: 'Acids and Bases', hi: 'अम्ल और क्षार' }, blurb: { en: 'Change the pH, watch the colour', hi: 'pH बदलो, रंग देखो' }, progress: { field: 'phDone', total: 6, kind: 'levels' } },
+  { id: 'home', world: 'explorer', soon: true, only: 'explorer', subject: 'bio', icon: '🏡', name: { en: 'Animal Homes', hi: 'जानवरों के घर' }, blurb: { en: 'Who lives where?', hi: 'कौन कहाँ रहता है?' }, progress: { field: 'homeDone', total: 10, kind: 'levels' } },
+  { id: 'magnet', world: 'inventor2', soon: true, only: 'tinkerer', subject: 'phy', icon: '🧲', name: { en: 'Magnet Hunt', hi: 'चुंबक की खोज' }, blurb: { en: 'What will a magnet pull?', hi: 'चुंबक क्या खींचेगा?' }, progress: { field: 'magnetDone', total: 5, kind: 'levels' } },
+  { id: 'life', world: 'inventor2', soon: true, only: 'tinkerer', subject: 'bio', icon: '🦋', name: { en: 'Life Cycles', hi: 'जीवन चक्र' }, blurb: { en: 'From egg to grown-up', hi: 'अंडे से बड़े होने तक' }, progress: { field: 'lifeDone', total: 6, kind: 'levels' } },
+  { id: 'ph', world: 'inventor2', soon: true, subject: 'chem', icon: '🧫', name: { en: 'Acids and Bases', hi: 'अम्ल और क्षार' }, blurb: { en: 'Change the pH, watch the colour', hi: 'pH बदलो, रंग देखो' }, progress: { field: 'phDone', total: 6, kind: 'levels' } },
   { id: 'filter', world: 'inventor2', subject: 'colour', icon: '🔦', name: { en: 'Coloured Light', hi: 'रंगीन रोशनी' }, blurb: { en: 'Why things look coloured', hi: 'चीज़ें रंगीन क्यों दिखती हैं' }, progress: { field: 'filterDone', total: 6, kind: 'levels' } },
   { id: 'senses', world: 'inventor2', only: 'tinkerer', subject: 'bio', icon: '👀', name: { en: 'Five Senses', hi: 'पाँच इंद्रियाँ' }, blurb: { en: 'Which sense do you use?', hi: 'कौन सी इंद्रिय काम आई?' }, progress: { field: 'sensesDone', total: 5, kind: 'levels' } },
   { id: 'plants', world: 'inventor2', only: 'tinkerer', subject: 'bio', icon: '🌿', name: { en: 'Plant Parts', hi: 'पौधे के भाग' }, blurb: { en: 'Roots, stem, leaf, flower', hi: 'जड़, तना, पत्ती, फूल' }, progress: { field: 'plantsDone', total: 5, kind: 'levels' } },
@@ -80,19 +82,22 @@ export const LABS: Lab[] = [
   { id: 'shapes', world: 'inventor2', only: 'tinkerer', subject: 'math', icon: '🔷', name: { en: 'Shape Hunt', hi: 'आकृतियों की खोज' }, blurb: { en: 'Corners, sides and rolling', hi: 'कोने, भुजाएँ और लुढ़कना' }, progress: { field: 'shapeDone', total: 5, kind: 'levels' } },
   { id: 'forces', world: 'inventor2', only: 'tinkerer', subject: 'phy', icon: '💪', name: { en: 'Push and Pull', hi: 'धक्का और खिंचाव' }, blurb: { en: 'Pushes, pulls and gravity', hi: 'धक्का, खिंचाव और गुरुत्व' }, progress: { field: 'forceDone', total: 5, kind: 'levels' } },
   { id: 'coins', world: 'inventor2', only: 'tinkerer', subject: 'math', icon: '🪙', name: { en: 'Coins and Change', hi: 'सिक्के और छुट्टे' }, blurb: { en: 'Make money with coins', hi: 'सिक्कों से रक़म बनाओ' }, progress: { field: 'coinsDone', total: 5, kind: 'levels' } },
-  { id: 'angle', world: 'inventor2', subject: 'math', icon: '📐', name: { en: 'Angle Maker', hi: 'कोण बनाओ' }, blurb: { en: 'Judge angles by eye', hi: 'आँख से कोण का अंदाज़ा' }, progress: { field: 'angleDone', total: 6, kind: 'levels' } },
+  { id: 'angle', world: 'inventor2', soon: true, subject: 'math', icon: '📐', name: { en: 'Angle Maker', hi: 'कोण बनाओ' }, blurb: { en: 'Judge angles by eye', hi: 'आँख से कोण का अंदाज़ा' }, progress: { field: 'angleDone', total: 6, kind: 'levels' } },
 ];
 
 
 /** Labs added in the latest update: they wear a "New" ribbon until first played. */
 export const NEW_LABS = new Set(['mix', 'states', 'float', 'count', 'home', 'magnet', 'life', 'ph', 'filter', 'angle', 'senses', 'plants', 'materials', 'shapes', 'forces', 'coins']);
 
-/** Planned games (none right now) shown as "coming soon" so younger bands can see what is on the way. */
-export const COMING: Record<Band, { icon: string; en: string; hi: string; subject: Subject }[]> = {
-  explorer: [],
-  tinkerer: [],
-  inventor: [],
-};
+/** The labs a player can open: every lab except the ones held back as "coming soon". */
+export const LABS: Lab[] = ALL_LABS.filter(l => !l.soon);
+/** Labs that are built but held back to keep the excitement going: two per age band, shown as "coming soon" cards
+ * in the lab lists. To release one, delete its `soon: true` above. They stay out of LABS, so the daily pick, the
+ * lab gates, the web lab pages and the sitemap never see them. */
+export const SOON_LABS: Lab[] = ALL_LABS.filter(l => l.soon);
+const bandOfLab = (l: Lab): Band => l.only || 'inventor';
+export const COMING: Record<Band, { icon: string; en: string; hi: string; subject: Subject }[]> = { explorer: [], tinkerer: [], inventor: [] };
+for (const l of SOON_LABS) COMING[bandOfLab(l)].push({ icon: l.icon, en: l.name.en, hi: l.name.hi, subject: l.subject });
 
 export const WORLD_SAVE_KEY: Record<WorldId, string> = { colour: 'curio-colour-v1', inventor: 'curio-inventor-v1', tinkerer: 'curio-tinkerer-v1', explorer: 'curio-explorer-v1', inventor2: 'curio-inventor2-v1' };
 

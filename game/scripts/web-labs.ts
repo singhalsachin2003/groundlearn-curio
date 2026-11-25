@@ -6,7 +6,7 @@
 import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { LABS, type Lab, type Band } from '../src/labs.ts';
+import { LABS, SOON_LABS, type Lab, type Band } from '../src/labs.ts';
 import { EXAMPLES } from '../src/examples.ts';
 import { LAB_PAGES } from '../web/lab-pages.ts';
 
@@ -38,9 +38,10 @@ const countOf = (l: Lab) => `${l.progress.total} ${l.progress.kind === 'levels' 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const shot = (id: string) => existsSync(resolve(game, 'web/shots', id + '.webp'));
 
-// Every lab needs page text; fail the build if one is missing or extra.
+// Every lab needs page text; fail the build if one is missing or extra. Labs held back as "coming soon" keep their text
+// ready but get no page, no sitemap entry and no screenshot copy until they are released.
 const missing = LABS.filter(l => !LAB_PAGES[l.id]).map(l => l.id);
-const extra = Object.keys(LAB_PAGES).filter(id => !LABS.some(l => l.id === id));
+const extra = Object.keys(LAB_PAGES).filter(id => !LABS.some(l => l.id === id) && !SOON_LABS.some(l => l.id === id));
 if (missing.length || extra.length) throw new Error(`web/lab-pages.ts: missing ${missing.join(', ') || '-'}; unknown ${extra.join(', ') || '-'}`);
 
 const FONTS = `@font-face{font-family:"Bricolage";src:url(fonts/display.woff2) format("woff2");font-weight:200 800;font-display:swap}
@@ -247,6 +248,8 @@ function libraryPage() {
 <p class="place">${esc(s.place)}</p>
 <div class="cards">${labs.map(l => card(l, 1)).join('')}</div></div></section>`;
   }).join('');
+  const soonStrip = SOON_LABS.length ? `<section class="subject" id="soon"><div class="wrap"><h2>🔜 Coming soon <small>${SOON_LABS.length} more labs on the way</small></h2>
+<p class="place">${SOON_LABS.map(l => `${l.icon} ${esc(l.name.en)}`).join(' · ')}</p></div></section>` : '';
   return head({ title, desc, url, img: 'https://curioisland.groundlearn.com/img/og.jpg', depth: 1, ld }) + bar(1) + `
 <main class="lib">
 <section class="hero" style="padding-bottom:10px"><div class="wrap" style="display:block">
@@ -262,6 +265,7 @@ function libraryPage() {
 <button data-band="inventor" aria-pressed="false">Inventor · 10+</button>
 </div></div></section>
 ${groups}
+${soonStrip}
 </main><script>${FILTER_JS}</script>` + footer(1);
 }
 
@@ -272,7 +276,7 @@ mkdirSync(resolve(out, 'img'), { recursive: true });
 const nm = resolve(game, 'node_modules/@fontsource-variable');
 cpSync(resolve(nm, 'lexend/files/lexend-latin-wght-normal.woff2'), resolve(out, 'fonts/body.woff2'));
 cpSync(resolve(nm, 'bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2'), resolve(out, 'fonts/display.woff2'));
-if (existsSync(resolve(game, 'web/shots'))) for (const f of readdirSync(resolve(game, 'web/shots'))) if (f.endsWith('.webp')) cpSync(resolve(game, 'web/shots', f), resolve(out, 'img', f));
+if (existsSync(resolve(game, 'web/shots'))) for (const f of readdirSync(resolve(game, 'web/shots'))) if (f.endsWith('.webp') && !SOON_LABS.some(l => f === l.id + '.webp')) cpSync(resolve(game, 'web/shots', f), resolve(out, 'img', f));
 writeFileSync(resolve(out, 'labs.css'), CSS);
 writeFileSync(resolve(out, 'labs.js'), JS);
 writeFileSync(resolve(out, 'index.html'), libraryPage());
